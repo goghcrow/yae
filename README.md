@@ -1,2 +1,2 @@
 # yae
-yet another expression engine
+Yet Another Golang Expression Engine
