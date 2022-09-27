@@ -4,10 +4,12 @@ import "github.com/goghcrow/yae/util"
 
 type Type int
 
+// 这里其实可以 func (t *Kind) IsXXX() 然后私有化 Type 字段
+// 但是使用的地方就不能用 switch, 得写一堆 if k.isXXX(), so 直接用吧, 别改就行了
 const (
-	TTop Type = iota // seq
+	TTop Type = iota
 	TBottom
-	THold
+	TSlot // type variable
 
 	_Primitive_
 	TNum
@@ -16,6 +18,7 @@ const (
 	TTime
 
 	_Composite_ // seq
+	TTuple      // 内部使用 for 类型推导
 	TList
 	TMap
 	TObj
@@ -35,6 +38,8 @@ func (t Type) String() string {
 		return "bool"
 	case TTime:
 		return "time"
+	case TTuple:
+		return "tuple"
 	case TList:
 		return "list"
 	case TMap:
@@ -43,8 +48,8 @@ func (t Type) String() string {
 		return "obj"
 	case TFun:
 		return "fun"
-	case THold:
-		return ""
+	case TSlot:
+		return "slot"
 	case TTop:
 		return "⊤"
 	case TBottom:

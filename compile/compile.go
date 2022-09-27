@@ -7,6 +7,7 @@ import (
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"strconv"
+	"unsafe"
 )
 
 type Closure func(env *env.Env) *val.Val
@@ -71,25 +72,29 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 			return l.Vl()
 		}
 
-	case ast.IF:
-		iff := expr.If()
-		cond := Compile(env1, iff.Cond)
-		then := Compile(env1, iff.Then)
-		els := Compile(env1, iff.Else)
-
-		// 注意 if 分支是 lazy 的
-		return func(env *env.Env) *val.Val {
-			if cond(env).Bool().V {
-				return then(env)
-			} else {
-				return els(env)
-			}
-		}
+		// 已经 desugar 成 lazyfun 了, 这里不需要
+	//case ast.IF:
+	//	iff := expr.If()
+	//	cond := Compile(env1, iff.Cond)
+	//	then := Compile(env1, iff.Then)
+	//	els := Compile(env1, iff.Else)
+	//
+	//	// 注意 if 分支是 lazy 的
+	//	return func(env *env.Env) *val.Val {
+	//		if cond(env).Bool().V {
+	//			return then(env)
+	//		} else {
+	//			return els(env)
+	//		}
+	//	}
 
 	case ast.CALL:
 		call := expr.Call()
 		// 函数在编译期进行链接, 通过 golang 闭包的 upval 传递给运行时
 		f, _ := env1.Get(call.Resolved)
+		if call.Index >= 0 {
+			f = (*(*[]*val.FunVal)(unsafe.Pointer(f)))[call.Index].Vl()
+		}
 		fun := f.Fun()
 
 		sz := len(call.Args)
@@ -116,6 +121,7 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 			return fun.V(args...)
 		}
 
+		// 同样可以 desugar 成 build-in-fun
 	case ast.SUBSCRIPT:
 		sub := expr.Subscript()
 		va := Compile(env1, sub.Var)
@@ -137,6 +143,7 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 			return nil
 		}
 
+		// 同样可以 desugar 成 build-in-fun
 	case ast.MEMBER:
 		mem := expr.Member()
 		obj := Compile(env1, mem.Obj)

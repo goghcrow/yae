@@ -38,7 +38,7 @@ func If(cond, els, then *Expr) *Expr {
 }
 
 func Call(callee *Expr, args []*Expr) *Expr {
-	e := CallExpr{Expr{CALL}, callee, args, ""}
+	e := CallExpr{Expr{CALL}, callee, args, "", -1}
 	return &e.Expr
 }
 

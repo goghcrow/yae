@@ -16,25 +16,36 @@ func (k *Kind) String() string {
 		return "bool"
 	case TTime:
 		return "time"
+	case TTuple:
+		val := k.Tuple().Val
+		buf := "("
+		isFirst := true
+		for _, kind := range val {
+			if isFirst {
+				buf += kind.String()
+				isFirst = false
+			} else {
+				buf += fmt.Sprintf(", %s", kind)
+			}
+		}
+		return buf + ")"
 	case TList:
 		l := k.List()
-		if l.El == Hole {
-			return "list"
-		} else {
-			return fmt.Sprintf("list[%s]", l.El)
-		}
+		return fmt.Sprintf("list[%s]", l.El)
 	case TMap:
 		m := k.Map()
-		if m.Key == Hole && m.Val == Hole {
-			return "map"
-		} else {
-			return fmt.Sprintf("map[%s, %s]", m.Key, m.Val)
-		}
+		return fmt.Sprintf("map[%s, %s]", m.Key, m.Val)
 	case TObj:
 		fs := k.Obj().Fields
 		buf := "{"
+		isFirst := true
 		for name, kind := range fs {
-			buf += fmt.Sprintf("%s: %s, ", name, kind)
+			if isFirst {
+				buf += fmt.Sprintf("%s: %s", name, kind)
+				isFirst = false
+			} else {
+				buf += fmt.Sprintf(", %s: %s", name, kind)
+			}
 		}
 		return buf + "}"
 	case TFun:
@@ -44,8 +55,8 @@ func (k *Kind) String() string {
 			pt[i] = param.String()
 		}
 		return fmt.Sprintf("%s(%s) %s", f.Name, strings.Join(pt, ","), f.Return)
-	case THold:
-		return ""
+	case TSlot:
+		return k.Slot().Name
 	case TTop:
 		return "⊤"
 	case TBottom:

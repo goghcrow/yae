@@ -16,16 +16,16 @@ var (
 	Num  = &Kind{TNum}
 	Bool = &Kind{TBool}
 	Time = &Kind{TTime}
-
-	// Hole 特殊的类型, list[hole], map[hole,hole]
-	// 标记 typecheck 忽略类型检查, 主要给 本地函数定义使用的, 也会把类型检查延迟到运行时
-	Hole = &Kind{THold}
 )
 
 type Kind struct {
 	Type
 }
 
+type SlotKind struct {
+	Kind
+	Name string
+}
 type BoolKind struct {
 	Kind
 }
@@ -37,6 +37,10 @@ type StrKind struct {
 }
 type TimeKind struct {
 	Kind
+}
+type TupleKind struct {
+	Kind
+	Val []*Kind
 }
 type ListKind struct {
 	Kind
@@ -58,23 +62,27 @@ type FunKind struct {
 	Return *Kind
 }
 
-func (k *Kind) IsPrimitive() bool   { return k.Type <= TTime }
+func (k *Kind) IsPrimitive() bool   { return k.Type > _Primitive_ && k.Type < _Composite_ }
+func (k *Kind) IsComposite() bool   { return k.Type > _Composite_ }
 func (k *Kind) Equals(j *Kind) bool { return Equals(k, j) }
 
-func (k *Kind) Bool() *BoolKind { return (*BoolKind)(unsafe.Pointer(k)) }
-func (k *Kind) Num() *NumKind   { return (*NumKind)(unsafe.Pointer(k)) }
-func (k *Kind) Str() *StrKind   { return (*StrKind)(unsafe.Pointer(k)) }
-func (k *Kind) Time() *TimeKind { return (*TimeKind)(unsafe.Pointer(k)) }
-func (k *Kind) List() *ListKind { return (*ListKind)(unsafe.Pointer(k)) }
-func (k *Kind) Map() *MapKind   { return (*MapKind)(unsafe.Pointer(k)) }
-func (k *Kind) Obj() *ObjKind   { return (*ObjKind)(unsafe.Pointer(k)) }
-func (k *Kind) Fun() *FunKind   { return (*FunKind)(unsafe.Pointer(k)) }
+func (k *Kind) Slot() *SlotKind   { return (*SlotKind)(unsafe.Pointer(k)) }
+func (k *Kind) Bool() *BoolKind   { return (*BoolKind)(unsafe.Pointer(k)) }
+func (k *Kind) Num() *NumKind     { return (*NumKind)(unsafe.Pointer(k)) }
+func (k *Kind) Str() *StrKind     { return (*StrKind)(unsafe.Pointer(k)) }
+func (k *Kind) Time() *TimeKind   { return (*TimeKind)(unsafe.Pointer(k)) }
+func (k *Kind) Tuple() *TupleKind { return (*TupleKind)(unsafe.Pointer(k)) }
+func (k *Kind) List() *ListKind   { return (*ListKind)(unsafe.Pointer(k)) }
+func (k *Kind) Map() *MapKind     { return (*MapKind)(unsafe.Pointer(k)) }
+func (k *Kind) Obj() *ObjKind     { return (*ObjKind)(unsafe.Pointer(k)) }
+func (k *Kind) Fun() *FunKind     { return (*FunKind)(unsafe.Pointer(k)) }
 
-func (k *BoolKind) Kd() *Kind { return &k.Kind }
-func (k *NumKind) Kd() *Kind  { return &k.Kind }
-func (k *StrKind) Kd() *Kind  { return &k.Kind }
-func (k *TimeKind) Kd() *Kind { return &k.Kind }
-func (k *ListKind) Kd() *Kind { return &k.Kind }
-func (k *MapKind) Kd() *Kind  { return &k.Kind }
-func (k *ObjKind) Kd() *Kind  { return &k.Kind }
-func (k *FunKind) Kd() *Kind  { return &k.Kind }
+func (k *BoolKind) Kd() *Kind  { return &k.Kind }
+func (k *NumKind) Kd() *Kind   { return &k.Kind }
+func (k *StrKind) Kd() *Kind   { return &k.Kind }
+func (k *TimeKind) Kd() *Kind  { return &k.Kind }
+func (k *TupleKind) Kd() *Kind { return &k.Kind }
+func (k *ListKind) Kd() *Kind  { return &k.Kind }
+func (k *MapKind) Kd() *Kind   { return &k.Kind }
+func (k *ObjKind) Kd() *Kind   { return &k.Kind }
+func (k *FunKind) Kd() *Kind   { return &k.Kind }

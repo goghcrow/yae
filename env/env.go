@@ -3,6 +3,7 @@ package env
 import (
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
+	"unsafe"
 )
 
 // Env for compile and runtime
@@ -37,6 +38,17 @@ func (e *Env) Put(name string, val *val.Val) {
 	e.ctx[name] = val
 }
 
-func (e *Env) RegisterFun(v *val.FunVal) {
-	e.Put(v.Kind.Fun().OverloadName(), v.Vl())
+func (e *Env) RegisterFun(f *val.FunVal) {
+	lookup, mono := f.Kind.Fun().Lookup()
+	if mono {
+		e.Put(lookup, f.Vl())
+	} else {
+		fs := &[]*val.FunVal{f}
+		arr, ok := e.Get(lookup)
+		if ok {
+			fs = (*[]*val.FunVal)(unsafe.Pointer(arr))
+			*fs = append(*fs, f)
+		}
+		e.Put(lookup, (*val.Val)(unsafe.Pointer(fs)))
+	}
 }

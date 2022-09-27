@@ -38,7 +38,10 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 			l := Desugar(t.Left)
 			m := Desugar(t.Mid)
 			r := Desugar(t.Right)
-			return ast.If(l, m, r)
+			// return ast.If(l, m, r)
+			args := []*ast.Expr{l, m, r}
+			callee := ast.Ident(token.IF.Name())
+			return ast.Call(callee, args)
 		}
 		util.Unreachable()
 		return nil
@@ -47,7 +50,10 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		cond := Desugar(iff.Cond)
 		then := Desugar(iff.Then)
 		els := Desugar(iff.Else)
-		return ast.If(cond, then, els)
+		// return ast.If(cond, then, els)
+		args := []*ast.Expr{cond, then, els}
+		callee := ast.Ident(token.IF.Name())
+		return ast.Call(callee, args)
 	case ast.CALL:
 		call := expr.Call()
 		callee := call.Callee

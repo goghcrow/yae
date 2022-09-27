@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+// build-in funs
+
 // 📢 命名规则, 函数或者符号名称[_参数1类型_参数2类型..._参数n类型]
 
 // 关于 if :: forall α. (bool -> α -> a -> α)
@@ -23,9 +25,24 @@ import (
 
 //goland:noinspection GoUnusedGlobalVariable,GoSnakeCaseUsage
 var (
-	AnyList = types.List(types.Hole)
-	AnyMap  = types.Map(types.Hole, types.Hole)
-	AnyObj  = types.Obj(map[string]*types.Kind{})
+	AnyObj = types.Obj(map[string]*types.Kind{})
+
+	// IF_BOOL_A_A + :: forall a. (bool -> α -> α -> α)
+	// if 可以声明成惰性求值的泛型函数
+	IF_BOOL_A_A = func() *val.Val {
+		T := types.Slot("a")
+		return val.LazyFun(
+			types.Fun(token.IF.Name(), []*types.Kind{types.Bool, T, T}, T),
+			// 注意 if 是 lazyFun, 参数都是 thunk
+			func(args ...*val.Val) *val.Val {
+				if args[0].Fun().V().Bool().V {
+					return args[1].Fun().V()
+				} else {
+					return args[2].Fun().V()
+				}
+			},
+		)
+	}()
 
 	// PLUS_NUM + :: num -> num
 	PLUS_NUM = val.Fun(
@@ -190,48 +207,52 @@ var (
 			return val.Bool(!args[0].Time().V.Equal(args[1].Time().V))
 		},
 	)
-	//EQ_LIST_LIST == :: list -> list -> bool
-	EQ_LIST_LIST = val.Fun(
-		types.Fun(token.EQ.Name(), []*types.Kind{AnyList, AnyList}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			return val.Bool(val.Equals(args[0], args[1]))
-		},
-	)
-	//NE_LIST_LIST == :: list -> list -> bool
-	NE_LIST_LIST = val.Fun(
-		types.Fun(token.NE.Name(), []*types.Kind{AnyList, AnyList}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			return val.Bool(!val.Equals(args[0], args[1]))
-		},
-	)
-	//EQ_MAP_MAP == :: map -> map -> bool
-	EQ_MAP_MAP = val.Fun(
-		types.Fun(token.EQ.Name(), []*types.Kind{AnyMap, AnyMap}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			return val.Bool(val.Equals(args[0], args[1]))
-		},
-	)
-	//NE_MAP_MAP == :: map -> map -> bool
-	NE_MAP_MAP = val.Fun(
-		types.Fun(token.NE.Name(), []*types.Kind{AnyMap, AnyMap}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			return val.Bool(!val.Equals(args[0], args[1]))
-		},
-	)
-	//EQ_OBJ_OBJ == :: obj -> obj -> bool
-	EQ_OBJ_OBJ = val.Fun(
-		types.Fun(token.EQ.Name(), []*types.Kind{AnyObj, AnyObj}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			return val.Bool(val.Equals(args[0], args[1]))
-		},
-	)
-	//NE_OBJ_OBJ == :: obj -> obj -> bool
-	NE_OBJ_OBJ = val.Fun(
-		types.Fun(token.NE.Name(), []*types.Kind{AnyObj, AnyObj}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			return val.Bool(!val.Equals(args[0], args[1]))
-		},
-	)
+	//EQ_LIST_LIST == :: forall a. (list[a] -> list[a] -> bool)
+	EQ_LIST_LIST = func() *val.Val {
+		T := types.Slot("a")
+		listT := types.List(T)
+		return val.Fun(
+			types.Fun(token.EQ.Name(), []*types.Kind{listT, listT}, types.Bool),
+			func(args ...*val.Val) *val.Val {
+				return val.Bool(val.Equals(args[0], args[1]))
+			},
+		)
+	}()
+	//NE_LIST_LIST != :: forall a. (list[a] -> list[a] -> bool)
+	NE_LIST_LIST = func() *val.Val {
+		T := types.Slot("a")
+		listT := types.List(T)
+		return val.Fun(
+			types.Fun(token.NE.Name(), []*types.Kind{listT, listT}, types.Bool),
+			func(args ...*val.Val) *val.Val {
+				return val.Bool(!val.Equals(args[0], args[1]))
+			},
+		)
+	}()
+	//EQ_MAP_MAP == :: forall k v . (map[k,v] -> map[k,v] -> bool)
+	EQ_MAP_MAP = func() *val.Val {
+		K := types.Slot("k")
+		V := types.Slot("v")
+		mapKV := types.Map(K, V)
+		return val.Fun(
+			types.Fun(token.EQ.Name(), []*types.Kind{mapKV, mapKV}, types.Bool),
+			func(args ...*val.Val) *val.Val {
+				return val.Bool(val.Equals(args[0], args[1]))
+			},
+		)
+	}()
+	//NE_MAP_MAP != :: forall k v . (map[k,v] -> map[k,v] -> bool)
+	NE_MAP_MAP = func() *val.Val {
+		K := types.Slot("k")
+		V := types.Slot("v")
+		mapKV := types.Map(K, V)
+		return val.Fun(
+			types.Fun(token.NE.Name(), []*types.Kind{mapKV, mapKV}, types.Bool),
+			func(args ...*val.Val) *val.Val {
+				return val.Bool(!val.Equals(args[0], args[1]))
+			},
+		)
+	}()
 
 	// GT_NUM_NUM > :: num -> num -> bool
 	GT_NUM_NUM = val.Fun(
@@ -348,7 +369,7 @@ var (
 	)
 	// MAX_NUM_NUM_NUM + :: num -> num -> num -> num
 	MAX_NUM_NUM_NUM = val.Fun(
-		types.Fun("max", []*types.Kind{types.Num, types.Num}, types.Num),
+		types.Fun("max", []*types.Kind{types.Num, types.Num, types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(
 				math.Max(
@@ -367,7 +388,7 @@ var (
 	)
 	// MIN_NUM_NUM_NUM + :: num -> num -> num -> num
 	MIN_NUM_NUM_NUM = val.Fun(
-		types.Fun("max", []*types.Kind{types.Num, types.Num}, types.Num),
+		types.Fun("min", []*types.Kind{types.Num, types.Num, types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(
 				math.Min(

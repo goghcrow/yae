@@ -51,9 +51,20 @@ func TestTmp(t *testing.T) {
 	//input := "0x12"
 	//input := "max(1,2)==2"
 	//input := `now() - today()`
-	input := `(
-				time("2006-01-02 15:04:05", "2022-09-26 01:00:00") - today()
-		) / 3600`
+	//input := `(
+	//			time("2006-01-02 15:04:05", "2022-09-28 02:00:00") - today()
+	//	) / 3600`
+	//input := "if(false,1,2)"
+	//input := `if(true,1,"2")`
+	//input := `if(true,1,"2")`
+	//input := `if(true,"1",2)`
+	//input := `[1]==["1"]`
+	//input := `[1]==[1]`
+	input := `[1]==[2]`
+
+	// todo
+	// a.b
+	// a[1]
 
 	// todo contains 、in 之类也做成自定义中缀不结合操作符
 

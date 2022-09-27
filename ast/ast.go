@@ -86,7 +86,8 @@ type CallExpr struct {
 	Expr
 	Callee   *Expr
 	Args     []*Expr
-	Resolved string
+	Resolved string // for typecheck and compile
+	Index    int    // for typecheck and compile
 }
 type SubscriptExpr struct {
 	Expr

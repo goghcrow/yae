@@ -55,6 +55,8 @@ func (e *Expr) initTrans() {
 }
 
 func (e *Expr) initFuns() {
+	e.RegisterFun(fun.IF_BOOL_A_A.Fun())
+
 	e.RegisterFun(fun.AND_BOOL_BOOL.Fun())
 	e.RegisterFun(fun.OR_BOOL_BOOL.Fun())
 	e.RegisterFun(fun.NOT_BOOL.Fun())
@@ -81,7 +83,6 @@ func (e *Expr) initFuns() {
 	e.RegisterFun(fun.EQ_TIME_TIME.Fun())
 	e.RegisterFun(fun.EQ_LIST_LIST.Fun())
 	e.RegisterFun(fun.EQ_MAP_MAP.Fun())
-	e.RegisterFun(fun.EQ_OBJ_OBJ.Fun())
 
 	e.RegisterFun(fun.NE_BOOL_BOOL.Fun())
 	e.RegisterFun(fun.NE_NUM_NUM.Fun())
@@ -89,7 +90,6 @@ func (e *Expr) initFuns() {
 	e.RegisterFun(fun.NE_TIME_TIME.Fun())
 	e.RegisterFun(fun.NE_LIST_LIST.Fun())
 	e.RegisterFun(fun.NE_MAP_MAP.Fun())
-	e.RegisterFun(fun.NE_OBJ_OBJ.Fun())
 
 	e.RegisterFun(fun.GT_NUM_NUM.Fun())
 	e.RegisterFun(fun.GT_TIME_TIME.Fun())

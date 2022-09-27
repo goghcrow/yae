@@ -1,6 +1,24 @@
 package types
 
-import "github.com/goghcrow/yae/util"
+import (
+	"github.com/goghcrow/yae/util"
+	"strconv"
+)
+
+// Slot 每次调用都生成不相等的 slot
+var Slot = func() func(name string) *Kind {
+	n := 0
+	return func(name string) *Kind {
+		n++
+		t := SlotKind{Kind{TSlot}, name + strconv.Itoa(n)}
+		return &t.Kind
+	}
+}()
+
+func Tuple(val []*Kind) *Kind {
+	t := TupleKind{Kind{TTuple}, val}
+	return &t.Kind
+}
 
 func List(el *Kind) *Kind {
 	t := ListKind{Kind{TList}, el}
@@ -8,7 +26,7 @@ func List(el *Kind) *Kind {
 }
 
 func Map(k, v *Kind) *Kind {
-	util.Assert(k.IsPrimitive(), "invalid type of map's key: %s", k)
+	util.Assert(k.IsPrimitive() || k.Type == TSlot, "invalid type of map's key: %s", k)
 	m := MapKind{Kind{TMap}, k, v}
 	return &m.Kind
 }

@@ -4,19 +4,22 @@ package types
 //func IsSubtype(k1, k2 *Kind) bool {}
 
 func Equals(x, y *Kind) bool {
-	if x == Hole || y == Hole {
-		// 给 typecheck 开个后门, 给本地函数定义用, 函数需要自己保证类型函数
-		// 这里实际上是 top 类型了
-		return true
-	}
 	if x.Type != y.Type {
 		return false
+	}
+
+	if x.Type == TSlot {
+		return x.Slot().Name == y.Slot().Name
 	}
 
 	if x.Type == TMap {
 		m1 := x.Map()
 		m2 := y.Map()
 		return Equals(m1.Key, m2.Key) && Equals(m1.Val, m2.Val)
+	}
+
+	if x.Type == TTuple {
+		return equalsTuple(x.Tuple(), y.Tuple())
 	}
 
 	if x.Type == TList {
@@ -48,19 +51,27 @@ func equalsObj(x *ObjKind, y *ObjKind) bool {
 	return true
 }
 
-func equalsFun(x *FunKind, y *FunKind) bool {
-	sz1 := len(x.Param)
-	sz2 := len(y.Param)
-
-	if sz1 != sz2 {
+func equalsTuple(x, y *TupleKind) bool {
+	xt := x.Tuple()
+	yt := y.Tuple()
+	if len(xt.Val) != len(yt.Val) {
 		return false
 	}
-
-	for i := 0; i < sz1; i++ {
-		if Equals(x.Param[i], y.Param[i]) {
+	for i := range xt.Val {
+		if !Equals(xt.Val[i], yt.Val[i]) {
 			return false
 		}
 	}
-
+	return true
+}
+func equalsFun(x, y *FunKind) bool {
+	if len(x.Param) != len(y.Param) {
+		return false
+	}
+	for i := range x.Param {
+		if !Equals(x.Param[i], y.Param[i]) {
+			return false
+		}
+	}
 	return Equals(x.Return, y.Return)
 }

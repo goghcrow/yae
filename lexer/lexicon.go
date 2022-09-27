@@ -19,7 +19,8 @@ var lexicon = []rule{
 	str(token.DOT),      // .
 	str(token.QUESTION), // ?
 
-	keyword(token.IF),
+	// 注释掉该行即可支持 if(bool, x, x) 风格!!!
+	//keyword(token.IF),
 	keyword(token.THEN),
 	keyword(token.ELSE),
 	keyword(token.END),

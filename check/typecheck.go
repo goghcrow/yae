@@ -7,6 +7,7 @@ import (
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
 	"strconv"
+	"unsafe"
 )
 
 // TypeCheck infer + check
@@ -75,13 +76,7 @@ func TypeCheck(env0 *env0.Env, expr *ast.Expr) *types.Kind {
 			args[i] = TypeCheck(env0, call.Args[i])
 		}
 
-		if call.Resolved == "" {
-			call.Resolved = types.Fun(fn.Name, args, types.Bottom).Fun().OverloadName()
-		}
-		f, ok := env0.Get(call.Resolved)
-		util.Assert(ok, "fun not found: %s", call.Resolved)
-		util.Assert(f.Type == types.TFun, "not callable: %s", call.Resolved)
-		fun := f.Fun()
+		fun := resolve(env0, call, fn.Name, args)
 
 		paramSz := len(fun.Param)
 		util.Assert(paramSz == argSz, "mismatch arity, expect %d but %d", paramSz, argSz)
@@ -127,5 +122,34 @@ func TypeCheck(env0 *env0.Env, expr *ast.Expr) *types.Kind {
 		util.Unreachable()
 	}
 
+	return nil
+}
+
+func resolve(env0 *env0.Env, call *ast.CallExpr, fnName string, args []*types.Kind) *types.FunKind {
+	monofk, _ := types.Fun(fnName, args, types.Bottom /*返回类型无所谓*/).Fun().Lookup()
+	f, ok := env0.Get(monofk)
+	if ok {
+		util.Assert(f.Type == types.TFun, "not callable: %s", call.Resolved)
+		call.Resolved = monofk
+		monofun := f.Fun()
+		return monofun
+	}
+
+	polyfk, _ := types.Fun(fnName, args, types.Slot("α")).Fun().Lookup()
+	fs, ok := env0.Get(polyfk)
+	util.Assert(ok, "fun not found: %s or %s", monofk, polyfk)
+
+	fks := (*[]*types.FunKind)(unsafe.Pointer(fs))
+	for i, f := range *fks {
+		util.Assert(f.Type == types.TFun, "not callable: %s", fnName)
+		monofun := types.Infer(f, args)
+		if monofun == nil {
+			continue
+		}
+		call.Resolved = polyfk
+		call.Index = i
+		return monofun
+	}
+	util.Assert(false, "fun not found: %s or %s", monofk, polyfk)
 	return nil
 }

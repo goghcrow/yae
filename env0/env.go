@@ -3,6 +3,7 @@ package env0
 import (
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
+	"unsafe"
 )
 
 // Env for typeChecker
@@ -43,6 +44,17 @@ func (e *Env) ForEach(f func(string, *types.Kind)) {
 	}
 }
 
-func (e *Env) RegisterFun(v *types.FunKind) {
-	e.Put(v.OverloadName(), v.Kd())
+func (e *Env) RegisterFun(f *types.FunKind) {
+	lookup, mono := f.Lookup()
+	if mono {
+		e.Put(lookup, f.Kd())
+	} else {
+		fs := &[]*types.FunKind{f}
+		arr, ok := e.Get(lookup)
+		if ok {
+			fs = (*[]*types.FunKind)(unsafe.Pointer(arr))
+			*fs = append(*fs, f)
+		}
+		e.Put(lookup, (*types.Kind)(unsafe.Pointer(fs)))
+	}
 }
