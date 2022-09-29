@@ -43,7 +43,7 @@ func TestTmp(t *testing.T) {
 	//input := "if true || false then 1 else 2"
 	//input := "if 1+1>2 then 1 else 2"
 	//input := "if (if true then false else false end) then 1 else 2"
-	//input := "1+1+1" //todo 测试 infixn
+	//input := "1+2+3" //todo 测试 infixn
 	//input := "3.14 > 3"
 	//input := "today() == today()"
 	//input := "today()"
@@ -54,13 +54,39 @@ func TestTmp(t *testing.T) {
 	//input := `(
 	//			time("2006-01-02 15:04:05", "2022-09-28 02:00:00") - today()
 	//	) / 3600`
-	//input := "if(false,1,2)"
+	//input := "if(false,1,2) + 1"
+	//input := "if false then 1 else 2"
 	//input := `if(true,1,"2")`
 	//input := `if(true,1,"2")`
 	//input := `if(true,"1",2)`
 	//input := `[1]==["1"]`
 	//input := `[1]==[1]`
-	input := `[1]==[2]`
+	//input := `[1]==[2]`
+
+	// 右结合
+	//input := `true ? 1 : true ? 2 : 3` // 1
+	//input := `false ? 1 : true ? 2 : 3` // 2
+	//input := `false ? 1 : false ? 2 : 3` // 3
+
+	//input := `len([])` // 3
+	//input := `len([1])`   // 3
+	//input := `len([1,2])` // 3
+
+	//input := `[true,false,true][1] == false`
+
+	// !!!!!!!!!!! TODO ast 加通用字段, 来保存 已经推导好的值类型
+
+	//input := `[1,2,3, ]` // 尾部可以多余逗号
+	input := `[1:"1",2:"2", ]` // 尾部可以多余逗号, map必须 kv 类型一致, map[k,v], k 支持 num, str, time, bool
+	// 对象的的key 只能是 ident, val 类型可以不一样
+
+	// todo 改成这样
+	// todo 对象不能有重复的 key ，typecheck 检查
+	// todo map 也检查下
+	// 一个类型一样, 一个类型可以不一样
+	//input := `{id:42, id:"xiao"}.id`
+	//input := `[:]`
+	//input := `["id":"x", "name":"xiao"]["id"]`
 
 	// todo
 	// a.b

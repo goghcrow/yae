@@ -40,11 +40,11 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 		}
 
 	case ast.IDENT:
+		// 如果从性能角度考虑, 所有运行时的符号查找其实都可以从 map 换成 array
+		// 1. 需要在编译期把符号 resolve 成数组下标
+		// 2. 把运行时环境从 map 展开成数组
 		id := expr.Ident().Name
 		return func(env *env.Env) *val.Val {
-			// 如果从性能角度考虑, 所有运行时的符号查找其实都可以从 map 换成 array
-			// 1. 需要在编译期把符号 resolve 成数组下标
-			// 2. 把运行时环境从 map 展开成数组
 			v, _ := env.Get(id)
 			return v
 		}
@@ -53,49 +53,103 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 		lst := expr.List()
 		els := lst.Elems
 		sz := len(els)
-		//if sz == 0 {
-		//	return func(env *env.Env) *val.Val { return val.List(types.Unit) }
-		//}
-		// assert sz != 0, typecheck 已经检查过了
+		if sz == 0 {
+			return func(env *env.Env) *val.Val {
+				kind := types.List(types.Bottom).List()
+				return val.List(kind, 0)
+			}
+		}
+
+		kind := lst.Kind.List()
 		cs := make([]Closure, sz)
 		for i, el := range els {
 			cs[i] = Compile(env1, el)
 		}
 
 		return func(env *env.Env) *val.Val {
-			car := cs[0](env)
-			l := val.List(car.Kind).List()
-			l.V = append(l.V, car)
-			for i := 1; i < sz; i++ {
-				l.V = append(l.V, cs[i](env))
+			l := val.List(kind, sz).List()
+			for i, c := range cs {
+				l.V[i] = c(env)
 			}
 			return l.Vl()
 		}
 
-		// 已经 desugar 成 lazyfun 了, 这里不需要
-	//case ast.IF:
-	//	iff := expr.If()
-	//	cond := Compile(env1, iff.Cond)
-	//	then := Compile(env1, iff.Then)
-	//	els := Compile(env1, iff.Else)
-	//
-	//	// 注意 if 分支是 lazy 的
-	//	return func(env *env.Env) *val.Val {
-	//		if cond(env).Bool().V {
-	//			return then(env)
-	//		} else {
-	//			return els(env)
-	//		}
-	//	}
+	case ast.MAP:
+		m := expr.Map()
+		sz := len(m.Pairs)
+		if sz == 0 {
+			return func(env *env.Env) *val.Val {
+				kind := types.Map(types.Bottom, types.Bottom).Map()
+				return val.Map(kind)
+			}
+		}
+
+		kind := m.Kind.Map()
+		cs := make([]struct{ k, v Closure }, sz)
+		for i, pair := range m.Pairs {
+			cs[i] = struct{ k, v Closure }{Compile(env1, pair.Key), Compile(env1, pair.Val)}
+		}
+
+		return func(env *env.Env) *val.Val {
+			m := val.Map(kind).Map()
+			for _, c := range cs {
+				k := c.k(env).Key()
+				v := c.v(env)
+				m.V[k] = v
+			}
+			return m.Vl()
+		}
+
+	case ast.OBJ:
+		obj := expr.Obj()
+		fs := obj.Fields
+		sz := len(fs)
+		if sz == 0 {
+			return func(env *env.Env) *val.Val {
+				kind := types.Obj(map[string]*types.Kind{}).Obj()
+				return val.Obj(kind)
+			}
+		}
+
+		kind := obj.Kind.Obj()
+		cs := make(map[string]Closure, sz)
+		for n, v := range fs {
+			cs[n] = Compile(env1, v)
+		}
+
+		return func(env *env.Env) *val.Val {
+			k := make(map[string]*types.Kind, sz)
+			m := val.Obj(kind).Obj()
+			for n, c := range cs {
+				v := c(env)
+				m.V[n] = v
+				k[n] = v.Kind
+			}
+			return m.Vl()
+		}
+
+	/*
+		IF 已经 desugar 成 lazyfun 了, 这里不需要
+		case ast.IF:
+			iff := expr.If()
+			cond := Compile(env1, iff.Cond)
+			then := Compile(env1, iff.Then)
+			els := Compile(env1, iff.Else)
+
+			// if 分支是 lazy 的 (短路)
+			return func(env *env.Env) *val.Val {
+				if cond(env).Bool().V {
+					return then(env)
+				} else {
+					return els(env)
+				}
+			}
+	*/
 
 	case ast.CALL:
-		call := expr.Call()
 		// 函数在编译期进行链接, 通过 golang 闭包的 upval 传递给运行时
-		f, _ := env1.Get(call.Resolved)
-		if call.Index >= 0 {
-			f = (*(*[]*val.FunVal)(unsafe.Pointer(f)))[call.Index].Vl()
-		}
-		fun := f.Fun()
+		call := expr.Call()
+		fun := resolve(env1, call)
 
 		sz := len(call.Args)
 		cs := make([]Closure, sz)
@@ -158,6 +212,15 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 		util.Unreachable()
 	}
 	return nil
+}
+
+func resolve(env1 *env.Env, call *ast.CallExpr) *val.FunVal {
+	f, _ := env1.Get(call.Resolved)
+	// 多态函数, 这里有点 hack 手动狗头
+	if call.Index >= 0 {
+		f = (*(*[]*val.FunVal)(unsafe.Pointer(f)))[call.Index].Vl()
+	}
+	return f.Fun()
 }
 
 func thunkify(c Closure, env *env.Env, retK *types.Kind) *val.Val {

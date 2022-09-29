@@ -19,6 +19,20 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 			lst[i] = Desugar(el)
 		}
 		return ast.List(els)
+	case ast.MAP:
+		pairs := expr.Map().Pairs
+		m := make([]ast.Pair, len(pairs))
+		for i, p := range pairs {
+			m[i] = ast.Pair{Key: Desugar(p.Key), Val: Desugar(p.Val)}
+		}
+		return ast.Map(m)
+	case ast.OBJ:
+		fs := expr.Obj().Fields
+		obj := make(map[string]*ast.Expr, len(fs))
+		for name, v := range fs {
+			obj[name] = Desugar(v)
+		}
+		return ast.Obj(obj)
 	case ast.UNARY:
 		u := expr.Unary()
 		callee := ast.Ident(u.Type.Name())
@@ -51,8 +65,8 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		then := Desugar(iff.Then)
 		els := Desugar(iff.Else)
 		// return ast.If(cond, then, els)
-		args := []*ast.Expr{cond, then, els}
 		callee := ast.Ident(token.IF.Name())
+		args := []*ast.Expr{cond, then, els}
 		return ast.Call(callee, args)
 	case ast.CALL:
 		call := expr.Call()

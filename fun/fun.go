@@ -25,7 +25,6 @@ import (
 
 //goland:noinspection GoUnusedGlobalVariable,GoSnakeCaseUsage
 var (
-	AnyObj = types.Obj(map[string]*types.Kind{})
 
 	// IF_BOOL_A_A + :: forall a. (bool -> α -> α -> α)
 	// if 可以声明成惰性求值的泛型函数
@@ -398,4 +397,28 @@ var (
 			)
 		},
 	)
+
+	// LEN_LIST == :: forall a. (list[a] -> num)
+	LEN_LIST = func() *val.Val {
+		T := types.Slot("a")
+		listT := types.List(T)
+		return val.Fun(
+			types.Fun("len", []*types.Kind{listT}, types.Num),
+			func(args ...*val.Val) *val.Val {
+				return val.Num(float64(len(args[0].List().V)))
+			},
+		)
+	}()
+	// LEN_MAP == :: forall a. (map[k, v] -> num)
+	LEN_MAP = func() *val.Val {
+		K := types.Slot("k")
+		V := types.Slot("v")
+		mapKV := types.Map(K, V)
+		return val.Fun(
+			types.Fun("len", []*types.Kind{mapKV}, types.Num),
+			func(args ...*val.Val) *val.Val {
+				return val.Num(float64(len(args[0].Map().V)))
+			},
+		)
+	}()
 )

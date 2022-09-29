@@ -11,25 +11,25 @@ import (
 // 如果 a 是 slot，可以合一，并且需要 m[a] 设置为 b；反之亦然。
 // 如果 a 和 b 都是 composite，检查两者的构造器和参数是否都能合一，m 会最多被设置两次。
 // 对于其他一切情况，a 和 b 不能合一。
-func Unify(x, y *Kind, m map[string]*Kind) *Kind {
-	if x.Type == TSlot && y.Type == TSlot && Equals(Subst(x, m), Subst(y, m)) {
+func unify(x, y *Kind, m map[string]*Kind) *Kind {
+	if x.Type == TSlot && y.Type == TSlot && Equals(subst(x, m), subst(y, m)) {
 		return x
 	} else if x.IsPrimitive() && y.IsPrimitive() && x.Type == y.Type {
 		return x
 	} else if x.IsComposite() && y.IsComposite() && x.Type == y.Type {
 		switch x.Type {
 		case TList:
-			el := Unify(x.List().El, y.List().El, m)
+			el := unify(x.List().El, y.List().El, m)
 			if el == nil {
 				return nil
 			}
 			return List(el)
 		case TMap:
-			k := Unify(x.Map().Key, y.Map().Key, m)
+			k := unify(x.Map().Key, y.Map().Key, m)
 			if k == nil {
 				return nil
 			}
-			v := Unify(x.Map().Val, y.Map().Val, m)
+			v := unify(x.Map().Val, y.Map().Val, m)
 			if v == nil {
 				return nil
 			}
@@ -43,7 +43,7 @@ func Unify(x, y *Kind, m map[string]*Kind) *Kind {
 			ks := make([]*Kind, len(xtv))
 			for i, xk := range xtv {
 				yk := ytv[i]
-				u := Unify(xk, yk, m)
+				u := unify(xk, yk, m)
 				if u == nil {
 					return nil
 				}
@@ -62,7 +62,7 @@ func Unify(x, y *Kind, m map[string]*Kind) *Kind {
 				if !ok {
 					return nil
 				}
-				u := Unify(xk, yk, m)
+				u := unify(xk, yk, m)
 				if u == nil {
 					return nil
 				}
@@ -77,14 +77,14 @@ func Unify(x, y *Kind, m map[string]*Kind) *Kind {
 			}
 			params := make([]*Kind, len(xf.Param))
 			for i := range xf.Param {
-				xp := Subst(xf.Param[i], m)
-				yp := Subst(yf.Param[i], m)
-				params[i] = Unify(xp, yp, m)
+				xp := subst(xf.Param[i], m)
+				yp := subst(yf.Param[i], m)
+				params[i] = unify(xp, yp, m)
 				if params[i] == nil {
 					return nil
 				}
 			}
-			ret := Unify(xf.Return, yf.Return, m)
+			ret := unify(xf.Return, yf.Return, m)
 			if ret == nil {
 				return nil
 			}
@@ -94,25 +94,25 @@ func Unify(x, y *Kind, m map[string]*Kind) *Kind {
 		}
 		return nil
 	} else if x.Type == TSlot {
-		y1 := Subst(y, m)
+		y1 := subst(y, m)
 		if freeFrom(y1, x.Slot()) {
 			k, ok := m[x.Slot().Name]
 			if ok && !Equals(k, y1) {
 				return nil
 			}
-			m[x.Slot().Name] = y1 //Subst(y1, m)
+			m[x.Slot().Name] = y1 //subst(y1, m)
 			return y1
 		} else {
 			return nil
 		}
 	} else if y.Type == TSlot {
-		x1 := Subst(x, m)
+		x1 := subst(x, m)
 		if freeFrom(x1, y.Slot()) {
 			k, ok := m[y.Slot().Name]
 			if ok && !Equals(k, x1) {
 				return nil
 			}
-			m[y.Slot().Name] = x1 //Subst(x1, m)
+			m[y.Slot().Name] = x1 //subst(x1, m)
 			return x1
 		} else {
 			return nil
@@ -126,8 +126,8 @@ func Unify(x, y *Kind, m map[string]*Kind) *Kind {
 	}
 }
 
-// Subst substitution
-func Subst(k *Kind, m map[string]*Kind) *Kind {
+// subst substitution
+func subst(k *Kind, m map[string]*Kind) *Kind {
 	switch k.Type {
 	case TNum:
 		return k
@@ -146,35 +146,35 @@ func Subst(k *Kind, m map[string]*Kind) *Kind {
 		if r.Type == TSlot && r.Slot().Name == k.Slot().Name {
 			return k
 		}
-		return Subst(r, m)
+		return subst(r, m)
 	case TList:
-		return List(Subst(k.List().El, m))
+		return List(subst(k.List().El, m))
 	case TMap:
 		return Map(
-			Subst(k.Map().Key, m),
-			Subst(k.Map().Val, m),
+			subst(k.Map().Key, m),
+			subst(k.Map().Val, m),
 		)
 	case TTuple:
 		t := k.Tuple()
 		ks := make([]*Kind, len(t.Val))
 		for i, xtv := range t.Val {
-			ks[i] = Subst(xtv, m)
+			ks[i] = subst(xtv, m)
 		}
 		return Tuple(ks)
 	case TObj:
 		o := k.Obj()
 		fs := make(map[string]*Kind, len(o.Fields))
 		for name, kind := range o.Fields {
-			fs[name] = Subst(kind, m)
+			fs[name] = subst(kind, m)
 		}
 		return Obj(fs)
 	case TFun:
 		f := k.Fun()
 		params := make([]*Kind, len(f.Param))
 		for i, param := range f.Param {
-			params[i] = Subst(param, m)
+			params[i] = subst(param, m)
 		}
-		return Fun(f.Name, params, Subst(f.Return, m))
+		return Fun(f.Name, params, subst(f.Return, m))
 	case TTop:
 		return k
 	case TBottom:

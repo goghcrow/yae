@@ -2,14 +2,14 @@ package lex
 
 // reserved 保留关键字, 以后可以改造成脚本语言
 var reserved = []string{
-	"byte", "int", "float", "double", "string", "bool", "boolean", "ch",
+	"byte", "int", "float", "double", "string", "bool", "boolean", "ch", "void",
 	"type", "var", "def", "define", "let", "rec", "mut", "fun", "fn", "function",
 	"record", "struct", "map", "list", "object", "class", "trait", "interface",
 	"sealed", "extends",
 	"prefix", "infixl", "infixr", "infixn",
 	"for", "do", "while", "switch", "cast", "range", "match", "select",
 	"break", "continue", "return", "try", "catch", "throw", "finally",
-	"import", "as", "module",
+	"import", "as", "module", "package", "namespace",
 	"assert", "debugger",
 }
 

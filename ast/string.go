@@ -1,6 +1,9 @@
 package ast
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func (e *Expr) String() string {
 	switch e.Type {
@@ -10,7 +13,11 @@ func (e *Expr) String() string {
 	case IDENT:
 		return e.Ident().Name
 	case LIST:
-		return fmt.Sprintf("[%s]", stringExprs(e.List().Elems))
+		return fmt.Sprintf("[%s]", stringfyExprs(e.List().Elems))
+	case MAP:
+		return stringfyMap(e.Map())
+	case OBJ:
+		return stringfyObj(e.Obj())
 	case UNARY:
 		u := e.Unary()
 		if u.Prefix {
@@ -26,7 +33,7 @@ func (e *Expr) String() string {
 		return fmt.Sprintf("%s %s %s %s", t.Left, t.Type.String(), t.Mid, t.Right)
 	case CALL:
 		c := e.Call()
-		return fmt.Sprintf("%s(%s)", c.Callee, stringExprs(c.Args))
+		return fmt.Sprintf("%s(%s)", c.Callee, stringfyExprs(c.Args))
 	case SUBSCRIPT:
 		s := e.Subscript()
 		return fmt.Sprintf("%s[%s]", s.Var, s.Idx)
@@ -40,16 +47,61 @@ func (e *Expr) String() string {
 	panic("not support exprType")
 }
 
-func stringExprs(exprs []*Expr) string {
-	buf := ""
+func stringfyMap(m *MapExpr) string {
+	pairs := m.Map().Pairs
+	if len(pairs) == 0 {
+		return "[:]"
+	}
+	buf := &strings.Builder{}
+	buf.WriteString("[")
+	isFst := true
+	for _, p := range pairs {
+		if isFst {
+			isFst = false
+		} else {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(p.Key.String())
+		buf.WriteString(": ")
+		buf.WriteString(p.Val.String())
+	}
+	buf.WriteString("]")
+	return buf.String()
+}
+
+func stringfyObj(m *ObjExpr) string {
+	fs := m.Obj().Fields
+	if len(fs) == 0 {
+		return "{}"
+	}
+	buf := &strings.Builder{}
+	buf.WriteString("{")
+	isFst := true
+	for name, val := range fs {
+		if isFst {
+			isFst = false
+		} else {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(name)
+		buf.WriteString(": ")
+		buf.WriteString(val.String())
+	}
+	buf.WriteString("}")
+	return buf.String()
+}
+
+func stringfyExprs(exprs []*Expr) string {
+	buf := &strings.Builder{}
 	isFst := true
 	for _, elem := range exprs {
 		if isFst {
-			buf += elem.String()
+			buf.WriteString(elem.String())
 			isFst = false
 		} else {
-			buf += ", " + elem.String()
+			buf.WriteString(", ")
+			buf.WriteString(elem.String())
 		}
 	}
-	return buf
+	return buf.String()
 }

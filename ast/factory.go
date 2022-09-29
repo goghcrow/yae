@@ -1,6 +1,8 @@
 package ast
 
-import "github.com/goghcrow/yae/token"
+import (
+	"github.com/goghcrow/yae/token"
+)
 
 func Ident(name string) *Expr {
 	e := IdentExpr{Expr{IDENT}, name}
@@ -13,7 +15,17 @@ func Literal(typ LitType, lit string) *Expr {
 }
 
 func List(elems []*Expr) *Expr {
-	e := ListExpr{Expr{LIST}, elems}
+	e := ListExpr{Expr{LIST}, elems, nil}
+	return &e.Expr
+}
+
+func Map(pairs []Pair) *Expr {
+	e := MapExpr{Expr{MAP}, pairs, nil}
+	return &e.Expr
+}
+
+func Obj(fields map[string]*Expr) *Expr {
+	e := ObjExpr{Expr{OBJ}, fields, nil}
 	return &e.Expr
 }
 
@@ -32,13 +44,13 @@ func Tenary(t token.Type, l *Expr, m *Expr, r *Expr) *Expr {
 	return &e.Expr
 }
 
-func If(cond, els, then *Expr) *Expr {
-	e := IfExpr{Expr{IF}, cond, els, then}
+func If(cond, then, els *Expr) *Expr {
+	e := IfExpr{Expr{IF}, cond, then, els}
 	return &e.Expr
 }
 
 func Call(callee *Expr, args []*Expr) *Expr {
-	e := CallExpr{Expr{CALL}, callee, args, "", -1}
+	e := CallExpr{Expr{CALL}, callee, args, "", -1, nil}
 	return &e.Expr
 }
 
@@ -52,7 +64,7 @@ func Member(obj *Expr, field *IdentExpr) *Expr {
 	return &e.Expr
 }
 
-//func Begin(exprs []*Expr) *Expr {
-//	e := BeginExpr{Expr{BEGIN}, exprs}
-//	return &e.Expr
-//}
+func Begin(exprs []*Expr) *Expr {
+	e := BeginExpr{Expr{BEGIN}, exprs}
+	return &e.Expr
+}

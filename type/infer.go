@@ -19,7 +19,7 @@ func Infer(f *FunKind, args []*Kind) *FunKind {
 
 	m := map[string]*Kind{}
 	fmt.Println("_________")
-	tfn1 := Unify(psuido, fun, m)
+	tfn1 := unify(psuido, fun, m)
 	fmt.Println(m)
 	if tfn1 == nil {
 		return nil
@@ -30,11 +30,11 @@ func Infer(f *FunKind, args []*Kind) *FunKind {
 
 	fmt.Println("_________")
 	fmt.Println(s)
-	targ1 := Subst(s, m)
+	targ1 := subst(s, m)
 	fmt.Println(targ1)
 	fmt.Println("_________")
 
-	targ2 := Unify(targ1, targ, m)
+	targ2 := unify(targ1, targ, m)
 	fmt.Println(m)
 	if targ2 == nil || targ2.Type != TTuple {
 		return nil
@@ -42,7 +42,7 @@ func Infer(f *FunKind, args []*Kind) *FunKind {
 	fmt.Println(targ2)
 	fmt.Println("_________")
 
-	tresult := Subst(t, m)
+	tresult := subst(t, m)
 	if !slotFree(tresult) {
 		return nil
 	}

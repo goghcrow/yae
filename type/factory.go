@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// Slot 每次调用都生成不相等的 slot
+// Slot 📢 每次调用都生成「不相等」的 slot
 var Slot = func() func(name string) *Kind {
 	n := 0
 	return func(name string) *Kind {
@@ -26,7 +26,7 @@ func List(el *Kind) *Kind {
 }
 
 func Map(k, v *Kind) *Kind {
-	util.Assert(k.IsPrimitive() || k.Type == TSlot, "invalid type of map's key: %s", k)
+	util.Assert(k.IsPrimitive() || k.Type == TSlot || k.Type == TBottom, "invalid type of map's key: %s", k)
 	m := MapKind{Kind{TMap}, k, v}
 	return &m.Kind
 }

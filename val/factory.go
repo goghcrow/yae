@@ -29,18 +29,18 @@ func Time(t time.Time) *Val {
 	return &v.Val
 }
 
-func List(el *types.Kind) *Val {
-	v := ListVal{Val{types.List(el)}, make([]*Val, 0)}
+func List(kind *types.ListKind, cap int) *Val {
+	v := ListVal{Val{kind.Kd()}, make([]*Val, cap)}
 	return &v.Val
 }
 
-func Map(kk, vk *types.Kind) *Val {
-	v := MapVal{Val{types.Map(kk, vk)}, make(map[Key]*Val)}
+func Map(kind *types.MapKind) *Val {
+	v := MapVal{Val{kind.Kd()}, make(map[Key]*Val)}
 	return &v.Val
 }
 
-func Obj(fs map[string]*types.Kind) *Val {
-	v := ObjVal{Val{types.Obj(fs)}, make(map[string]*Val)}
+func Obj(kind *types.ObjKind) *Val {
+	v := ObjVal{Val{kind.Kd()}, make(map[string]*Val)}
 	return &v.Val
 }
 

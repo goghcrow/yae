@@ -113,4 +113,6 @@ func (e *Expr) initFuns() {
 	e.RegisterFun(fun.MIN_NUM_NUM.Fun())
 	e.RegisterFun(fun.MIN_NUM_NUM_NUM.Fun())
 
+	e.RegisterFun(fun.LEN_LIST.Fun())
+
 }

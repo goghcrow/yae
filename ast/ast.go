@@ -2,27 +2,31 @@ package ast
 
 import (
 	"github.com/goghcrow/yae/token"
+	types "github.com/goghcrow/yae/type"
 	"unsafe"
 )
 
 type NodeType int
 
 const (
-	LITERAL NodeType = iota
-	IDENT
-	LIST
+	IDENT NodeType = iota
 
-	// MAP
-	// OBJ
+	LITERAL
+	LIST
+	MAP
+	OBJ
 
 	UNARY
 	BINARY
 	TENARY
+
 	IF
 	CALL
+
 	SUBSCRIPT
 	MEMBER
-	//BEGIN
+
+	BEGIN
 )
 
 type LitType int
@@ -45,9 +49,24 @@ type LiteralExpr struct {
 	LitType
 	Val string
 }
-type ListExpr struct {
+type ListExpr struct { // lit
 	Expr
 	Elems []*Expr
+	// 👇🏻 for typecheck and compile
+	Kind *types.Kind
+}
+type Pair struct{ Key, Val *Expr }
+type MapExpr struct { // lit
+	Expr
+	Pairs []Pair
+	// 👇🏻 for typecheck and compile
+	Kind *types.Kind
+}
+type ObjExpr struct { // lit
+	Expr
+	Fields map[string]*Expr
+	// 👇🏻 for typecheck and compile
+	Kind *types.Kind
 }
 type IdentExpr struct {
 	Expr
@@ -79,15 +98,17 @@ type TenaryExpr struct {
 type IfExpr struct {
 	Expr
 	Cond *Expr
-	Else *Expr
 	Then *Expr
+	Else *Expr
 }
 type CallExpr struct {
 	Expr
-	Callee   *Expr
-	Args     []*Expr
-	Resolved string // for typecheck and compile
-	Index    int    // for typecheck and compile
+	Callee *Expr
+	Args   []*Expr
+	// 👇🏻 for typecheck and compile
+	Resolved   string
+	Index      int
+	CalleeKind *types.Kind
 }
 type SubscriptExpr struct {
 	Expr
@@ -107,6 +128,8 @@ type BeginExpr struct {
 func (e *Expr) Ident() *IdentExpr         { return (*IdentExpr)(unsafe.Pointer(e)) }
 func (e *Expr) Literal() *LiteralExpr     { return (*LiteralExpr)(unsafe.Pointer(e)) }
 func (e *Expr) List() *ListExpr           { return (*ListExpr)(unsafe.Pointer(e)) }
+func (e *Expr) Map() *MapExpr             { return (*MapExpr)(unsafe.Pointer(e)) }
+func (e *Expr) Obj() *ObjExpr             { return (*ObjExpr)(unsafe.Pointer(e)) }
 func (e *Expr) Unary() *UnaryExpr         { return (*UnaryExpr)(unsafe.Pointer(e)) }
 func (e *Expr) Binary() *BinaryExpr       { return (*BinaryExpr)(unsafe.Pointer(e)) }
 func (e *Expr) Tenary() *TenaryExpr       { return (*TenaryExpr)(unsafe.Pointer(e)) }

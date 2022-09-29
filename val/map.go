@@ -13,7 +13,12 @@ type Key struct {
 	val string
 }
 
+func (k Key) String() string {
+	return k.val
+}
+
 func (v *Val) Key() Key {
+	// types.Type.IsPrimitive()
 	switch v.Kind.Type {
 	case types.TBool:
 		return Key{v.Kind.Type, strconv.FormatBool(v.Bool().V)}

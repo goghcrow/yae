@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/goghcrow/yae/ast"
+	lex "github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/token"
 )
 
@@ -15,7 +16,8 @@ func newGrammar() grammar {
 	g.prefix(token.NUM, literalNum(ast.LIT_NUM))
 	g.prefix(token.STR, literalStr(ast.LIT_STR))
 
-	g.prefix(token.LEFT_BRACKET, parseList)
+	g.prefix(token.LEFT_BRACKET, parseListMap)
+	g.prefix(token.LEFT_BRACE, parseObj)
 	g.prefix(token.LEFT_PAREN, parseGroup)
 
 	g.prefix(token.PLUS, unary)  // token.UNARY_PLUS
@@ -63,7 +65,34 @@ func binaryR(p *parser, lhs *ast.Expr, t token.Token) *ast.Expr { return p.binar
 func unary(p *parser, t token.Token) *ast.Expr                  { return p.unary(t) }
 func unaryP(p *parser, lhs *ast.Expr, t token.Token) *ast.Expr  { return p.unaryP(lhs, t) }
 
-func parseList(p *parser, t token.Token) *ast.Expr {
+func parseListMap(p *parser, t token.Token) *ast.Expr {
+	if p.tryEat(token.COLON) != nil {
+		p.mustEat(token.RIGHT_BRACKET)
+		return ast.Map([]ast.Pair{})
+	}
+
+	isMap := false
+	marked := p.idx
+	for {
+		nxt := p.eat()
+		if nxt == lex.EOF || nxt.Type == token.RIGHT_BRACKET {
+			break
+		}
+		if p.tryEat(token.COLON) != nil {
+			isMap = true
+			break
+		}
+	}
+	p.idx = marked
+
+	if isMap {
+		return parseMap(p)
+	} else {
+		return parseList(p)
+	}
+}
+
+func parseList(p *parser) *ast.Expr {
 	elems := make([]*ast.Expr, 0)
 	for {
 		if p.peek().Type == token.RIGHT_BRACKET {
@@ -76,6 +105,42 @@ func parseList(p *parser, t token.Token) *ast.Expr {
 	}
 	p.mustEat(token.RIGHT_BRACKET)
 	return ast.List(elems)
+}
+
+func parseMap(p *parser) *ast.Expr {
+	pairs := make([]ast.Pair, 0)
+	for {
+		if p.peek().Type == token.RIGHT_BRACKET {
+			break
+		}
+		k := p.expr(0)
+		p.mustEat(token.COLON)
+		v := p.expr(0)
+		pairs = append(pairs, ast.Pair{Key: k, Val: v})
+		if p.tryEat(token.COMMA) == nil {
+			break
+		}
+	}
+	p.mustEat(token.RIGHT_BRACKET)
+	return ast.Map(pairs)
+}
+
+func parseObj(p *parser, t token.Token) *ast.Expr {
+	fs := make(map[string]*ast.Expr, 0)
+	for {
+		if p.peek().Type == token.RIGHT_BRACE {
+			break
+		}
+		n := p.mustEat(token.NAME)
+		p.mustEat(token.COLON)
+		v := p.expr(0)
+		fs[n.Lexeme] = v
+		if p.tryEat(token.COMMA) == nil {
+			break
+		}
+	}
+	p.mustEat(token.RIGHT_BRACE)
+	return ast.Obj(fs)
 }
 
 func parseGroup(p *parser, t token.Token) *ast.Expr {
