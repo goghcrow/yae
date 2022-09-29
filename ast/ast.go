@@ -2,7 +2,6 @@ package ast
 
 import (
 	"github.com/goghcrow/yae/token"
-	types "github.com/goghcrow/yae/type"
 	"unsafe"
 )
 
@@ -33,7 +32,7 @@ type LitType int
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	LIT_NULL LitType = iota
+	LIT_NULL LitType = iota // 暂时没用
 	LIT_STR
 	LIT_NUM
 	LIT_TRUE
@@ -53,20 +52,20 @@ type ListExpr struct { // lit
 	Expr
 	Elems []*Expr
 	// 👇🏻 for typecheck and compile
-	Kind *types.Kind
+	Kind interface{} // *types.Kind
 }
 type Pair struct{ Key, Val *Expr }
 type MapExpr struct { // lit
 	Expr
 	Pairs []Pair
 	// 👇🏻 for typecheck and compile
-	Kind *types.Kind
+	Kind interface{} //*types.Kind
 }
 type ObjExpr struct { // lit
 	Expr
 	Fields map[string]*Expr
 	// 👇🏻 for typecheck and compile
-	Kind *types.Kind
+	Kind interface{} //*types.Kind
 }
 type IdentExpr struct {
 	Expr
@@ -106,9 +105,8 @@ type CallExpr struct {
 	Callee *Expr
 	Args   []*Expr
 	// 👇🏻 for typecheck and compile
-	Resolved   string
-	Index      int
-	CalleeKind *types.Kind
+	Resolved string
+	Index    int
 }
 type SubscriptExpr struct {
 	Expr

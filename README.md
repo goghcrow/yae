@@ -59,3 +59,30 @@ All callable is function, `obj.method(args ...)` will be desugar to `method(obj,
 So, if you want to implement `3.repeat("a") == "aaa"`, you can register func `repeat :: num -> str -> str`
 
 ## BuildIn
+
+```
++ :: num -> num -> num 
+- :: num -> num -> num
+* :: num -> num -> num
+/ :: num -> num -> num
+% :: num -> num -> num
+
++  :: str -> str -> str
+
+>  :: num -> num -> bool
+>= :: num -> num -> bool
+<  :: num -> num -> bool
+<= :: num -> num -> bool
+== :: num -> num -> bool
+!= :: num -> num -> bool
+
+>  :: time -> time -> bool
+>= :: time -> time -> bool
+<  :: time -> time -> bool
+<= :: time -> time -> bool
+== :: time -> time -> bool
+!= :: time -> time -> bool
+
+todo...
+
+```

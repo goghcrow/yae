@@ -39,8 +39,9 @@ func (m *MapVal) Get(k *Val) (*Val, bool) {
 	return v, ok
 }
 
-func (m *MapVal) Put(k, v *Val) {
+func (m *MapVal) Put(k, v *Val) *MapVal {
 	util.Assert(types.Equals(m.Kind.Map().Key, k.Kind),
-		"invalid type, expect %s get %s", m.Kind.Map().Key, k)
+		"type mismatched, expect `%s` actual `%s`", m.Kind.Map().Key, k)
 	m.V[k.Key()] = v
+	return m
 }

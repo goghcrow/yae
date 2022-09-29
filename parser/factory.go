@@ -2,7 +2,6 @@ package parser
 
 import (
 	"github.com/goghcrow/yae/ast"
-	lex "github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/token"
 )
 
@@ -10,11 +9,11 @@ func newGrammar() grammar {
 	var g = grammar{}
 	g.prefix(token.NAME, func(p *parser, t token.Token) *ast.Expr { return ast.Ident(t.Lexeme) })
 
-	g.prefix(token.NULL, literalConst(ast.LIT_NULL, "null"))
-	g.prefix(token.TRUE, literalConst(ast.LIT_TRUE, "true"))
-	g.prefix(token.FALSE, literalConst(ast.LIT_FALSE, "false"))
-	g.prefix(token.NUM, literalNum(ast.LIT_NUM))
-	g.prefix(token.STR, literalStr(ast.LIT_STR))
+	g.prefix(token.NULL, literal(ast.LIT_NULL))
+	g.prefix(token.TRUE, literal(ast.LIT_TRUE))
+	g.prefix(token.FALSE, literal(ast.LIT_FALSE))
+	g.prefix(token.NUM, literal(ast.LIT_NUM))
+	g.prefix(token.STR, literal(ast.LIT_STR))
 
 	g.prefix(token.LEFT_BRACKET, parseListMap)
 	g.prefix(token.LEFT_BRACE, parseObj)
@@ -50,13 +49,7 @@ func newGrammar() grammar {
 	return g
 }
 
-func literalConst(typ ast.LitType, lit string) nud {
-	return func(p *parser, t token.Token) *ast.Expr { return ast.Literal(typ, lit) }
-}
-func literalStr(typ ast.LitType) nud {
-	return func(p *parser, t token.Token) *ast.Expr { return ast.Literal(typ, t.Lexeme) }
-}
-func literalNum(typ ast.LitType) nud {
+func literal(typ ast.LitType) nud {
 	return func(p *parser, t token.Token) *ast.Expr { return ast.Literal(typ, t.Lexeme) }
 }
 func binaryN(p *parser, lhs *ast.Expr, t token.Token) *ast.Expr { return p.binaryN(lhs, t) }
@@ -70,26 +63,7 @@ func parseListMap(p *parser, t token.Token) *ast.Expr {
 		p.mustEat(token.RIGHT_BRACKET)
 		return ast.Map([]ast.Pair{})
 	}
-
-	isMap := false
-	marked := p.idx
-	for {
-		nxt := p.eat()
-		if nxt == lex.EOF || nxt.Type == token.RIGHT_BRACKET {
-			break
-		}
-		if p.tryEat(token.COLON) != nil {
-			isMap = true
-			break
-		}
-	}
-	p.idx = marked
-
-	if isMap {
-		return parseMap(p)
-	} else {
-		return parseList(p)
-	}
+	return p.any(parseList, parseMap)
 }
 
 func parseList(p *parser) *ast.Expr {

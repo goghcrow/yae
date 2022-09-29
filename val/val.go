@@ -34,7 +34,7 @@ type BoolVal struct {
 }
 type NumVal struct {
 	Val
-	V float64
+	V float64 // 需要高精度考虑 big.Int / big.Float
 }
 type StrVal struct {
 	Val

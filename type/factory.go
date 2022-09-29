@@ -26,7 +26,8 @@ func List(el *Kind) *Kind {
 }
 
 func Map(k, v *Kind) *Kind {
-	util.Assert(k.IsPrimitive() || k.Type == TSlot || k.Type == TBottom, "invalid type of map's key: %s", k)
+	util.Assert(k.IsPrimitive() || k.Type == TSlot || k.Type == TBottom,
+		"invalid type of map's key: %s", k)
 	m := MapKind{Kind{TMap}, k, v}
 	return &m.Kind
 }

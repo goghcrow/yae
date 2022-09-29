@@ -1,7 +1,7 @@
 package types
 
 // IsSubtype k1 <: k2
-//func IsSubtype(k1, k2 *Kind) bool {}
+//func Subtype(k1, k2 *Kind) bool {}
 
 func Equals(x, y *Kind) bool {
 	if x.Type != y.Type {

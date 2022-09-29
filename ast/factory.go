@@ -14,6 +14,11 @@ func Literal(typ LitType, lit string) *Expr {
 	return &e.Expr
 }
 
+func LitTrue() *Expr          { return Literal(LIT_TRUE, token.TRUE.Name()) }
+func LitFalse() *Expr         { return Literal(LIT_FALSE, token.FALSE.Name()) }
+func LitNum(lit string) *Expr { return Literal(LIT_NUM, lit) }
+func LitStr(lit string) *Expr { return Literal(LIT_STR, lit) }
+
 func List(elems []*Expr) *Expr {
 	e := ListExpr{Expr{LIST}, elems, nil}
 	return &e.Expr
@@ -50,7 +55,7 @@ func If(cond, then, els *Expr) *Expr {
 }
 
 func Call(callee *Expr, args []*Expr) *Expr {
-	e := CallExpr{Expr{CALL}, callee, args, "", -1, nil}
+	e := CallExpr{Expr{CALL}, callee, args, "", -1}
 	return &e.Expr
 }
 
@@ -59,11 +64,13 @@ func Subscript(varExpr *Expr, expr *Expr) *Expr {
 	return &e.Expr
 }
 
+// Member FieldSelection
 func Member(obj *Expr, field *IdentExpr) *Expr {
 	e := MemberExpr{Expr{MEMBER}, obj, field}
 	return &e.Expr
 }
 
+// Begin for multi expr, (begin ...)
 func Begin(exprs []*Expr) *Expr {
 	e := BeginExpr{Expr{BEGIN}, exprs}
 	return &e.Expr

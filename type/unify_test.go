@@ -1,6 +1,8 @@
 package types
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestUnify(t *testing.T) {
 	// A :: ((α → β) × [γ]) → [β]
@@ -30,15 +32,11 @@ func TestUnify(t *testing.T) {
 	t.Log(m)
 }
 
-// todo infer 函数类型
-// todo 只支持函数 slot, 不支持 list map???
-
 func TestUnify1(tt *testing.T) {
 	a := Slot("a")
 	fun := Fun("", []*Kind{a}, a)
 	targ := Slot("str")
 
-	// todo slot 返回唯一值
 	s := Slot("s")
 	t := Slot("t")
 	psuido := Fun("", []*Kind{s}, t)

@@ -1,19 +1,19 @@
-package env
+package val
 
 import (
+	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
-	"github.com/goghcrow/yae/val"
 	"unsafe"
 )
 
 // Env for compile and runtime
 type Env struct {
 	parent *Env
-	ctx    map[string]*val.Val
+	ctx    map[string]*Val
 }
 
 func NewEnv() *Env {
-	return &Env{nil, map[string]*val.Val{}}
+	return &Env{nil, map[string]*Val{}}
 }
 
 func (e *Env) Inherit(parent *Env) *Env {
@@ -23,10 +23,10 @@ func (e *Env) Inherit(parent *Env) *Env {
 }
 
 func (e *Env) Derive() *Env {
-	return &Env{e, map[string]*val.Val{}}
+	return &Env{e, map[string]*Val{}}
 }
 
-func (e *Env) Get(name string) (*val.Val, bool) {
+func (e *Env) Get(name string) (*Val, bool) {
 	v, ok := e.ctx[name]
 	if !ok && e.parent != nil {
 		return e.parent.Get(name)
@@ -34,21 +34,22 @@ func (e *Env) Get(name string) (*val.Val, bool) {
 	return v, ok
 }
 
-func (e *Env) Put(name string, val *val.Val) {
+func (e *Env) Put(name string, val *Val) {
 	e.ctx[name] = val
 }
 
-func (e *Env) RegisterFun(f *val.FunVal) {
+func (e *Env) RegisterFun(f *Val) {
+	util.Assert(f.Kind.Type == types.TFun, "need to register FunVal, get %s", f)
 	lookup, mono := f.Kind.Fun().Lookup()
 	if mono {
-		e.Put(lookup, f.Vl())
+		e.Put(lookup, f)
 	} else {
-		fs := &[]*val.FunVal{f}
+		fs := &[]*FunVal{f.Fun()}
 		arr, ok := e.Get(lookup)
 		if ok {
-			fs = (*[]*val.FunVal)(unsafe.Pointer(arr))
-			*fs = append(*fs, f)
+			fs = (*[]*FunVal)(unsafe.Pointer(arr))
+			*fs = append(*fs, f.Fun())
 		}
-		e.Put(lookup, (*val.Val)(unsafe.Pointer(fs)))
+		e.Put(lookup, (*Val)(unsafe.Pointer(fs)))
 	}
 }

@@ -34,6 +34,7 @@ func (p *parser) peek() token.Token {
 	}
 	return *p.toks[p.idx]
 }
+
 func (p *parser) eat() token.Token {
 	if p.idx >= len(p.toks) {
 		return lex.EOF
@@ -42,11 +43,13 @@ func (p *parser) eat() token.Token {
 	p.idx++
 	return *t
 }
+
 func (p *parser) mustEat(typ token.Type) token.Token {
 	t := p.eat()
 	util.Assert(t.Type == typ, "syntax error: %s", &t)
 	return t
 }
+
 func (p *parser) tryEat(typ token.Type) *token.Token {
 	if p.peek().Type == typ {
 		t := p.eat()
@@ -56,13 +59,35 @@ func (p *parser) tryEat(typ token.Type) *token.Token {
 	}
 }
 
-//func (p *parser) begin() *ast.Expr {
-//	var exprs []*ast.Expr
-//	for p.peek() == lex.EOF {
-//		exprs = append(exprs, p.expr(0))
-//	}
-//	return ast.Begin(exprs)
-//}
+func (p *parser) tryParse(f func(p *parser) *ast.Expr) (expr *ast.Expr) {
+	marked := p.idx
+	defer func() {
+		if r := recover(); r != nil {
+			p.idx = marked
+			expr = nil
+		}
+	}()
+	return f(p)
+}
+
+func (p *parser) any(fs ...func(p *parser) *ast.Expr) (expr *ast.Expr) {
+	for _, f := range fs {
+		n := p.tryParse(f)
+		if n != nil {
+			return n
+		}
+	}
+	p.syntaxAssert(false)
+	return nil
+}
+
+func (p *parser) begin() *ast.Expr {
+	var exprs []*ast.Expr
+	for p.peek() == lex.EOF {
+		exprs = append(exprs, p.expr(0))
+	}
+	return ast.Begin(exprs)
+}
 
 func (p *parser) expr(rbp token.BP) *ast.Expr {
 	t := p.eat()
@@ -133,4 +158,8 @@ func (p *parser) check(expr *ast.Expr) *ast.Expr {
 		}
 	}
 	return expr
+}
+
+func (p *parser) syntaxAssert(cond bool) {
+	util.Assert(cond, "syntax error: %s", p.toks[p.idx:])
 }

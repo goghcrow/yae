@@ -2,21 +2,15 @@ package types
 
 import (
 	"fmt"
-	"strings"
 )
-
-// func (f *FunKind) mangler(m) string {}
 
 // Lookup 根据参数重命名实现函数重载
 func (f *FunKind) Lookup() (string, bool) {
 	if slotFree(f.Kd()) {
-		pt := make([]string, len(f.Param))
-		for i, param := range f.Param {
-			// pt[i] = param.Type.String()
-			pt[i] = param.String()
-		}
-		return fmt.Sprintf("%s(%s)", f.Name, strings.Join(pt, ",")), true
+		// 单态函数直接根据去除返回值的签名来查找
+		return fmt.Sprintf("λ<%s %s>", f.Name, f.Param), true
 	} else {
-		return fmt.Sprintf("**%s**(%d)", f.Name, len(f.Param)), false
+		// 多态函数根据名称+参数个数来查找, ∀ universal quantification
+		return fmt.Sprintf("λ<∀ %s %d>", f.Name, len(f.Param)), false
 	}
 }

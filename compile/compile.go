@@ -2,7 +2,6 @@ package compile
 
 import (
 	"github.com/goghcrow/yae/ast"
-	"github.com/goghcrow/yae/env"
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
@@ -10,7 +9,7 @@ import (
 	"unsafe"
 )
 
-type Closure func(env *env.Env) *val.Val
+type Closure func(env *val.Env) *val.Val
 
 func (c Closure) String() string { return "Closure" }
 
@@ -19,24 +18,24 @@ func (c Closure) String() string { return "Closure" }
 // implement compilers for embedded languages
 // 注意区分: env1 是编译期环境, env 是运行时环境
 // 能在编译期完成的, 尽可能在编译期计算完
-func Compile(env1 *env.Env, expr *ast.Expr) Closure {
+// 调用 compile 之前必须调用 types.TypeCheck 需要在 ast 中繁饰部分类型信息
+func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 	switch expr.Type {
 	case ast.LITERAL:
 		lit := expr.Literal()
 		switch lit.LitType {
 		case ast.LIT_STR:
-			unquote, err := strconv.Unquote(lit.Val)
-			util.Assert(err == nil, "invalid string literal: %s", lit.Val)
+			unquote, _ := strconv.Unquote(lit.Val)
 			s := val.Str(unquote)
-			return func(env *env.Env) *val.Val { return s }
+			return func(env *val.Env) *val.Val { return s }
 		case ast.LIT_NUM:
 			v, _ := util.ParseNum(lit.Val)
 			n := val.Num(v)
-			return func(env *env.Env) *val.Val { return n }
+			return func(env *val.Env) *val.Val { return n }
 		case ast.LIT_TRUE:
-			return func(env *env.Env) *val.Val { return val.True }
+			return func(env *val.Env) *val.Val { return val.True }
 		case ast.LIT_FALSE:
-			return func(env *env.Env) *val.Val { return val.False }
+			return func(env *val.Env) *val.Val { return val.False }
 		}
 
 	case ast.IDENT:
@@ -44,7 +43,7 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 		// 1. 需要在编译期把符号 resolve 成数组下标
 		// 2. 把运行时环境从 map 展开成数组
 		id := expr.Ident().Name
-		return func(env *env.Env) *val.Val {
+		return func(env *val.Env) *val.Val {
 			v, _ := env.Get(id)
 			return v
 		}
@@ -54,19 +53,19 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 		els := lst.Elems
 		sz := len(els)
 		if sz == 0 {
-			return func(env *env.Env) *val.Val {
+			return func(env *val.Env) *val.Val {
 				kind := types.List(types.Bottom).List()
 				return val.List(kind, 0)
 			}
 		}
 
-		kind := lst.Kind.List()
+		kind := lst.Kind.(*types.Kind).List()
 		cs := make([]Closure, sz)
 		for i, el := range els {
 			cs[i] = Compile(env1, el)
 		}
 
-		return func(env *env.Env) *val.Val {
+		return func(env *val.Env) *val.Val {
 			l := val.List(kind, sz).List()
 			for i, c := range cs {
 				l.V[i] = c(env)
@@ -78,19 +77,19 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 		m := expr.Map()
 		sz := len(m.Pairs)
 		if sz == 0 {
-			return func(env *env.Env) *val.Val {
+			return func(env *val.Env) *val.Val {
 				kind := types.Map(types.Bottom, types.Bottom).Map()
 				return val.Map(kind)
 			}
 		}
 
-		kind := m.Kind.Map()
+		kind := m.Kind.(*types.Kind).Map()
 		cs := make([]struct{ k, v Closure }, sz)
 		for i, pair := range m.Pairs {
 			cs[i] = struct{ k, v Closure }{Compile(env1, pair.Key), Compile(env1, pair.Val)}
 		}
 
-		return func(env *env.Env) *val.Val {
+		return func(env *val.Env) *val.Val {
 			m := val.Map(kind).Map()
 			for _, c := range cs {
 				k := c.k(env).Key()
@@ -105,19 +104,19 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 		fs := obj.Fields
 		sz := len(fs)
 		if sz == 0 {
-			return func(env *env.Env) *val.Val {
+			return func(env *val.Env) *val.Val {
 				kind := types.Obj(map[string]*types.Kind{}).Obj()
 				return val.Obj(kind)
 			}
 		}
 
-		kind := obj.Kind.Obj()
+		kind := obj.Kind.(*types.Kind).Obj()
 		cs := make(map[string]Closure, sz)
 		for n, v := range fs {
 			cs[n] = Compile(env1, v)
 		}
 
-		return func(env *env.Env) *val.Val {
+		return func(env *val.Env) *val.Val {
 			k := make(map[string]*types.Kind, sz)
 			m := val.Obj(kind).Obj()
 			for n, c := range cs {
@@ -128,60 +127,13 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 			return m.Vl()
 		}
 
-	/*
-		IF 已经 desugar 成 lazyfun 了, 这里不需要
-		case ast.IF:
-			iff := expr.If()
-			cond := Compile(env1, iff.Cond)
-			then := Compile(env1, iff.Then)
-			els := Compile(env1, iff.Else)
-
-			// if 分支是 lazy 的 (短路)
-			return func(env *env.Env) *val.Val {
-				if cond(env).Bool().V {
-					return then(env)
-				} else {
-					return els(env)
-				}
-			}
-	*/
-
-	case ast.CALL:
-		// 函数在编译期进行链接, 通过 golang 闭包的 upval 传递给运行时
-		call := expr.Call()
-		fun := resolve(env1, call)
-
-		sz := len(call.Args)
-		cs := make([]Closure, sz)
-		for i, arg := range call.Args {
-			cs[i] = Compile(env1, arg)
-		}
-
-		lazy := fun.Lazy
-		retK := fun.Kind.Fun().Return
-
-		return func(env *env.Env) *val.Val {
-			args := make([]*val.Val, sz)
-			if lazy {
-				// 惰性求值函数参数会被包装成 thunk, 注意没有缓存
-				for i := 0; i < sz; i++ {
-					args[i] = thunkify(cs[i], env, retK)
-				}
-			} else {
-				for i := 0; i < sz; i++ {
-					args[i] = cs[i](env)
-				}
-			}
-			return fun.V(args...)
-		}
-
-		// 同样可以 desugar 成 build-in-fun
 	case ast.SUBSCRIPT:
+		// 也可以 desugar 成 build-in-fun
 		sub := expr.Subscript()
 		va := Compile(env1, sub.Var)
 		idx := Compile(env1, sub.Idx)
 
-		return func(env *env.Env) *val.Val {
+		return func(env *val.Env) *val.Val {
 			x := va(env)
 			if x.Kind.Type == types.TList {
 				return x.List().V[int(idx(env).Num().V)]
@@ -197,15 +149,39 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 			return nil
 		}
 
-		// 同样可以 desugar 成 build-in-fun
 	case ast.MEMBER:
+		// 也可以 desugar 成 build-in-fun
 		mem := expr.Member()
 		obj := Compile(env1, mem.Obj)
 		field := mem.Field.Name
 
-		return func(env *env.Env) *val.Val {
+		return func(env *val.Env) *val.Val {
 			v, _ := obj(env).Obj().V[field]
 			return v
+		}
+
+	case ast.CALL:
+		call := expr.Call()
+		if call.Resolved == "" {
+			return dynamicDispatch(env1, call)
+		} else {
+			return staticDispatch(env1, call)
+		}
+
+	//IF 已经 desugar 成 lazyfun 了, 这里已经没用了
+	case ast.IF:
+		iff := expr.If()
+		cond := Compile(env1, iff.Cond)
+		then := Compile(env1, iff.Then)
+		els := Compile(env1, iff.Else)
+
+		// if 分支是 lazy 的 (短路)
+		return func(env *val.Env) *val.Val {
+			if cond(env).Bool().V {
+				return then(env)
+			} else {
+				return els(env)
+			}
 		}
 
 	default:
@@ -214,16 +190,71 @@ func Compile(env1 *env.Env, expr *ast.Expr) Closure {
 	return nil
 }
 
-func resolve(env1 *env.Env, call *ast.CallExpr) *val.FunVal {
+// 函数在编译期 resolve, 通过 golang 闭包的 upval 传递给运行时
+func staticDispatch(env1 *val.Env, call *ast.CallExpr) Closure {
 	f, _ := env1.Get(call.Resolved)
+
 	// 多态函数, 这里有点 hack 手动狗头
 	if call.Index >= 0 {
 		f = (*(*[]*val.FunVal)(unsafe.Pointer(f)))[call.Index].Vl()
 	}
-	return f.Fun()
+	fun := f.Fun()
+
+	sz := len(call.Args)
+	cs := make([]Closure, sz)
+	for i, arg := range call.Args {
+		cs[i] = Compile(env1, arg)
+	}
+
+	lazy := fun.Lazy
+	retK := fun.Kind.Fun().Return
+
+	return func(env *val.Env) *val.Val {
+		args := make([]*val.Val, sz)
+		if lazy {
+			// 惰性求值函数参数会被包装成 thunk, 注意没有缓存
+			for i := 0; i < sz; i++ {
+				args[i] = thunkify(cs[i], env, retK)
+			}
+		} else {
+			for i := 0; i < sz; i++ {
+				args[i] = cs[i](env)
+			}
+		}
+		return fun.V(args...)
+	}
 }
 
-func thunkify(c Closure, env *env.Env, retK *types.Kind) *val.Val {
+func dynamicDispatch(env1 *val.Env, call *ast.CallExpr) Closure {
+	cc := Compile(env1, call.Callee)
+
+	sz := len(call.Args)
+	cs := make([]Closure, sz)
+	for i, arg := range call.Args {
+		cs[i] = Compile(env1, arg)
+	}
+
+	return func(env *val.Env) *val.Val {
+		fun := cc(env).Fun()
+		lazy := fun.Lazy
+		retK := fun.Kind.Fun().Return
+
+		args := make([]*val.Val, sz)
+		if lazy {
+			// 惰性求值函数参数会被包装成 thunk, 注意没有缓存
+			for i := 0; i < sz; i++ {
+				args[i] = thunkify(cs[i], env, retK)
+			}
+		} else {
+			for i := 0; i < sz; i++ {
+				args[i] = cs[i](env)
+			}
+		}
+		return fun.V(args...)
+	}
+}
+
+func thunkify(c Closure, env *val.Env, retK *types.Kind) *val.Val {
 	fk := types.Fun("thunk", []*types.Kind{}, retK)
 	return val.Fun(fk, func(v ...*val.Val) *val.Val {
 		return c(env)

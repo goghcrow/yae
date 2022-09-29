@@ -62,10 +62,6 @@ type FunKind struct {
 	Return *Kind
 }
 
-func (k *Kind) IsPrimitive() bool   { return k.Type > _Primitive_ && k.Type < _Composite_ }
-func (k *Kind) IsComposite() bool   { return k.Type > _Composite_ }
-func (k *Kind) Equals(j *Kind) bool { return Equals(k, j) }
-
 func (k *Kind) Slot() *SlotKind   { return (*SlotKind)(unsafe.Pointer(k)) }
 func (k *Kind) Bool() *BoolKind   { return (*BoolKind)(unsafe.Pointer(k)) }
 func (k *Kind) Num() *NumKind     { return (*NumKind)(unsafe.Pointer(k)) }
