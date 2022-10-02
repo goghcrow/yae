@@ -67,5 +67,7 @@ var lexicon = []rule{
 	reg(token.STR, "\"(?:[^\"\\\\]*|\\\\[\"\\\\trnbf\\/]|\\\\u[0-9a-fA-F]{4})*\""),
 	reg(token.STR, "`[^`]*`"), // raw string
 
+	reg(token.TIME, "'[^`\"']*'"),
+
 	reg(token.NAME, "[a-zA-Z\\p{L}_][a-zA-Z0-9\\p{L}_]*"), // 支持 unicode, 不能以数字开头
 }

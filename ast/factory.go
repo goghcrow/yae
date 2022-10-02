@@ -14,10 +14,11 @@ func Literal(typ LitType, lit string) *Expr {
 	return &e.Expr
 }
 
-func LitTrue() *Expr          { return Literal(LIT_TRUE, token.TRUE.Name()) }
-func LitFalse() *Expr         { return Literal(LIT_FALSE, token.FALSE.Name()) }
-func LitNum(lit string) *Expr { return Literal(LIT_NUM, lit) }
-func LitStr(lit string) *Expr { return Literal(LIT_STR, lit) }
+func LitTrue() *Expr           { return Literal(LIT_TRUE, token.TRUE.Name()) }
+func LitFalse() *Expr          { return Literal(LIT_FALSE, token.FALSE.Name()) }
+func LitNum(lit string) *Expr  { return Literal(LIT_NUM, lit) }
+func LitStr(lit string) *Expr  { return Literal(LIT_STR, lit) }
+func LitTime(lit string) *Expr { return Literal(LIT_TIME, lit) }
 
 func List(elems []*Expr) *Expr {
 	e := ListExpr{Expr{LIST}, elems, nil}

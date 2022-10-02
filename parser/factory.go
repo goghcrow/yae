@@ -14,6 +14,7 @@ func newGrammar() grammar {
 	g.prefix(token.FALSE, literal(ast.LIT_FALSE))
 	g.prefix(token.NUM, literal(ast.LIT_NUM))
 	g.prefix(token.STR, literal(ast.LIT_STR))
+	g.prefix(token.TIME, literal(ast.LIT_TIME))
 
 	g.prefix(token.LEFT_BRACKET, parseListMap)
 	g.prefix(token.LEFT_BRACE, parseObj)

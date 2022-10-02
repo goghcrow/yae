@@ -4,6 +4,9 @@ package types
 //func Subtype(k1, k2 *Kind) bool {}
 
 func Equals(x, y *Kind) bool {
+	if x == nil || y == nil {
+		return false
+	}
 	if x.Type != y.Type {
 		return false
 	}
@@ -64,6 +67,7 @@ func equalsTuple(x, y *TupleKind) bool {
 	}
 	return true
 }
+
 func equalsFun(x, y *FunKind) bool {
 	if len(x.Param) != len(y.Param) {
 		return false

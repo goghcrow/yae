@@ -7,7 +7,7 @@ import (
 
 //goland:noinspection GoUnusedGlobalVariable,GoSnakeCaseUsage
 var (
-	// LEN_MAP == :: forall a. (map[k, v] -> num)
+	// LEN_MAP len :: forall a. (map[k, v] -> num)
 	LEN_MAP = func() *val.Val {
 		K := types.Slot("k")
 		V := types.Slot("v")

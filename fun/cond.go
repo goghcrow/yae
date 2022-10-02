@@ -15,7 +15,7 @@ var (
 			return val.Bool(args[0].Bool().V == args[1].Bool().V)
 		},
 	)
-	// NE_BOOL_BOOL == :: bool -> bool -> bool
+	// NE_BOOL_BOOL != :: bool -> bool -> bool
 	NE_BOOL_BOOL = val.Fun(
 		types.Fun(token.NE.Name(), []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
@@ -43,7 +43,7 @@ var (
 			return val.Bool(args[0].Str().V == args[1].Str().V)
 		},
 	)
-	// NE_STR_STR == :: str -> str -> bool
+	// NE_STR_STR != :: str -> str -> bool
 	NE_STR_STR = val.Fun(
 		types.Fun(token.NE.Name(), []*types.Kind{types.Str, types.Str}, types.Bool),
 		func(args ...*val.Val) *val.Val {
@@ -57,7 +57,7 @@ var (
 			return val.Bool(args[0].Time().V.Equal(args[1].Time().V))
 		},
 	)
-	// NE_TIME_TIME == :: time -> time -> bool
+	// NE_TIME_TIME != :: time -> time -> bool
 	NE_TIME_TIME = val.Fun(
 		types.Fun(token.NE.Name(), []*types.Kind{types.Time, types.Time}, types.Bool),
 		func(args ...*val.Val) *val.Val {

@@ -18,6 +18,10 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 			_, err := strconv.Unquote(lit.Val)
 			util.Assert(err == nil, "invalid string literal: %s", lit.Val)
 			return Str
+		//case ast.LIT_TIME:
+		//	ts := util.Strtotime(lit.Val[1 : len(lit.Val)-1])
+		//	util.Assert(ts != 0, "invalid time literal: %s", lit.Val)
+		//	return Time
 		case ast.LIT_NUM:
 			_, err := util.ParseNum(lit.Val)
 			util.Assert(err == nil, "invalid num literal %s", lit.Val)
@@ -154,14 +158,14 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 		return fun.Return
 
 	// IF 已经 desugar 成 lazyfun 了, 这里已经没用了
-	case ast.IF:
-		iff := expr.If()
-		condKind := TypeCheck(env, iff.Cond)
-		typeAssert(condKind, Bool, expr)
-		thenKind := TypeCheck(env, iff.Then)
-		elseKind := TypeCheck(env, iff.Else)
-		typeAssert(thenKind, elseKind, expr)
-		return thenKind
+	//case ast.IF:
+	//	iff := expr.If()
+	//	condKind := TypeCheck(env, iff.Cond)
+	//	typeAssert(condKind, Bool, expr)
+	//	thenKind := TypeCheck(env, iff.Then)
+	//	elseKind := TypeCheck(env, iff.Else)
+	//	typeAssert(thenKind, elseKind, expr)
+	//	return thenKind
 
 	default:
 		util.Unreachable()
@@ -250,14 +254,10 @@ func inferFun(f *FunKind, args []*Kind) *FunKind {
 
 func slotFree(k *Kind) bool {
 	switch k.Type {
-	case TNum:
+	case TNum, TStr, TBool, TTime, TBottom, TTop:
 		return true
-	case TStr:
-		return true
-	case TBool:
-		return true
-	case TTime:
-		return true
+	case TSlot:
+		return false
 	case TList:
 		return slotFree(k.List().El)
 	case TMap:
@@ -283,12 +283,6 @@ func slotFree(k *Kind) bool {
 			}
 		}
 		return slotFree(k.Fun().Return)
-	case TSlot:
-		return false
-	case TTop:
-		return true
-	case TBottom:
-		return true
 	default:
 		util.Unreachable()
 	}

@@ -77,8 +77,8 @@ func TestFun(t *testing.T) {
 		{`3.14 != 3.14`, val.False},
 		{`"" == ""`, val.True},
 		{`"" != ""`, val.False},
-		{`today() == today()`, val.True},
-		{`today() != today()`, val.False},
+		{`'today' == 'today'`, val.True},
+		{`'today' != 'today'`, val.False},
 		{`[] == []`, val.True},
 		{`[] != []`, val.False},
 		{`[1,2,3] == [1,2,3]`, val.True},
@@ -133,20 +133,20 @@ func TestFun(t *testing.T) {
 		{`42 <= 42`, val.True},
 		{`42 <= 42`, val.True},
 
-		{`today() == today()`, val.True},
-		{`today() != today()`, val.False},
-		{`today("09:00") > today("08:00")`, val.True},
-		{`today("08:00") < today("09:00")`, val.True},
-		{`today("09:00") < today("08:00")`, val.False},
-		{`today("08:00") > today("09:00")`, val.False},
-		{`today("09:00") >= today("08:00")`, val.True},
-		{`today("08:00") <= today("09:00")`, val.True},
-		{`today("09:00") <= today("08:00")`, val.False},
-		{`today("08:00") >= today("09:00")`, val.False},
-		{`today("09:00") >= today("09:00")`, val.True},
-		{`today("09:00") <= today("09:00")`, val.True},
-		{`today("09:00") <= today("09:00")`, val.True},
-		{`today("09:00") >= today("09:00")`, val.True},
+		{`'today' == 'today'`, val.True},
+		{`'today' != 'today'`, val.False},
+		{`'today 09:00' > 'today 08:00'`, val.True},
+		{`'today 08:00' < 'today 09:00'`, val.True},
+		{`'today 09:00' < 'today 08:00'`, val.False},
+		{`'today 08:00' > 'today 09:00'`, val.False},
+		{`'today 09:00' >= 'today 08:00'`, val.True},
+		{`'today 08:00' <= 'today 09:00'`, val.True},
+		{`'today 09:00' <= 'today 08:00'`, val.False},
+		{`'today 08:00' >= 'today 09:00'`, val.False},
+		{`'today 09:00' >= 'today 09:00'`, val.True},
+		{`'today 09:00' <= 'today 09:00'`, val.True},
+		{`'today 09:00' <= 'today 09:00'`, val.True},
+		{`'today 09:00' >= 'today 09:00'`, val.True},
 
 		{`len("Hello")`, val.Num(5)},
 		{`len("晓")`, val.Num(1)},
@@ -176,10 +176,16 @@ func TestFun(t *testing.T) {
 		{"2 ^ 3 == 8", val.True},
 		{"2 ^ 3 ^ 2 == 2 ^ 9", val.True}, // 右结合
 		{"1 - 2 + 3 * 4 == 11", val.True},
+
 		{"max(1,2) == 2", val.True},
-		{"max(1,2,3) == 3", val.True},
+		{"max([1,2,3]) == 3", val.True},
 		{"min(1,2) == 1", val.True},
-		{"min(1,2,3) == 1", val.True},
+		{"min([1,2,3]) == 1", val.True},
+		{`abs(-1)`, val.Num(1)},
+		{`round(1.4)`, val.Num(1)},
+		{`round(1.5)`, val.Num(2)},
+		{`floor(1.9)`, val.Num(1)},
+		{`ceil(1.1)`, val.Num(2)},
 
 		{"print(1)", val.Num(1)},
 
@@ -204,7 +210,14 @@ func TestFun(t *testing.T) {
 		{`[1:2, 3:4][3] == 4`, val.True},
 		{`["id":"x", "name":"xiao"]["id"] == "x"`, val.True},
 
-		{`if(1 + 2 > 3, today("08:00"), today("09:00")) == today("09:00")`, val.True},
+		{`if(1 + 2 > 3, 'today 08:00', 'today 09:00') == 'today 09:00'`, val.True},
+
+		{`string(42)`, val.Str("42")},
+		{`string("s")`, val.Str("s")},
+		{`string("[1,2]")`, val.Str("[1,2]")},
+
+		{`match("^\\d+$", "123")`, val.True},
+		{`match("^\\d+$", "123a")`, val.False},
 	}
 
 	for _, tt := range tests {
@@ -271,7 +284,7 @@ func infer(s string) *types.Kind {
 }
 
 func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {
-	for _, f := range funs {
+	for _, f := range Funs {
 		typecheckEnv.RegisterFun(f.Kind)
 		compileEnv.RegisterFun(f)
 	}

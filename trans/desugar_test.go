@@ -1,11 +1,9 @@
 package trans
 
 import (
-	"fmt"
 	. "github.com/goghcrow/yae/ast"
 	lex "github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/parser"
-	types "github.com/goghcrow/yae/type"
 	"reflect"
 	"testing"
 )
@@ -45,10 +43,4 @@ func TestDesugar(t *testing.T) {
 			}
 		})
 	}
-
-	expr := parser.Parser(lex.Lex("if(false, f((1+2)/5^4), \"hello world!\".length())"))
-
-	fmt.Println(expr)
-	fmt.Println(types.Map(types.Str, types.List(types.Num)))
-
 }

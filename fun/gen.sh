@@ -1,8 +1,8 @@
 #!/bin/bash
 
-echo "package fun" > gen_test.go
-echo "import \"github.com/goghcrow/yae/val\"" >> gen_test.go
-echo "var funs = []*val.Val{" >> gen_test.go
-egrep -r -h -o --include=*.go "[A-Z][A-Z_]+ = " .| awk -F " " '{print $1 ","}' >> gen_test.go
-echo '}' >> gen_test.go
+echo -e "package fun\n" > funs.go
+echo -e "import \"github.com/goghcrow/yae/val\"\n" >> funs.go
+echo "var Funs = []*val.Val{" >> funs.go
+egrep -r -h -o --include=*.go "[A-Z][A-Z_]+ = " .| awk -F " " '{print "\t" $1 ","}' >> funs.go
+echo '}' >> funs.go
 

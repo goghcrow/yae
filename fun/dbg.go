@@ -8,7 +8,7 @@ import (
 
 //goland:noinspection GoSnakeCaseUsage
 var (
-	// PRINT_ANY == :: forall a. (a -> a)
+	// PRINT_ANY print :: forall a. (a -> a)
 	PRINT_ANY = func() *val.Val {
 		a := types.Slot("a")
 		return val.Fun(

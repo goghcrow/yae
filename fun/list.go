@@ -7,7 +7,7 @@ import (
 
 //goland:noinspection GoSnakeCaseUsage
 var (
-	// LEN_LIST == :: forall a. (list[a] -> num)
+	// LEN_LIST len :: forall a. (list[a] -> num)
 	LEN_LIST = func() *val.Val {
 		T := types.Slot("a")
 		listT := types.List(T)
@@ -18,4 +18,6 @@ var (
 			},
 		)
 	}()
+
+	// todo 集合运算
 )

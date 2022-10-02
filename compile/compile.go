@@ -28,6 +28,9 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 			unquote, _ := strconv.Unquote(lit.Val)
 			s := val.Str(unquote)
 			return func(env *val.Env) *val.Val { return s }
+		//case ast.LIT_TIME:
+		//	t := time.Unix(util.Strtotime(lit.Val[1:len(lit.Val)-1]), 0)
+		//	return func(env *val.Env) *val.Val { return val.Time(t) }
 		case ast.LIT_NUM:
 			v, _ := util.ParseNum(lit.Val)
 			n := val.Num(v)
@@ -169,20 +172,20 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 		}
 
 	//IF 已经 desugar 成 lazyfun 了, 这里已经没用了
-	case ast.IF:
-		iff := expr.If()
-		cond := Compile(env1, iff.Cond)
-		then := Compile(env1, iff.Then)
-		els := Compile(env1, iff.Else)
-
-		// if 分支是 lazy 的 (短路)
-		return func(env *val.Env) *val.Val {
-			if cond(env).Bool().V {
-				return then(env)
-			} else {
-				return els(env)
-			}
-		}
+	//case ast.IF:
+	//	iff := expr.If()
+	//	cond := Compile(env1, iff.Cond)
+	//	then := Compile(env1, iff.Then)
+	//	els := Compile(env1, iff.Else)
+	//
+	//	// if 分支是 lazy 的 (短路)
+	//	return func(env *val.Env) *val.Val {
+	//		if cond(env).Bool().V {
+	//			return then(env)
+	//		} else {
+	//			return els(env)
+	//		}
+	//	}
 
 	default:
 		util.Unreachable()

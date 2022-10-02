@@ -15,7 +15,7 @@ import (
 
 //goland:noinspection GoSnakeCaseUsage
 var (
-	// IF_BOOL_A_A + :: forall a. (bool -> α -> α -> α)
+	// IF_BOOL_A_A if :: forall a. (bool -> α -> α -> α)
 	// if 可以声明成惰性求值的泛型函数
 	IF_BOOL_A_A = func() *val.Val {
 		T := types.Slot("a")
@@ -31,7 +31,7 @@ var (
 			},
 		)
 	}()
-	//AND_BOOL_BOOL - :: bool -> bool -> bool
+	//AND_BOOL_BOOL and :: bool -> bool -> bool
 	AND_BOOL_BOOL = val.LazyFun(
 		types.Fun(token.LOGIC_AND.Name(), []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
@@ -44,7 +44,7 @@ var (
 			}
 		},
 	)
-	//OR_BOOL_BOOL - :: bool -> bool -> bool
+	//OR_BOOL_BOOL or :: bool -> bool -> bool
 	OR_BOOL_BOOL = val.LazyFun(
 		types.Fun(token.LOGIC_OR.Name(), []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
@@ -57,7 +57,7 @@ var (
 			}
 		},
 	)
-	// NOT_BOOL - :: bool -> bool
+	// NOT_BOOL not :: bool -> bool
 	NOT_BOOL = val.Fun(
 		types.Fun(token.LOGIC_NOT.Name(), []*types.Kind{types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {

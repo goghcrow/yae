@@ -9,7 +9,16 @@ import (
 func Desugar(expr *ast.Expr) *ast.Expr {
 	switch expr.Type {
 	case ast.LITERAL:
-		return expr
+		lit := expr.Literal()
+		if lit.LitType == ast.LIT_TIME {
+			times := lit.Val[1 : len(lit.Val)-1]
+			util.Assert(util.Strtotime(times) != 0, "invalid time lit %s", lit.Val)
+			args := []*ast.Expr{ast.LitStr("`" + times + "`")}
+			callee := ast.Ident("strtotime")
+			return ast.Call(callee, args)
+		} else {
+			return expr
+		}
 	case ast.IDENT:
 		return expr
 	case ast.LIST:

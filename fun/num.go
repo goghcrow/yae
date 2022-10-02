@@ -78,45 +78,4 @@ var (
 			return val.Num(math.Pow(args[0].Num().V, args[1].Num().V))
 		},
 	)
-
-	// 目前重载比较简单, 不定参数+重载的分派会变复杂, 暂时可以用重载 n 个参数来解决, 会比较啰嗦, e.g. MAX_NUM_NUM_NUM
-
-	// MAX_NUM_NUM + :: num -> num -> num
-	MAX_NUM_NUM = val.Fun(
-		types.Fun("max", []*types.Kind{types.Num, types.Num}, types.Num),
-		func(args ...*val.Val) *val.Val {
-			return val.Num(math.Max(args[0].Num().V, args[1].Num().V))
-		},
-	)
-	// MAX_NUM_NUM_NUM + :: num -> num -> num -> num
-	MAX_NUM_NUM_NUM = val.Fun(
-		types.Fun("max", []*types.Kind{types.Num, types.Num, types.Num}, types.Num),
-		func(args ...*val.Val) *val.Val {
-			return val.Num(
-				math.Max(
-					math.Max(args[0].Num().V, args[1].Num().V),
-					args[2].Num().V,
-				),
-			)
-		},
-	)
-	// MIN_NUM_NUM + :: num -> num -> num
-	MIN_NUM_NUM = val.Fun(
-		types.Fun("min", []*types.Kind{types.Num, types.Num}, types.Num),
-		func(args ...*val.Val) *val.Val {
-			return val.Num(math.Min(args[0].Num().V, args[1].Num().V))
-		},
-	)
-	// MIN_NUM_NUM_NUM + :: num -> num -> num -> num
-	MIN_NUM_NUM_NUM = val.Fun(
-		types.Fun("min", []*types.Kind{types.Num, types.Num, types.Num}, types.Num),
-		func(args ...*val.Val) *val.Val {
-			return val.Num(
-				math.Min(
-					math.Min(args[0].Num().V, args[1].Num().V),
-					args[2].Num().V,
-				),
-			)
-		},
-	)
 )

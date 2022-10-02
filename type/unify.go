@@ -4,96 +4,22 @@ import (
 	"github.com/goghcrow/yae/util"
 )
 
-// Unify 给出两个类型 A 和 B，找到一组变量替换，
+// Unify 给出两个类型 A 和 B, 找到一组变量替换,
 // 使得两者的自由变量经过替换之后可以得到一个相同的类型 C
-// 如果 a 和 b 都是 slot 并且 m[a] == m[b]，那么 a b 可以合一，m 不变。
-// 如果 a 和 b 都是 primitive 并且相同，那么 a b 可以合一，m 不变。
-// 如果 a 是 slot，可以合一，并且需要 m[a] 设置为 b；反之亦然。
-// 如果 a 和 b 都是 composite，检查两者的构造器和参数是否都能合一，m 会最多被设置两次。
-// 对于其他一切情况，a 和 b 不能合一。
+// 如果 a 和 b 都是 slot 并且 m[a] == m[b], 那么 a b 可以合一, m 不变.
+// 如果 a 和 b 都是 primitive 并且相同, 那么 a b 可以合一, m 不变.
+// 如果 a 是 slot, 可以合一, 并且需要 m[a] 设置为 b；反之亦然.
+// 如果 a 和 b 都是 composite, 检查两者的构造器和参数是否都能合一, m 会最多被设置两次.
+// 对于其他一切情况, a 和 b 不能合一.
 func unify(x, y *Kind, m map[string]*Kind) *Kind {
-	if x.Type == TSlot && y.Type == TSlot && Equals(subst(x, m), subst(y, m)) {
+	switch {
+	case x.Type == TSlot && y.Type == TSlot && Equals(subst(x, m), subst(y, m)):
 		return x
-	} else if x.IsPrimitive() && y.IsPrimitive() && x.Type == y.Type {
+	case x.IsPrimitive() && y.IsPrimitive() && x.Type == y.Type:
 		return x
-	} else if x.IsComposite() && y.IsComposite() && x.Type == y.Type {
-		switch x.Type {
-		case TList:
-			el := unify(x.List().El, y.List().El, m)
-			if el == nil {
-				return nil
-			}
-			return List(el)
-		case TMap:
-			k := unify(x.Map().Key, y.Map().Key, m)
-			if k == nil {
-				return nil
-			}
-			v := unify(x.Map().Val, y.Map().Val, m)
-			if v == nil {
-				return nil
-			}
-			return Map(k, v)
-		case TTuple:
-			xtv := x.Tuple().Val
-			ytv := y.Tuple().Val
-			if len(xtv) != len(ytv) {
-				return nil
-			}
-			ks := make([]*Kind, len(xtv))
-			for i, xk := range xtv {
-				yk := ytv[i]
-				u := unify(xk, yk, m)
-				if u == nil {
-					return nil
-				}
-				ks[i] = u
-			}
-			return Tuple(ks)
-		case TObj:
-			xfs := x.Obj().Fields
-			yfs := y.Obj().Fields
-			if len(xfs) != len(yfs) {
-				return nil
-			}
-			fs := make(map[string]*Kind)
-			for name, xk := range xfs {
-				yk, ok := yfs[name]
-				if !ok {
-					return nil
-				}
-				u := unify(xk, yk, m)
-				if u == nil {
-					return nil
-				}
-				fs[name] = u
-			}
-			return Obj(fs)
-		case TFun:
-			xf := x.Fun()
-			yf := y.Fun()
-			if len(xf.Param) != len(yf.Param) {
-				return nil
-			}
-			params := make([]*Kind, len(xf.Param))
-			for i := range xf.Param {
-				xp := subst(xf.Param[i], m)
-				yp := subst(yf.Param[i], m)
-				params[i] = unify(xp, yp, m)
-				if params[i] == nil {
-					return nil
-				}
-			}
-			ret := unify(xf.Return, yf.Return, m)
-			if ret == nil {
-				return nil
-			}
-			return Fun(xf.Name /**/, params, ret)
-		default:
-			util.Unreachable()
-		}
-		return nil
-	} else if x.Type == TSlot {
+	case x.IsComposite() && y.IsComposite() && x.Type == y.Type:
+		return unifyComposite(x, y, m)
+	case x.Type == TSlot:
 		y1 := subst(y, m)
 		if freeFrom(y1, x.Slot()) {
 			k, ok := m[x.Slot().Name]
@@ -105,7 +31,7 @@ func unify(x, y *Kind, m map[string]*Kind) *Kind {
 		} else {
 			return nil
 		}
-	} else if y.Type == TSlot {
+	case y.Type == TSlot:
 		x1 := subst(x, m)
 		if freeFrom(x1, y.Slot()) {
 			k, ok := m[y.Slot().Name]
@@ -117,25 +43,98 @@ func unify(x, y *Kind, m map[string]*Kind) *Kind {
 		} else {
 			return nil
 		}
-	} else if y.Type == TBottom {
+	case y.Type == TBottom:
 		return x
-	} else if x.Type == TTop {
+	case x.Type == TTop:
 		return x
-	} else {
+	default:
 		return nil
 	}
+}
+
+func unifyComposite(x, y *Kind, m map[string]*Kind) *Kind {
+	switch x.Type {
+	case TList:
+		el := unify(x.List().El, y.List().El, m)
+		if el == nil {
+			return nil
+		}
+		return List(el)
+	case TMap:
+		k := unify(x.Map().Key, y.Map().Key, m)
+		if k == nil {
+			return nil
+		}
+		v := unify(x.Map().Val, y.Map().Val, m)
+		if v == nil {
+			return nil
+		}
+		return Map(k, v)
+	case TTuple:
+		xtv := x.Tuple().Val
+		ytv := y.Tuple().Val
+		if len(xtv) != len(ytv) {
+			return nil
+		}
+		ks := make([]*Kind, len(xtv))
+		for i, xk := range xtv {
+			yk := ytv[i]
+			u := unify(xk, yk, m)
+			if u == nil {
+				return nil
+			}
+			ks[i] = u
+		}
+		return Tuple(ks)
+	case TObj:
+		xfs := x.Obj().Fields
+		yfs := y.Obj().Fields
+		if len(xfs) != len(yfs) {
+			return nil
+		}
+		fs := make(map[string]*Kind)
+		for name, xk := range xfs {
+			yk, ok := yfs[name]
+			if !ok {
+				return nil
+			}
+			u := unify(xk, yk, m)
+			if u == nil {
+				return nil
+			}
+			fs[name] = u
+		}
+		return Obj(fs)
+	case TFun:
+		xf := x.Fun()
+		yf := y.Fun()
+		if len(xf.Param) != len(yf.Param) {
+			return nil
+		}
+		params := make([]*Kind, len(xf.Param))
+		for i := range xf.Param {
+			xp := subst(xf.Param[i], m)
+			yp := subst(yf.Param[i], m)
+			params[i] = unify(xp, yp, m)
+			if params[i] == nil {
+				return nil
+			}
+		}
+		ret := unify(xf.Return, yf.Return, m)
+		if ret == nil {
+			return nil
+		}
+		return Fun(xf.Name /**/, params, ret)
+	default:
+		util.Unreachable()
+	}
+	return nil
 }
 
 // subst substitution
 func subst(k *Kind, m map[string]*Kind) *Kind {
 	switch k.Type {
-	case TNum:
-		return k
-	case TStr:
-		return k
-	case TBool:
-		return k
-	case TTime:
+	case TNum, TStr, TBool, TTime:
 		return k
 	case TSlot:
 		r, ok := m[k.Slot().Name]
@@ -187,13 +186,7 @@ func subst(k *Kind, m map[string]*Kind) *Kind {
 
 func freeFrom(k *Kind, s *SlotKind) bool {
 	switch k.Type {
-	case TNum:
-		return true
-	case TStr:
-		return true
-	case TBool:
-		return true
-	case TTime:
+	case TNum, TStr, TBool, TTime, TBottom, TTop:
 		return true
 	case TList:
 		return freeFrom(k.List().El, s)
@@ -215,10 +208,6 @@ func freeFrom(k *Kind, s *SlotKind) bool {
 		return freeFrom(k.Fun().Return, s)
 	case TSlot:
 		return k.Slot().Name != s.Name
-	case TTop:
-		return true
-	case TBottom:
-		return true
 	default:
 		util.Unreachable()
 	}

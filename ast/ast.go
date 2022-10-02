@@ -34,6 +34,7 @@ type LitType int
 const (
 	LIT_NULL LitType = iota // 暂时没用
 	LIT_STR
+	LIT_TIME
 	LIT_NUM
 	LIT_TRUE
 	LIT_FALSE

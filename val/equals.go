@@ -7,6 +7,9 @@ import (
 )
 
 func Equals(x, y *Val) bool {
+	if x == nil || y == nil {
+		return false
+	}
 	if !types.Equals(x.Kind, y.Kind) {
 		return false
 	}

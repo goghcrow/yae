@@ -7,7 +7,7 @@ import (
 )
 
 func TestParser(t *testing.T) {
-
+	Parser(lex.Lex(`'now'`))
 }
 
 func TestSyntaxError(t *testing.T) {

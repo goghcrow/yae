@@ -39,6 +39,7 @@ const (
 	NAME
 	NUM
 	STR
+	TIME
 	NULL
 	TRUE
 	FALSE
@@ -74,12 +75,12 @@ var tokens = [SIZE]struct {
 	{"+", BP_PREFIX_UNARY, PREFIX},
 	{"-", BP_PREFIX_UNARY, PREFIX},
 	// =+=+=+=+=+=+=+=+=+=+ 算子：比较 =+=+=+=+=+=+=+=+=+=+=+
-	{">", BP_COMP, INFIX_L},
-	{"<", BP_COMP, INFIX_L},
-	{"<=", BP_COMP, INFIX_L},
-	{">=", BP_COMP, INFIX_L},
-	{"==", BP_EQ, INFIX_L},
-	{"!=", BP_EQ, INFIX_L},
+	{">", BP_COMP, INFIX_N},
+	{"<", BP_COMP, INFIX_N},
+	{"<=", BP_COMP, INFIX_N},
+	{">=", BP_COMP, INFIX_N},
+	{"==", BP_EQ, INFIX_N},
+	{"!=", BP_EQ, INFIX_N},
 	{"?", BP_COND, INFIX_R},
 	// =+=+=+=+=+=+=+=+=+=+ 算子：逻辑运算 =+=+=+=+=+=+=+=+=+=+=+
 	{"!", BP_PREFIX_UNARY, INFIX_R},
@@ -97,6 +98,7 @@ var tokens = [SIZE]struct {
 	{"#name", BP_NONE, NA},
 	{"#num", BP_NONE, NA},
 	{"#str", BP_NONE, NA},
+	{"#time", BP_NONE, NA},
 	{"null", BP_NONE, NA},
 	{"true", BP_NONE, NA},
 	{"false", BP_NONE, NA},
