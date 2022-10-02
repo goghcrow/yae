@@ -14,8 +14,8 @@ import (
 #include "lib/timelib.h"
 #include "strtotime.h"
 #cgo darwin,arm64 LDFLAGS: -L./lib -ltimelib_darwin_arm64
-//#cgo darwin,amd64 LDFLAGS: -L./lib -ltimelib_darwin_amd64
-//#cgo linux,amd64 LDFLAGS: -L./lib -ltimelib_linux_amd64
+#cgo darwin,amd64 LDFLAGS: -L./lib -ltimelib_darwin_amd64
+#cgo linux,amd64 LDFLAGS: -L./lib -ltimelib_linux_amd64
 */
 import "C"
 
