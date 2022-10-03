@@ -14,8 +14,6 @@ var lexicon = []rule{
 	str(token.LEFT_BRACE),    // {
 	str(token.RIGHT_BRACE),   // }
 
-	str(token.PLUS),     // unary plus
-	str(token.MINUS),    // unary minus
 	str(token.DOT),      // .
 	str(token.QUESTION), // ?
 
@@ -32,12 +30,10 @@ var lexicon = []rule{
 	str(token.PLUS),  // +
 	str(token.MINUS), // -
 
-	str(token.UNARY_PLUS),  // +
-	str(token.UNARY_MINUS), // -
-	str(token.MUL),         // *
-	str(token.DIV),         // /
-	str(token.EXP),         // ^
-	str(token.MOD),         // %
+	str(token.MUL), // *
+	str(token.DIV), // /
+	str(token.EXP), // ^
+	str(token.MOD), // %
 
 	str(token.LOGIC_OR),  // ||
 	str(token.LOGIC_AND), // &&

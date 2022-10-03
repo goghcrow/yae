@@ -83,7 +83,7 @@ var tokens = [SIZE]struct {
 	{"!=", BP_EQ, INFIX_N},
 	{"?", BP_COND, INFIX_R},
 	// =+=+=+=+=+=+=+=+=+=+ 算子：逻辑运算 =+=+=+=+=+=+=+=+=+=+=+
-	{"!", BP_PREFIX_UNARY, INFIX_R},
+	{"!", BP_PREFIX_UNARY, INFIX_N},
 	{"&&", BP_LOGIC_AND, INFIX_L},
 	{"||", BP_LOGIC_OR, INFIX_L},
 	// =+=+=+=+=+=+=+=+=+=+ 关键字 =+=+=+=+=+=+=+=+=+=+=+
@@ -91,9 +91,9 @@ var tokens = [SIZE]struct {
 	{"then", BP_NONE, NA},
 	{"else", BP_NONE, NA},
 	{"end", BP_NONE, NA},
-	{"not", BP_NONE, NA},
-	{"and", BP_NONE, NA},
-	{"or", BP_NONE, NA},
+	{"not", BP_PREFIX_UNARY, INFIX_N},
+	{"and", BP_LOGIC_AND, INFIX_L},
+	{"or", BP_LOGIC_OR, INFIX_L},
 	// =+=+=+=+=+=+=+=+=+=+ 标识符 + 字面量 =+=+=+=+=+=+=+=+=+=+=+
 	{"#name", BP_NONE, NA},
 	{"#num", BP_NONE, NA},
