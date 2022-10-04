@@ -213,6 +213,9 @@ func TestFun(t *testing.T) {
 
 		{`match("^\\d+$", "123")`, val.True},
 		{`match("^\\d+$", "123a")`, val.False},
+
+		{`isset([1:""], 0)`, val.False},
+		{`isset([1:""], 1)`, val.True},
 	}
 
 	for _, tt := range tests {
@@ -240,7 +243,7 @@ func TestTypeError(t *testing.T) {
 	} {
 		k := typeError(expr, t)
 		if k != nil {
-			t.Errorf("%s  expected type error get `%s`", expr, k)
+			t.Errorf("%s  expect type error actual `%s`", expr, k)
 		}
 	}
 }

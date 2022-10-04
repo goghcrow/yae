@@ -58,31 +58,68 @@ All callable is function, `obj.method(args ...)` will be desugar to `method(obj,
 
 So, if you want to implement `3.repeat("a") == "aaa"`, you can register func `repeat :: num -> str -> str`
 
-## BuildIn
+## BuildIn-Funs
 
 ```
-+ :: num -> num -> num 
++ :: num -> num
++ :: num -> num -> num
++ :: str -> str -> str
+- :: num -> num
 - :: num -> num -> num
+- :: time -> time -> num
 * :: num -> num -> num
 / :: num -> num -> num
 % :: num -> num -> num
+^ :: num -> num -> num
 
-+  :: str -> str -> str
-
->  :: num -> num -> bool
->= :: num -> num -> bool
-<  :: num -> num -> bool
-<= :: num -> num -> bool
+== :: bool -> bool -> bool
 == :: num -> num -> bool
-!= :: num -> num -> bool
-
->  :: time -> time -> bool
->= :: time -> time -> bool
-<  :: time -> time -> bool
-<= :: time -> time -> bool
+== :: str -> str -> bool
 == :: time -> time -> bool
+== :: forall a. (list[a] -> list[a] -> bool)
+== :: forall k v. (map[k,v] -> map[k,v] -> bool)
+
+!= :: bool -> bool -> bool
+!= :: num -> num -> bool
+!= :: str -> str -> bool
 != :: time -> time -> bool
+!= :: forall a. (list[a] -> list[a] -> bool)
+!= :: forall k v .(map[k,v] -> map[k,v] -> bool)
 
-todo...
+< :: num -> num -> bool
+< :: time -> time -> bool
+<= :: num -> num -> bool
+<= :: time -> time -> bool
+> :: num -> num -> bool
+> :: time -> time -> bool
+>= :: num -> num -> bool
+>= :: time -> time -> bool
 
+abs :: num -> num
+round :: num -> num
+ceil :: num -> num
+floor :: num -> num
+
+max :: num -> num -> num
+max :: list[num] -> num
+min :: num -> num -> num
+min :: list[num] -> num
+
+len :: forall a. (list[a] -> num)
+len :: forall k v. (map[k, v] -> num)
+len :: str -> num
+
+if :: forall a. (bool -> α -> α -> α)
+and :: bool -> bool -> bool
+or :: bool -> bool -> bool
+not :: bool -> bool
+
+match :: str -> str -> bool
+string :: forall a. (a -> str)
+
+isset :: forall k v. (map[k, v] -> k -> bool)
+
+strtotime :: str -> time
+
+print :: forall a. (a -> a)
 ```

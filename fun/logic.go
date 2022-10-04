@@ -20,7 +20,7 @@ var (
 	IF_BOOL_A_A = func() *val.Val {
 		T := types.Slot("a")
 		return val.LazyFun(
-			types.Fun("if" /*token.IF.Name*/, []*types.Kind{types.Bool, T, T}, T),
+			types.Fun(IF /*token.IF.Name*/, []*types.Kind{types.Bool, T, T}, T),
 			// 注意 if 是 lazyFun, 参数都是 thunk
 			func(args ...*val.Val) *val.Val {
 				if args[0].Fun().V().Bool().V {
@@ -31,7 +31,7 @@ var (
 			},
 		)
 	}()
-	//LOGIC_AND_BOOL_BOOL and :: bool -> bool -> bool
+	// LOGIC_AND_BOOL_BOOL and :: bool -> bool -> bool
 	LOGIC_AND_BOOL_BOOL = val.LazyFun(
 		types.Fun(oper.LOGIC_AND, []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
@@ -44,7 +44,7 @@ var (
 			}
 		},
 	)
-	//LOGIC_OR_BOOL_BOOL or :: bool -> bool -> bool
+	// LOGIC_OR_BOOL_BOOL or :: bool -> bool -> bool
 	LOGIC_OR_BOOL_BOOL = val.LazyFun(
 		types.Fun(oper.LOGIC_OR, []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {

@@ -45,13 +45,13 @@ func Obj(kind *types.ObjKind) *Val {
 }
 
 func Fun(kind *types.Kind, f IFun) *Val {
-	util.Assert(kind.Type == types.TFun, "type error")
+	util.Assert(kind.Type == types.TFun, "expect Fun actual %s", kind)
 	fv := FunVal{Val{kind}, f, false}
 	return &fv.Val
 }
 
 func LazyFun(kind *types.Kind, f IFun) *Val {
-	util.Assert(kind.Type == types.TFun, "type error")
+	util.Assert(kind.Type == types.TFun, "expect Fun actual %s", kind)
 	fv := FunVal{Val{kind}, f, true}
 	return &fv.Val
 }

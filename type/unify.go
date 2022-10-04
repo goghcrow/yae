@@ -127,8 +127,8 @@ func unifyComposite(x, y *Kind, m map[string]*Kind) *Kind {
 		return Fun(xf.Name /**/, params, ret)
 	default:
 		util.Unreachable()
+		return nil
 	}
-	return nil
 }
 
 // subst substitution
@@ -180,8 +180,8 @@ func subst(k *Kind, m map[string]*Kind) *Kind {
 		return k
 	default:
 		util.Unreachable()
+		return nil
 	}
-	return nil
 }
 
 func freeFrom(k *Kind, s *SlotKind) bool {
@@ -210,6 +210,6 @@ func freeFrom(k *Kind, s *SlotKind) bool {
 		return k.Slot().Name != s.Name
 	default:
 		util.Unreachable()
+		return false
 	}
-	return false
 }

@@ -30,11 +30,12 @@ func Equals(x, y *Val) bool {
 	case types.TObj:
 		return equalsObj(x.Obj(), y.Obj())
 	case types.TFun:
-		panic("fun is not comparable")
+		// panic("fun is not comparable")
+		return x == y
 	default:
 		util.Unreachable()
+		return false
 	}
-	return false
 }
 
 const epsilon = 1e-9

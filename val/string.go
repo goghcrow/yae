@@ -5,6 +5,7 @@ import (
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
 	"strconv"
+	"strings"
 )
 
 func (v *Val) String() string {
@@ -25,13 +26,55 @@ func (v *Val) String() string {
 	case types.TList:
 		return fmt.Sprintf("%s", v.List().V)
 	case types.TMap:
-		return fmt.Sprintf("%s", v.Map().V)
+		return stringifyMap(v.Map())
 	case types.TObj:
-		return fmt.Sprintf("%s", v.Obj().V)
+		return stringifyObj(v.Obj())
 	case types.TFun:
 		return v.Fun().Kind.String()
 	default:
 		util.Unreachable()
+		return ""
 	}
-	return ""
+}
+
+func stringifyMap(m *MapVal) string {
+	if len(m.V) == 0 {
+		return "[:]"
+	}
+	buf := &strings.Builder{}
+	buf.WriteString("[")
+	isFst := true
+	for k, v := range m.V {
+		if isFst {
+			isFst = false
+		} else {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(k.String())
+		buf.WriteString(": ")
+		buf.WriteString(v.String())
+	}
+	buf.WriteString("]")
+	return buf.String()
+}
+
+func stringifyObj(o *ObjVal) string {
+	if len(o.V) == 0 {
+		return "{}"
+	}
+	buf := &strings.Builder{}
+	buf.WriteString("{")
+	isFst := true
+	for name, val := range o.V {
+		if isFst {
+			isFst = false
+		} else {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(name)
+		buf.WriteString(": ")
+		buf.WriteString(val.String())
+	}
+	buf.WriteString("}")
+	return buf.String()
 }

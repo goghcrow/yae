@@ -6,6 +6,7 @@ import (
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"strconv"
+	"time"
 	"unsafe"
 )
 
@@ -18,7 +19,9 @@ func (c Closure) String() string { return "Closure" }
 // implement compilers for embedded languages
 // 注意区分: env1 是编译期环境, env 是运行时环境
 // 能在编译期完成的, 尽可能在编译期计算完
-// 调用 compile 之前必须调用 types.TypeCheck 需要在 ast 中繁饰部分类型信息
+// 调用 Compile 之前必须先对 ast 调用 types.TypeCheck
+// 1. 需要在 ast 中繁饰部分类型信息, 简化 Compile 的类型处理
+// 2. Compile 中不检查错误, 假设 types.TypeCheck 已经全部检查
 func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 	switch expr.Type {
 	case ast.LITERAL:
@@ -28,9 +31,10 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 			unquote, _ := strconv.Unquote(lit.Val)
 			s := val.Str(unquote)
 			return func(env *val.Env) *val.Val { return s }
-		//case ast.LIT_TIME:
-		//	t := time.Unix(util.Strtotime(lit.Val[1:len(lit.Val)-1]), 0)
-		//	return func(env *val.Env) *val.Val { return val.Time(t) }
+		case ast.LIT_TIME:
+			// time 字面量会被 desugar 成 strtotime, 这里留着测试场景
+			t := time.Unix(util.Strtotime(lit.Val[1:len(lit.Val)-1]), 0)
+			return func(env *val.Env) *val.Val { return val.Time(t) }
 		case ast.LIT_NUM:
 			v, _ := util.ParseNum(lit.Val)
 			n := val.Num(v)
@@ -39,6 +43,9 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 			return func(env *val.Env) *val.Val { return val.True }
 		case ast.LIT_FALSE:
 			return func(env *val.Env) *val.Val { return val.False }
+		default:
+			util.Unreachable()
+			return nil
 		}
 
 	case ast.IDENT:
@@ -57,6 +64,7 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 		sz := len(els)
 		if sz == 0 {
 			return func(env *val.Env) *val.Val {
+				// 注意空列表类型 list[nothing]
 				kind := types.List(types.Bottom).List()
 				return val.List(kind, 0)
 			}
@@ -81,6 +89,7 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 		sz := len(m.Pairs)
 		if sz == 0 {
 			return func(env *val.Env) *val.Val {
+				// 注意空 map 类型 map[nothing, nothing]
 				kind := types.Map(types.Bottom, types.Bottom).Map()
 				return val.Map(kind)
 			}
@@ -120,12 +129,10 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 		}
 
 		return func(env *val.Env) *val.Val {
-			k := make(map[string]*types.Kind, sz)
 			m := val.Obj(kind).Obj()
 			for n, c := range cs {
 				v := c(env)
 				m.V[n] = v
-				k[n] = v.Kind
 			}
 			return m.Vl()
 		}
@@ -133,19 +140,19 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 	case ast.SUBSCRIPT:
 		// 也可以 desugar 成 build-in-fun
 		sub := expr.Subscript()
-		va := Compile(env1, sub.Var)
-		idx := Compile(env1, sub.Idx)
+		vac := Compile(env1, sub.Var)
+		idxc := Compile(env1, sub.Idx)
 
 		return func(env *val.Env) *val.Val {
-			x := va(env)
+			x := vac(env)
 			if x.Kind.Type == types.TList {
-				return x.List().V[int(idx(env).Num().V)]
+				idx := int(idxc(env).Num().V)
+				return x.List().V[idx]
 			} else if x.Kind.Type == types.TMap {
-				v, ok := x.Map().Get(idx(env))
-				// 这里如果引入 null 、nil 之类又会牵扯到子类型, 实际引入了 bottom 类型
-				// 可以业务逻辑里头处理 null, 或者引入一个特殊函数(e.g. isset、has)处理
-				// 不能定义成普通函数, 因为要 hack 类型检查
-				util.Assert(ok, "undefined key %s of %s", idx(env), x.Map())
+				k := idxc(env)
+				v, ok := x.Map().Get(k)
+				// 如果引入 null 、nil 会让类型检查复杂以及做不到安全, 可以业务逻辑里头处理 null
+				util.Assert(ok, "undefined key %s of %s", k, x.Map())
 				return v
 			}
 			util.Unreachable()
@@ -189,17 +196,18 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 
 	default:
 		util.Unreachable()
+		return nil
 	}
-	return nil
 }
 
 // 函数在编译期 resolve, 通过 golang 闭包的 upval 传递给运行时
 func staticDispatch(env1 *val.Env, call *ast.CallExpr) Closure {
 	f, _ := env1.Get(call.Resolved)
 
-	// 多态函数, 这里有点 hack 手动狗头
+	// 多态函数, 这里有点 hack, 手动狗头
 	if call.Index >= 0 {
-		f = (*(*[]*val.FunVal)(unsafe.Pointer(f)))[call.Index].Vl()
+		fnTbl := *(*[]*val.FunVal)(unsafe.Pointer(f))
+		f = fnTbl[call.Index].Vl()
 	}
 	fun := f.Fun()
 
@@ -239,12 +247,10 @@ func dynamicDispatch(env1 *val.Env, call *ast.CallExpr) Closure {
 
 	return func(env *val.Env) *val.Val {
 		fun := cc(env).Fun()
-		lazy := fun.Lazy
-		retK := fun.Kind.Fun().Return
-
 		args := make([]*val.Val, sz)
-		if lazy {
+		if fun.Lazy {
 			// 惰性求值函数参数会被包装成 thunk, 注意没有缓存
+			retK := fun.Kind.Fun().Return
 			for i := 0; i < sz; i++ {
 				args[i] = thunkify(cs[i], env, retK)
 			}

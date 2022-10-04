@@ -18,17 +18,19 @@ func (k *Kind) String() string {
 		return "time"
 	case TTuple:
 		val := k.Tuple().Val
-		buf := "("
-		isFirst := true
+		buf := &strings.Builder{}
+		buf.WriteString("(")
+		isFst := true
 		for _, kind := range val {
-			if isFirst {
-				buf += kind.String()
-				isFirst = false
+			if isFst {
+				isFst = false
 			} else {
-				buf += fmt.Sprintf(", %s", kind)
+				buf.WriteString(", ")
 			}
+			buf.WriteString(kind.String())
 		}
-		return buf + ")"
+		buf.WriteString(")")
+		return buf.String()
 	case TList:
 		l := k.List()
 		return fmt.Sprintf("list[%s]", l.El)
@@ -37,24 +39,28 @@ func (k *Kind) String() string {
 		return fmt.Sprintf("map[%s, %s]", m.Key, m.Val)
 	case TObj:
 		fs := k.Obj().Fields
-		buf := "{"
-		isFirst := true
+		buf := &strings.Builder{}
+		buf.WriteString("{")
+		isFst := true
 		for name, kind := range fs {
-			if isFirst {
-				buf += fmt.Sprintf("%s: %s", name, kind)
-				isFirst = false
+			if isFst {
+				isFst = false
 			} else {
-				buf += fmt.Sprintf(", %s: %s", name, kind)
+				buf.WriteString(", ")
 			}
+			buf.WriteString(name)
+			buf.WriteString(": ")
+			buf.WriteString(kind.String())
 		}
-		return buf + "}"
+		buf.WriteString("}")
+		return buf.String()
 	case TFun:
 		f := k.Fun()
 		pt := make([]string, len(f.Param))
 		for i, param := range f.Param {
 			pt[i] = param.String()
 		}
-		return fmt.Sprintf("%s(%s) %s", f.Name, strings.Join(pt, ","), f.Return)
+		return fmt.Sprintf("func %s(%s) %s", f.Name, strings.Join(pt, ","), f.Return)
 	case TSlot:
 		return k.Slot().Name
 	case TTop:
@@ -63,6 +69,6 @@ func (k *Kind) String() string {
 		return "⊥"
 	default:
 		util.Unreachable()
+		return ""
 	}
-	return ""
 }

@@ -56,6 +56,6 @@ func (t Type) String() string {
 		return "⊥"
 	default:
 		util.Unreachable()
+		return ""
 	}
-	return ""
 }

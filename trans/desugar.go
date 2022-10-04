@@ -11,6 +11,7 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 	case ast.LITERAL:
 		lit := expr.Literal()
 		if lit.LitType == ast.LIT_TIME {
+			// 'time str' ~~> strtotime(`time str`)
 			times := lit.Val[1 : len(lit.Val)-1]
 			util.Assert(util.Strtotime(times) != 0, "invalid time lit %s", lit.Val)
 			args := []*ast.Expr{ast.LitStr("`" + times + "`")}
@@ -58,9 +59,11 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 	case ast.TENARY:
 		t := expr.Tenary()
 		if t.Name == token.QUESTION {
+			// cond ? then : else ~~> if(cond, then, else)
 			l := Desugar(t.Left)
 			m := Desugar(t.Mid)
 			r := Desugar(t.Right)
+			// 如果 if 需要处理成特殊语法, 则需要 desugar 成 if-node
 			// return ast.If(l, m, r)
 			args := []*ast.Expr{l, m, r}
 			callee := ast.Ident(token.IF)
@@ -69,6 +72,7 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		util.Unreachable()
 		return nil
 	case ast.IF:
+		// 如果 if 是普通函数, 这里不需要
 		iff := expr.If()
 		cond := Desugar(iff.Cond)
 		then := Desugar(iff.Then)
@@ -81,6 +85,7 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		call := expr.Call()
 		callee := call.Callee
 		if callee.Type == ast.MEMBER {
+			// obj.method(arg...) ~~> method(obj, arg...)
 			mem := callee.Member()
 			args := make([]*ast.Expr, len(call.Args)+1)
 			args[0] = Desugar(mem.Obj)
@@ -108,7 +113,6 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		return ast.Member(obj, mem.Field)
 	default:
 		util.Unreachable()
+		return nil
 	}
-
-	return nil
 }

@@ -335,26 +335,26 @@ func TestConv(t *testing.T) {
 			k, err := TypeOf(tt.v)
 			if err != nil {
 				if tt.expectedType != nil {
-					t.Errorf("[typeof] expected %s actual error `%s`", tt.expectedType, err)
+					t.Errorf("[typeof] expect %s actual error `%s`", tt.expectedType, err)
 				}
 			} else {
 				if tt.expectedType == nil {
-					t.Errorf("[valof] expected %s actual %s", tt.expectedType, k)
+					t.Errorf("[valof] expect %s actual %s", tt.expectedType, k)
 				} else if !types.Equals(tt.expectedType, k) {
-					t.Errorf("[valof] expected %s actual %s", tt.expectedType, k)
+					t.Errorf("[valof] expect %s actual %s", tt.expectedType, k)
 				}
 			}
 
 			v, err := ValOf(tt.v)
 			if err != nil {
 				if tt.expectedVal != nil {
-					t.Errorf("expected %s actual error `%s`", tt.expectedVal, err)
+					t.Errorf("expect %s actual error `%s`", tt.expectedVal, err)
 				}
 			} else {
 				if tt.expectedVal == nil {
-					t.Errorf("expected %s actual %s", tt.expectedVal, k)
+					t.Errorf("expect %s actual %s", tt.expectedVal, k)
 				} else if !val.Equals(tt.expectedVal, v) {
-					t.Errorf("expected %s actual %s", tt.expectedVal, k)
+					t.Errorf("expect %s actual %s", tt.expectedVal, k)
 				}
 			}
 		})
@@ -509,7 +509,7 @@ func TestTypeOf(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 	if kind != types.Time {
-		t.Errorf("expected time, actual %s", kind)
+		t.Errorf("expect time, actual %s", kind)
 	}
 
 	kind, err = TypeOf(ttptr)
@@ -517,7 +517,7 @@ func TestTypeOf(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 	if kind != types.Time {
-		t.Errorf("expected time, actual %s", kind)
+		t.Errorf("expect time actual %s", kind)
 	}
 
 	kind, err = TypeOf(ttptrptr)
@@ -525,38 +525,36 @@ func TestTypeOf(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 	if kind != types.Time {
-		t.Errorf("expected time, actual %s", kind)
+		t.Errorf("expect time, actual %s", kind)
 	}
 
 	kind, err = TypeOf(map[string]interface{}{})
 	if err == nil || kind != nil {
-		t.Errorf("expected err")
+		t.Errorf("expect err")
 	}
 }
 
 func TestPtrInterface(t *testing.T) {
-	{
-		var i interface{} = 42
-		k, err := TypeOf(i)
-		assert(err == nil)
-		assert(k == types.Num)
+	var i interface{} = 42
+	k, err := TypeOf(i)
+	assert(err == nil)
+	assert(k == types.Num)
 
-		k, err = TypeOf(&i)
-		assert(err == nil)
-		assert(k == types.Num)
+	k, err = TypeOf(&i)
+	assert(err == nil)
+	assert(k == types.Num)
 
-		v, err := ValOf(i)
-		assert(err == nil)
-		assert(val.Equals(v, val.Num(42)))
+	v, err := ValOf(i)
+	assert(err == nil)
+	assert(val.Equals(v, val.Num(42)))
 
-		v, err = ValOf(&i)
-		assert(err == nil)
-		assert(val.Equals(v, val.Num(42)))
-	}
+	v, err = ValOf(&i)
+	assert(err == nil)
+	assert(val.Equals(v, val.Num(42)))
 }
 
 func TestReflectInterfaceElem(t *testing.T) {
-	{
+	t.Run("", func(t *testing.T) {
 		var i interface{} = 42
 
 		assert(reflect.ValueOf(i).Type().Kind().String() == "int")
@@ -574,14 +572,15 @@ func TestReflectInterfaceElem(t *testing.T) {
 
 		assert(reflect.ValueOf(&i).Elem( /*deref*/ ).Interface().(int) == 42)
 		assert(reflect.ValueOf(&i).Elem( /*deref*/ ).Elem( /*de_iface*/ ).Int() == 42)
-	}
+	})
 
-	{
+	t.Run("", func(t *testing.T) {
 		v := reflect.ValueOf(struct{ a interface{} }{1})
 		assert(v.Field(0).Kind().String() == "interface")
 		assert(v.Field(0).Elem( /*de_iface*/ ).Kind().String() == "int")
-	}
-	{
+	})
+
+	t.Run("", func(t *testing.T) {
 		i := 42
 		v := reflect.ValueOf(struct{ a interface{} }{&i})
 		assert(v.Field(0).Kind().String() == "interface")
@@ -590,8 +589,7 @@ func TestReflectInterfaceElem(t *testing.T) {
 
 		assert(*(*int)(unsafe.Pointer(v.Field(0).Elem( /*de_iface*/ ).Pointer())) == 42)
 		assert(v.Field(0).Elem( /*de_iface*/ ).Elem().Int() == 42)
-
-	}
+	})
 }
 
 func pretty(v interface{}) string {

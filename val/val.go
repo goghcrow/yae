@@ -8,21 +8,11 @@ import (
 )
 
 var (
-	//True = (*Val)(unsafe.Pointer(&BoolVal{Val{types.Bool}, true}))
-	//False = (*Val)(unsafe.Pointer(&BoolVal{Val{types.Bool}, false}))
 	True  = &(&BoolVal{Val{types.Bool}, true}).Val
 	False = &(&BoolVal{Val{types.Bool}, false}).Val
+	//True = (*Val)(unsafe.Pointer(&BoolVal{Val{types.Bool}, true}))
+	//False = (*Val)(unsafe.Pointer(&BoolVal{Val{types.Bool}, false}))
 )
-
-func init() {
-
-	// 注意不能这么写, 应该写成 &BoolVal
-	//t := BoolVal{Val{types.Bool}, true}
-	//True = &t.Val
-	//t = BoolVal{Val{types.Bool}, false}
-	//False = &t.Val
-
-}
 
 type Val struct {
 	Kind *types.Kind

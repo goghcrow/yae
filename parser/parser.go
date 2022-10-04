@@ -46,7 +46,7 @@ func (p *parser) eat() *token.Token {
 
 func (p *parser) mustEat(typ token.Type) *token.Token {
 	t := p.eat()
-	p.syntaxAssert(t.Type == typ, "expected %s actual %s", typ, t)
+	p.syntaxAssert(t.Type == typ, "expect %s actual %s", typ, t)
 	return t
 }
 
@@ -76,7 +76,7 @@ func (p *parser) any(fs ...func(p *parser) *ast.Expr) (expr *ast.Expr) {
 			return n
 		}
 	}
-	util.Assert(false, "try parser fail")
+	util.Assert(false, "try parse fail")
 	return nil
 }
 

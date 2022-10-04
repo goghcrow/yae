@@ -12,14 +12,14 @@ var (
 
 	// MAX_NUM_NUM max :: num -> num -> num
 	MAX_NUM_NUM = val.Fun(
-		types.Fun("max", []*types.Kind{types.Num, types.Num}, types.Num),
+		types.Fun(MAX, []*types.Kind{types.Num, types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(math.Max(args[0].Num().V, args[1].Num().V))
 		},
 	)
 	// MAX_LIST max :: list[num] -> num
 	MAX_LIST = val.Fun(
-		types.Fun("max", []*types.Kind{types.List(types.Num)}, types.Num),
+		types.Fun(MAX, []*types.Kind{types.List(types.Num)}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			lst := args[0].List().V
 			if len(lst) == 0 {
@@ -34,14 +34,14 @@ var (
 	)
 	// MIN_NUM_NUM min :: num -> num -> num
 	MIN_NUM_NUM = val.Fun(
-		types.Fun("min", []*types.Kind{types.Num, types.Num}, types.Num),
+		types.Fun(MIN, []*types.Kind{types.Num, types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(math.Min(args[0].Num().V, args[1].Num().V))
 		},
 	)
 	// MIN_LIST min :: list[num] -> num
 	MIN_LIST = val.Fun(
-		types.Fun("min", []*types.Kind{types.List(types.Num)}, types.Num),
+		types.Fun(MIN, []*types.Kind{types.List(types.Num)}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			lst := args[0].List().V
 			if len(lst) == 0 {
@@ -57,28 +57,28 @@ var (
 
 	// ABS_NUM abs :: num -> num
 	ABS_NUM = val.Fun(
-		types.Fun("abs", []*types.Kind{types.Num}, types.Num),
+		types.Fun(ABS, []*types.Kind{types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(math.Abs(args[0].Num().V))
 		},
 	)
 	// CEIL_NUM ceil :: num -> num
 	CEIL_NUM = val.Fun(
-		types.Fun("ceil", []*types.Kind{types.Num}, types.Num),
+		types.Fun(CEIL, []*types.Kind{types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(math.Ceil(args[0].Num().V))
 		},
 	)
 	// FLOOR_NUM floor :: num -> num
 	FLOOR_NUM = val.Fun(
-		types.Fun("floor", []*types.Kind{types.Num}, types.Num),
+		types.Fun(FLOOR, []*types.Kind{types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(math.Floor(args[0].Num().V))
 		},
 	)
 	// ROUND_NUM round :: num -> num
 	ROUND_NUM = val.Fun(
-		types.Fun("round", []*types.Kind{types.Num}, types.Num),
+		types.Fun(ROUND, []*types.Kind{types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(math.Round(args[0].Num().V))
 		},

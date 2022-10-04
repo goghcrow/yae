@@ -139,7 +139,7 @@ func TestRegisterAndOrNot(t *testing.T) {
 		t.Run(tt.expr, func(t *testing.T) {
 			actual := eval(tt.expr)
 			if !val.Equals(tt.expected, actual) {
-				t.Errorf("expected %s actual %s", tt.expected, actual)
+				t.Errorf("expect %s actual %s", tt.expected, actual)
 			}
 		})
 	}

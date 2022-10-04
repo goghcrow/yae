@@ -12,7 +12,7 @@ var (
 	PRINT_ANY = func() *val.Val {
 		a := types.Slot("a")
 		return val.Fun(
-			types.Fun("print", []*types.Kind{a}, a),
+			types.Fun(PRINT, []*types.Kind{a}, a),
 			func(args ...*val.Val) *val.Val {
 				fmt.Println(args[0])
 				return args[0]

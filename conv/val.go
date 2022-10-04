@@ -146,6 +146,6 @@ func isNil(v reflect.Value) bool {
 
 func assertTypeEquals(expected, actual *val.Val) {
 	if !types.Equals(expected.Kind, actual.Kind) {
-		panic(fmt.Errorf("expected %s (%s) actual %s (%s)", expected.Kind, expected, actual.Kind, actual))
+		panic(fmt.Errorf("expect %s (%s) actual %s (%s)", expected.Kind, expected, actual.Kind, actual))
 	}
 }

@@ -34,6 +34,9 @@ func (e *Env) Get(name string) (*Kind, bool) {
 }
 
 func (e *Env) Put(name string, val *Kind) {
+	util.Assert(slotFree(val), "expect unslot")
+	// 注意这里只修改当前环境, 不修改继承
+	// 如果是 scope 语义, 需要先 env:=findDefEnv(name) 然后 env.ctx[name]=val
 	e.ctx[name] = val
 }
 
@@ -44,20 +47,19 @@ func (e *Env) ForEach(f func(string, *Kind)) {
 }
 
 func (e *Env) RegisterFun(f *Kind) {
-	util.Assert(f.Type == TFun, "need to register FunKind, get %s", f)
+	util.Assert(f.Type == TFun, "expect FunKind actual %s", f)
 	lookup, mono := f.Fun().Lookup()
 	if mono {
 		e.Put(lookup, f)
 	} else {
-		// 多态函数一组签名 hack, []*types.FunKind
-		arr, ok := e.Get(lookup)
+		hackPtr, ok := e.Get(lookup)
 		if !ok {
-			arr = (*Kind)(unsafe.Pointer(&[]*FunKind{}))
-			e.Put(lookup, arr)
+			hackPtr = (*Kind)(unsafe.Pointer(&[]*FunKind{}))
+			// e.Put(lookup, hackPtr)
+			e.ctx[lookup] = hackPtr
 		}
 
-		fs := (*[]*FunKind)(unsafe.Pointer(arr))
-		// 注意这里要更新, *fs =
-		*fs = append(*fs, f.Fun())
+		fnTblPtr := (*[]*FunKind)(unsafe.Pointer(hackPtr))
+		*fnTblPtr = append(*fnTblPtr, f.Fun())
 	}
 }

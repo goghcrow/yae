@@ -42,7 +42,7 @@ func newLexicon(ops []oper.Operator) lexicon {
 
 	// 自定义操作符
 	for _, op := range ops {
-		l.addOp(op.Type)
+		l.addOper(op.Type)
 	}
 
 	l.addRule(str(token.NULL))  // null

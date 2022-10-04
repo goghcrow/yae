@@ -1,3 +1,5 @@
+// Generated Code; DO NOT EDIT.
+
 package fun
 
 import "github.com/goghcrow/yae/val"
@@ -44,6 +46,7 @@ var Funs = []*val.Val{
 	LT_TIME_TIME,
 	LE_TIME_TIME,
 	LEN_MAP,
+	ISSET_MAP_K,
 	MAX_NUM_NUM,
 	MAX_LIST,
 	MIN_NUM_NUM,

@@ -107,7 +107,7 @@ func TestParser(t *testing.T) {
 		t.Run(tt.input, func(t *testing.T) {
 			actual := parse(tt.input, tt.ops...)
 			if actual != tt.output {
-				t.Errorf("expected %s actual %s", tt.output, actual)
+				t.Errorf("expect %s actual %s", tt.output, actual)
 			}
 		})
 	}
@@ -121,7 +121,7 @@ func TestSyntaxError(t *testing.T) {
 	} {
 		s := syntaxError(expr)
 		if s != "" {
-			t.Errorf("expected syntax error get `%s`", expr)
+			t.Errorf("expect syntax error actual `%s`", expr)
 		}
 	}
 }

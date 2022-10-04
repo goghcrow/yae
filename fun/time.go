@@ -11,7 +11,7 @@ import (
 var (
 	// STRTOTIME_STR strtotime :: str -> time
 	STRTOTIME_STR = val.Fun(
-		types.Fun("strtotime", []*types.Kind{types.Str}, types.Time),
+		types.Fun(STRTOTIME, []*types.Kind{types.Str}, types.Time),
 		func(args ...*val.Val) *val.Val {
 			timeStr := args[0].Str().V
 			ts := util.Strtotime(timeStr)

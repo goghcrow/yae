@@ -35,21 +35,24 @@ func (e *Env) Get(name string) (*Val, bool) {
 }
 
 func (e *Env) Put(name string, val *Val) {
+	// 注意这里只修改当前环境, 不修改继承
+	// 如果是 scope 语义, 需要先 env:=findDefEnv(name) 然后 env.ctx[name]=val
 	e.ctx[name] = val
 }
 
 func (e *Env) RegisterFun(f *Val) {
-	util.Assert(f.Kind.Type == types.TFun, "need to register FunVal, get %s", f)
+	util.Assert(f.Kind.Type == types.TFun, "expect FunVal actual %s", f)
 	lookup, mono := f.Kind.Fun().Lookup()
 	if mono {
 		e.Put(lookup, f)
 	} else {
-		fs := &[]*FunVal{f.Fun()}
-		arr, ok := e.Get(lookup)
-		if ok {
-			fs = (*[]*FunVal)(unsafe.Pointer(arr))
-			*fs = append(*fs, f.Fun())
+		hackPtr, ok := e.Get(lookup)
+		if !ok {
+			hackPtr = (*Val)(unsafe.Pointer(&[]*FunVal{}))
+			e.Put(lookup, hackPtr)
 		}
-		e.Put(lookup, (*Val)(unsafe.Pointer(fs)))
+
+		fnTblPtr := (*[]*FunVal)(unsafe.Pointer(hackPtr))
+		*fnTblPtr = append(*fnTblPtr, f.Fun())
 	}
 }

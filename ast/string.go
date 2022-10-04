@@ -13,11 +13,11 @@ func (e *Expr) String() string {
 	case IDENT:
 		return e.Ident().Name
 	case LIST:
-		return fmt.Sprintf("[%s]", stringfyExprs(e.List().Elems))
+		return fmt.Sprintf("[%s]", stringifyExprs(e.List().Elems))
 	case MAP:
-		return stringfyMap(e.Map())
+		return stringifyMap(e.Map())
 	case OBJ:
-		return stringfyObj(e.Obj())
+		return stringifyObj(e.Obj())
 	case UNARY:
 		u := e.Unary()
 		if u.Prefix {
@@ -33,7 +33,7 @@ func (e *Expr) String() string {
 		return fmt.Sprintf("%s %s %s %s", t.Left, t.Name, t.Mid, t.Right)
 	case CALL:
 		c := e.Call()
-		return fmt.Sprintf("%s(%s)", c.Callee, stringfyExprs(c.Args))
+		return fmt.Sprintf("%s(%s)", c.Callee, stringifyExprs(c.Args))
 	case SUBSCRIPT:
 		s := e.Subscript()
 		return fmt.Sprintf("%s[%s]", s.Var, s.Idx)
@@ -49,7 +49,7 @@ func (e *Expr) String() string {
 	}
 }
 
-func stringfyMap(m *MapExpr) string {
+func stringifyMap(m *MapExpr) string {
 	pairs := m.Map().Pairs
 	if len(pairs) == 0 {
 		return "[:]"
@@ -71,7 +71,7 @@ func stringfyMap(m *MapExpr) string {
 	return buf.String()
 }
 
-func stringfyObj(m *ObjExpr) string {
+func stringifyObj(m *ObjExpr) string {
 	fs := m.Obj().Fields
 	if len(fs) == 0 {
 		return "{}"
@@ -93,7 +93,7 @@ func stringfyObj(m *ObjExpr) string {
 	return buf.String()
 }
 
-func stringfyExprs(exprs []*Expr) string {
+func stringifyExprs(exprs []*Expr) string {
 	buf := &strings.Builder{}
 	isFst := true
 	for _, elem := range exprs {

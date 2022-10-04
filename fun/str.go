@@ -23,7 +23,7 @@ var (
 	)
 	// LEN_STR len :: str -> num
 	LEN_STR = val.Fun(
-		types.Fun("len", []*types.Kind{types.Str}, types.Num),
+		types.Fun(LEN, []*types.Kind{types.Str}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(float64(utf8.RuneCountInString(args[0].Str().V)))
 		},
@@ -33,16 +33,16 @@ var (
 	STRING_ANY = func() *val.Val {
 		a := types.Slot("a")
 		return val.Fun(
-			types.Fun("string", []*types.Kind{a}, types.Str),
+			types.Fun(STRING, []*types.Kind{a}, types.Str),
 			func(args ...*val.Val) *val.Val {
-				return val.Str(stringfy(args[0]))
+				return val.Str(stringify(args[0]))
 			},
 		)
 	}()
 
 	// MATCH_STR_STR match :: str -> str -> bool
 	MATCH_STR_STR = val.Fun(
-		types.Fun("match", []*types.Kind{types.Str, types.Str}, types.Bool),
+		types.Fun(MATCH, []*types.Kind{types.Str, types.Str}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			pattern := args[0].Str().V
 			s := args[1].Str().V
@@ -55,7 +55,7 @@ var (
 	)
 )
 
-func stringfy(v *val.Val) string {
+func stringify(v *val.Val) string {
 	switch v.Kind.Type {
 	case types.TNum:
 		n := v.Num()
@@ -80,6 +80,6 @@ func stringfy(v *val.Val) string {
 		return "#fun"
 	default:
 		util.Unreachable()
+		return ""
 	}
-	return ""
 }

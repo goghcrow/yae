@@ -12,6 +12,7 @@ func Equals(x, y *Kind) bool {
 	}
 
 	if x.Type == TSlot {
+		// 这里可以直接比较是因为每次调用 Slot 都会生成唯一值
 		return x.Slot().Name == y.Slot().Name
 	}
 

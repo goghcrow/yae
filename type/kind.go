@@ -4,12 +4,13 @@ import (
 	"unsafe"
 )
 
-// top && bottom 暂时没使用, 做成 subtype 的复杂度对于表达式没必要
+// bottom 只在空列表和空 map 使用, top 没有使用
+// 做成 subtype 的复杂度对于表达式没必要
 
 //goland:noinspection GoUnusedGlobalVariable
 var (
-	Top    = &Kind{TTop}    // ⊤  any,universal...
-	Bottom = &Kind{TBottom} // ⊥  ∅,never..
+	Top    = &Kind{TTop}    // ⊤  any,universal
+	Bottom = &Kind{TBottom} // ⊥  ∅,never,nothing
 	//Unit   = &Kind{} // null :: void
 
 	Str  = &Kind{TStr}

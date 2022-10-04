@@ -9,6 +9,10 @@ import (
 	"unsafe"
 )
 
+//移植 php 的 strtotime
+//直接编译成不同平台的静态库静态链接
+//https://github.com/derickr/timelib
+
 /*
 #include <stdlib.h>
 #include "lib/timelib.h"
@@ -105,8 +109,6 @@ func inferFromPath(p string) (name string, err error) {
 	_, err = time.LoadLocation(name) // validation
 	return
 }
-
-// ================================================================================
 
 type StrtotimeOpt struct {
 	BaseTs int64

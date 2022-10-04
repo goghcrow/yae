@@ -64,7 +64,7 @@ var (
 			return val.Bool(!args[0].Time().V.Equal(args[1].Time().V))
 		},
 	)
-	//EQ_LIST_LIST == :: forall a. (list[a] -> list[a] -> bool)
+	// EQ_LIST_LIST == :: forall a. (list[a] -> list[a] -> bool)
 	EQ_LIST_LIST = func() *val.Val {
 		T := types.Slot("a")
 		listT := types.List(T)
@@ -75,7 +75,7 @@ var (
 			},
 		)
 	}()
-	//NE_LIST_LIST != :: forall a. (list[a] -> list[a] -> bool)
+	// NE_LIST_LIST != :: forall a. (list[a] -> list[a] -> bool)
 	NE_LIST_LIST = func() *val.Val {
 		T := types.Slot("a")
 		listT := types.List(T)
@@ -86,7 +86,7 @@ var (
 			},
 		)
 	}()
-	//EQ_MAP_MAP == :: forall k v . (map[k,v] -> map[k,v] -> bool)
+	// EQ_MAP_MAP == :: forall k v. (map[k,v] -> map[k,v] -> bool)
 	EQ_MAP_MAP = func() *val.Val {
 		K := types.Slot("k")
 		V := types.Slot("v")
@@ -98,7 +98,7 @@ var (
 			},
 		)
 	}()
-	//NE_MAP_MAP != :: forall k v . (map[k,v] -> map[k,v] -> bool)
+	// NE_MAP_MAP != :: forall k v. (map[k,v] -> map[k,v] -> bool)
 	NE_MAP_MAP = func() *val.Val {
 		K := types.Slot("k")
 		V := types.Slot("v")

@@ -158,6 +158,30 @@ func TestEval(t *testing.T) {
 			ctx:      nil,
 			expected: val.Num(-1),
 		},
+		{
+			name:     "list/empty",
+			expr:     `[]`,
+			ctx:      nil,
+			expected: val.List(types.List(types.Bottom).List(), 0),
+		},
+		{
+			name:     "obj/empty",
+			expr:     `{}`,
+			ctx:      nil,
+			expected: val.Obj(types.Obj(map[string]*types.Kind{}).Obj()),
+		},
+		{
+			name:     "map/empty",
+			expr:     `[:]`,
+			ctx:      nil,
+			expected: val.Map(types.Map(types.Bottom, types.Bottom).Map()),
+		},
+		{
+			name:     "lit/string",
+			expr:     `"\"中文\nabc\n123\u00e9"`,
+			ctx:      nil,
+			expected: val.Str("\"中文\nabc\n123\u00e9"),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -168,10 +192,10 @@ func TestEval(t *testing.T) {
 			}()
 			r, err := Eval(tt.expr, tt.ctx)
 			if err != nil {
-				t.Errorf("[%s] expected %s but error %s", tt.expr, tt.expected, err)
+				t.Errorf("[%s] expect %s but error %s", tt.expr, tt.expected, err)
 			} else {
 				if !val.Equals(tt.expected, r) {
-					t.Errorf("[%s] expected %s actual %s", tt.expr, tt.expected, r)
+					t.Errorf("[%s] expect %s actual %s", tt.expr, tt.expected, r)
 				}
 			}
 		})
@@ -232,7 +256,7 @@ func TestManualEnv(t *testing.T) {
 			panic(err)
 		}
 		if !val.Equals(v, val.Num(43)) {
-			t.Errorf("expected 43 actual %s", v)
+			t.Errorf("expect 43 actual %s", v)
 		}
 	}
 
@@ -258,7 +282,7 @@ func TestManualEnv(t *testing.T) {
 			panic(err)
 		}
 		if !val.Equals(v, val.Num(101)) {
-			t.Errorf("expected 101 actual %s", v)
+			t.Errorf("expect 101 actual %s", v)
 		}
 	}
 }
@@ -304,7 +328,7 @@ func TestStructEnv(t *testing.T) {
 			panic(err)
 		}
 		if !val.Equals(v, val.Num(43)) {
-			t.Errorf("expected 43 actual %s", v)
+			t.Errorf("expect 43 actual %s", v)
 		}
 	}
 	{
@@ -325,7 +349,7 @@ func TestStructEnv(t *testing.T) {
 			panic(err)
 		}
 		if !val.Equals(v, val.Num(101)) {
-			t.Errorf("expected 101 actual %s", v)
+			t.Errorf("expect 101 actual %s", v)
 		}
 	}
 }
@@ -385,7 +409,7 @@ func TestMapEnv(t *testing.T) {
 			panic(err)
 		}
 		if !val.Equals(v, val.Num(43)) {
-			t.Errorf("expected 43 actual %s", v)
+			t.Errorf("expect 43 actual %s", v)
 		}
 	}
 
@@ -419,42 +443,7 @@ func TestMapEnv(t *testing.T) {
 			panic(err)
 		}
 		if !val.Equals(v, val.Num(101)) {
-			t.Errorf("expected 101 actual %s", v)
+			t.Errorf("expect 101 actual %s", v)
 		}
-	}
-}
-
-func TestRegisterXXX(t *testing.T) {
-	type Ctx struct {
-		A      int `yae:"a"`
-		Answer int `yae:"终极答案"`
-	}
-
-	expr := NewExpr().EnableDebug(os.Stderr)
-
-	compileTimeEnv, err := conv.TypeEnvOf(Ctx{})
-	if err != nil {
-		panic(err)
-	}
-	closure, err := expr.Compile("a + 终极答案", compileTimeEnv)
-	if err != nil {
-		panic(err)
-	}
-
-	runtimeEnv, err := conv.ValEnvOf(Ctx{
-		A:      1,
-		Answer: 42,
-	})
-	if err != nil {
-		panic(err)
-	}
-	v, err := closure(runtimeEnv)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(v)
-	if v.Kind == types.Str {
-		fmt.Println(v.Str().V)
 	}
 }
