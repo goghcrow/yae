@@ -136,7 +136,7 @@ func parseIf(p *parser, iff token.Token) *ast.Expr {
 }
 
 func parseQuestion(p *parser, l *ast.Expr, t token.Token) *ast.Expr {
-	m := p.expr(token.QUESTION.Bp())
+	m := p.expr(0)
 	p.mustEat(token.COLON)
 	r := p.expr(token.QUESTION.Bp() - 1)
 	return ast.Tenary(token.QUESTION, l, m, r)
