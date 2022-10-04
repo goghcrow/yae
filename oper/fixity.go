@@ -1,9 +1,9 @@
-package token
+package oper
 
 // Fixity Associativity
 type Fixity int
 
-//goland:noinspection GoSnakeCaseUsage,GoUnusedConst
+//goland:noinspection GoSnakeCaseUsage
 const (
 	NA Fixity = iota
 	PREFIX

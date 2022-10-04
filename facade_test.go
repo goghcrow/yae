@@ -3,6 +3,7 @@ package expr
 import (
 	"fmt"
 	"github.com/goghcrow/yae/conv"
+	"github.com/goghcrow/yae/oper"
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
@@ -10,14 +11,6 @@ import (
 	"testing"
 	"time"
 )
-
-func lit(expr string) *val.Val {
-	r, err := Eval(expr, struct{}{})
-	if err != nil {
-		panic(err)
-	}
-	return r
-}
 
 func TestEval(t *testing.T) {
 	ref := func(v interface{}) interface{} { return &v }
@@ -87,7 +80,7 @@ func TestEval(t *testing.T) {
 		},
 		{
 			name:     "desugar",
-			expr:     `(2 + 3) == 2.+(3)`,
+			expr:     `(2 + 3) == 2. +(3)`, // .和+之间必须有空格, 因为支持自定义操作符,会优先匹配完整操作符
 			ctx:      nil,
 			expected: val.True,
 		},
@@ -123,9 +116,57 @@ func TestEval(t *testing.T) {
 				}
 			}(),
 		},
+
+		{
+			name:     "-",
+			expr:     `-42`,
+			ctx:      nil,
+			expected: val.Num(-42),
+		},
+		{
+			name:     "-",
+			expr:     `+42`,
+			ctx:      nil,
+			expected: val.Num(42),
+		},
+		{
+			name:     "-",
+			expr:     `1-1`,
+			ctx:      nil,
+			expected: val.Num(0),
+		},
+		{
+			name:     "-",
+			expr:     `1--1`,
+			ctx:      nil,
+			expected: val.Num(2),
+		},
+		{
+			name:     "-",
+			expr:     `--1`,
+			ctx:      nil,
+			expected: val.Num(1),
+		},
+		{
+			name:     "-",
+			expr:     `+-1`,
+			ctx:      nil,
+			expected: val.Num(-1),
+		},
+		{
+			name:     "-",
+			expr:     `-+1`,
+			ctx:      nil,
+			expected: val.Num(-1),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
 			r, err := Eval(tt.expr, tt.ctx)
 			if err != nil {
 				t.Errorf("[%s] expected %s but error %s", tt.expr, tt.expected, err)
@@ -382,6 +423,56 @@ func TestMapEnv(t *testing.T) {
 			t.Errorf("expected 101 actual %s", v)
 		}
 	}
+}
+
+func TestRegisterOperator(t *testing.T) {
+	expr := NewExpr().EnableDebug(os.Stderr)
+
+	// 添加一个自定义操作符, 同时添加对应的函数
+	// contains :: forall a.(list[a] -> a -> bool)
+
+	expr.RegisterOperator(oper.Operator{
+		Type:   "contains",
+		BP:     oper.BP_TERM,
+		Fixity: oper.INFIX_N,
+	})
+	expr.RegisterFun(func() *val.Val {
+		a := types.Slot("a")
+		return val.Fun(
+			types.Fun("contains", []*types.Kind{types.List(a), a}, types.Bool),
+			func(v ...*val.Val) *val.Val {
+				for _, el := range v[0].List().V {
+					if val.Equals(el, v[1]) {
+						return val.True
+					}
+				}
+				return val.False
+			},
+		)
+	}())
+
+	closure, err := expr.Compile("lst contains 42", map[string]interface{}{
+		"lst": []int{},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	v, err := closure(map[string]interface{}{
+		"lst": []int{1, 2, 3},
+	})
+	if err != nil {
+		panic(err)
+	}
+	t.Log(v)
+
+	v, err = closure(map[string]interface{}{
+		"lst": []int{1, 2, 42},
+	})
+	if err != nil {
+		panic(err)
+	}
+	t.Log(v)
 }
 
 func TestRegisterXXX(t *testing.T) {

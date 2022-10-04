@@ -1,43 +1,8 @@
 package ast
 
 import (
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/oper"
 	"unsafe"
-)
-
-type NodeType int
-
-const (
-	IDENT NodeType = iota
-
-	LITERAL
-	LIST
-	MAP
-	OBJ
-
-	UNARY
-	BINARY
-	TENARY
-
-	IF
-	CALL
-
-	SUBSCRIPT
-	MEMBER
-
-	BEGIN
-)
-
-type LitType int
-
-//goland:noinspection GoSnakeCaseUsage
-const (
-	LIT_NULL LitType = iota // 暂时没用
-	LIT_STR
-	LIT_TIME
-	LIT_NUM
-	LIT_TRUE
-	LIT_FALSE
 )
 
 type Expr struct {
@@ -72,25 +37,22 @@ type IdentExpr struct {
 	Expr
 	Name string
 }
-type Operator struct {
-	Expr
-	Name string
-}
 type UnaryExpr struct {
 	Expr
-	token.Type
+	Name   string
 	LHS    *Expr
 	Prefix bool
 }
 type BinaryExpr struct {
 	Expr
-	token.Type
+	Name string
+	oper.Fixity
 	LHS *Expr
 	RHS *Expr
 }
 type TenaryExpr struct {
 	Expr
-	token.Type
+	Name  string
 	Left  *Expr
 	Mid   *Expr
 	Right *Expr

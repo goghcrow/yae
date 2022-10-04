@@ -310,6 +310,11 @@ func TestCompile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
 			{
 				// 注意 typeCheck 会修改 ast 的上附加的类型信息
 				actual := types.TypeCheck(typEnv, tt.expr)

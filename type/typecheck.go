@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/goghcrow/yae/ast"
-	lex "github.com/goghcrow/yae/lexer"
+	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/util"
 	"strconv"
 	"unsafe"
@@ -34,7 +34,7 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 
 	case ast.IDENT:
 		id := expr.Ident().Name
-		util.Assert(!lex.Reserved(id), "%s reserved", id)
+		util.Assert(!lexer.Reserved(id), "%s reserved", id)
 		kind, ok := env.Get(id)
 		util.Assert(ok, "undefined %s", id)
 		return kind

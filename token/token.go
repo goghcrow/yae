@@ -1,9 +1,11 @@
 package token
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Token struct {
-	Type   Type
+	Type
 	Lexeme string
 }
 

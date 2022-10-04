@@ -327,6 +327,11 @@ func TestConv(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
 			k, err := TypeOf(tt.v)
 			if err != nil {
 				if tt.expectedType != nil {
@@ -478,6 +483,11 @@ func TestConvValOf(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
 			vl, err := ValOf(tt.v)
 			if err != nil {
 				t.Errorf("error %s", err.Error())

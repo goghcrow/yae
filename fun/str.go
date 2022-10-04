@@ -2,7 +2,7 @@ package fun
 
 import (
 	"fmt"
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/oper"
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
@@ -16,7 +16,7 @@ var (
 	// PLUS_STR_STR + :: str -> str -> str
 	// overload +
 	PLUS_STR_STR = val.Fun(
-		types.Fun(token.PLUS.Name(), []*types.Kind{types.Str, types.Str}, types.Str),
+		types.Fun(oper.PLUS, []*types.Kind{types.Str, types.Str}, types.Str),
 		func(args ...*val.Val) *val.Val {
 			return val.Str(args[0].Str().V + args[1].Str().V)
 		},

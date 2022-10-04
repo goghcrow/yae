@@ -2,7 +2,8 @@ package fun
 
 import (
 	"github.com/goghcrow/yae/compile"
-	lex "github.com/goghcrow/yae/lexer"
+	"github.com/goghcrow/yae/lexer"
+	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/trans"
 	types "github.com/goghcrow/yae/type"
@@ -23,6 +24,11 @@ func TestIf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.expr, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
 			actual := eval(tt.expr)
 			expected := tt.expected
 			if !val.Equals(expected, actual) {
@@ -176,6 +182,8 @@ func TestFun(t *testing.T) {
 		{"2 ^ 3 == 8", val.True},
 		{"2 ^ 3 ^ 2 == 2 ^ 9", val.True}, // 右结合
 		{"1 - 2 + 3 * 4 == 11", val.True},
+		{"1 - (-1 + 3) * 4 == -7", val.True},
+		{"(1 - -1 + 3) * 4 == 20", val.True},
 
 		{"max(1,2) == 2", val.True},
 		{"max([1,2,3]) == 3", val.True},
@@ -222,6 +230,11 @@ func TestFun(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.expr, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
 			actual := eval(tt.expr)
 			expected := tt.expected
 			if !val.Equals(expected, actual) {
@@ -264,8 +277,8 @@ func init() {
 }
 
 func eval(s string) *val.Val {
-	toks := lex.Lex(s)
-	ast := parser.Parser(toks)
+	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
+	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
 	ast = trans.Desugar(ast)
 
 	_ = types.TypeCheck(typecheckEnv, ast)
@@ -277,8 +290,8 @@ func eval(s string) *val.Val {
 }
 
 func infer(s string) *types.Kind {
-	toks := lex.Lex(s)
-	ast := parser.Parser(toks)
+	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
+	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
 	ast = trans.Desugar(ast)
 	return types.TypeCheck(typecheckEnv, ast)
 }

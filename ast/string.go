@@ -21,16 +21,16 @@ func (e *Expr) String() string {
 	case UNARY:
 		u := e.Unary()
 		if u.Prefix {
-			return fmt.Sprintf("%s%s", u.Type, u.LHS)
+			return fmt.Sprintf("%s%s", u.Name, u.LHS)
 		} else {
-			return fmt.Sprintf("%s%s", u.LHS, u.Type)
+			return fmt.Sprintf("%s%s", u.LHS, u.Name)
 		}
 	case BINARY:
 		b := e.Binary()
-		return fmt.Sprintf("%s %s %s", b.LHS, b.Type.String(), b.RHS)
+		return fmt.Sprintf("%s %s %s", b.LHS, b.Name, b.RHS)
 	case TENARY:
 		t := e.Tenary()
-		return fmt.Sprintf("%s %s %s %s", t.Left, t.Type.String(), t.Mid, t.Right)
+		return fmt.Sprintf("%s %s %s %s", t.Left, t.Name, t.Mid, t.Right)
 	case CALL:
 		c := e.Call()
 		return fmt.Sprintf("%s(%s)", c.Callee, stringfyExprs(c.Args))

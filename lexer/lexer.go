@@ -1,28 +1,36 @@
-package lex
+package lexer
 
 import (
+	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
 )
 
-func Lex(input string) []*token.Token {
-	l := &lexer{lexicon: lexicon, input: input}
+func NewLexer(ops []oper.Operator) *lexer {
+	return &lexer{
+		lexicon: newLexicon(ops),
+	}
+}
+
+func (l *lexer) Lex(input string) []*token.Token {
+	l.input = input
+	l.idx = 0
 	toks := make([]*token.Token, 0)
 	for {
 		t := l.next()
 		if t == EOF {
 			break
 		}
-		toks = append(toks, &t)
+		toks = append(toks, t)
 	}
 	return toks
 }
 
-var EOF = token.Token{Lexeme: "-EOF-"}
+var EOF = &token.Token{Type: token.EOF}
 
 type lexer struct {
-	lexicon []rule
-	input   string
-	idx     int
+	lexicon
+	input string
+	idx   int
 }
 
 func (l *lexer) skipSpace() {
@@ -37,7 +45,7 @@ func (l *lexer) skipSpace() {
 	}
 }
 
-func (l *lexer) next() token.Token {
+func (l *lexer) next() *token.Token {
 	l.skipSpace()
 
 	if l.idx >= len(l.input) {
@@ -45,12 +53,12 @@ func (l *lexer) next() token.Token {
 	}
 
 	sub := l.input[l.idx:]
-	for _, r := range l.lexicon {
+	for _, r := range l.lexicon.rules {
 		offset := r.match(sub)
 		if offset >= 0 {
 			matched := l.input[l.idx : l.idx+offset]
 			l.idx += offset
-			return token.Token{Type: r.Type, Lexeme: matched}
+			return &token.Token{Type: r.Type, Lexeme: matched}
 		}
 	}
 	panic("syntax error: " + sub)

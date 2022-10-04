@@ -44,26 +44,26 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		return ast.Obj(obj)
 	case ast.UNARY:
 		u := expr.Unary()
-		callee := ast.Ident(u.Type.Name())
+		callee := ast.Ident(u.Name)
 		lhs := Desugar(u.LHS)
 		args := []*ast.Expr{lhs}
 		return ast.Call(callee, args)
 	case ast.BINARY:
 		b := expr.Binary()
-		callee := ast.Ident(b.Type.Name())
+		callee := ast.Ident(b.Name)
 		lhs := Desugar(b.LHS)
 		rhs := Desugar(b.RHS)
 		args := []*ast.Expr{lhs, rhs}
 		return ast.Call(callee, args)
 	case ast.TENARY:
 		t := expr.Tenary()
-		if t.Type == token.QUESTION {
+		if t.Name == token.QUESTION {
 			l := Desugar(t.Left)
 			m := Desugar(t.Mid)
 			r := Desugar(t.Right)
 			// return ast.If(l, m, r)
 			args := []*ast.Expr{l, m, r}
-			callee := ast.Ident(token.IF.Name())
+			callee := ast.Ident(token.IF)
 			return ast.Call(callee, args)
 		}
 		util.Unreachable()
@@ -74,7 +74,7 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		then := Desugar(iff.Then)
 		els := Desugar(iff.Else)
 		// return ast.If(cond, then, els)
-		callee := ast.Ident(token.IF.Name())
+		callee := ast.Ident(token.IF)
 		args := []*ast.Expr{cond, then, els}
 		return ast.Call(callee, args)
 	case ast.CALL:

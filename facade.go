@@ -1,12 +1,12 @@
 package expr
 
 import (
-	"errors"
 	"fmt"
 	"github.com/goghcrow/yae/compile"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/fun"
-	lex "github.com/goghcrow/yae/lexer"
+	"github.com/goghcrow/yae/lexer"
+	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/trans"
 	types "github.com/goghcrow/yae/type"
@@ -36,13 +36,14 @@ func Eval(input string, v interface{}) (*val.Val, error) {
 }
 
 type Expr struct {
-	typeCheck *types.Env
-	runtime   *val.Env
+	typeCheck *types.Env //类型检查环境
+	runtime   *val.Env   //编译期运行时环境
 	trans     []trans.Transform
+	ops       []oper.Operator
 	dbg       io.Writer
 }
 
-type Compiled func(env1 *val.Env) (*val.Val, error)
+type Compiled func(v interface{}) (*val.Val, error)
 
 func NewExpr() *Expr {
 	e := Expr{
@@ -52,6 +53,7 @@ func NewExpr() *Expr {
 	}
 
 	e.initTrans()
+	e.initOps()
 	e.initFuns()
 
 	return &e
@@ -60,6 +62,10 @@ func NewExpr() *Expr {
 func (e *Expr) EnableDebug(out io.Writer) *Expr {
 	e.dbg = out
 	return e
+}
+
+func (e *Expr) RegisterOperator(op oper.Operator) {
+	e.ops = append(e.ops, op)
 }
 
 func (e *Expr) RegisterTransformer(trans trans.Transform) {
@@ -71,30 +77,26 @@ func (e *Expr) RegisterFun(v *val. /*Fun*/ Val) {
 	e.runtime.RegisterFun(v)
 }
 
-func (e *Expr) Compile(expr string, env0 *types.Env) (c Compiled, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			if e.dbg != nil {
-				e.logf("COMPILE FAIL:\n")
-				_, _ = e.dbg.Write(debug.Stack())
-			}
-			err = errors.New(fmt.Sprintf("%s", r))
+func (e *Expr) Compile(expr string, v interface{}) (c Compiled, err error) {
+	env0, ok := v.(*types.Env)
+	if !ok {
+		env0, err = conv.TypeEnvOf(v)
+		if err != nil {
+			return nil, err
 		}
-	}()
-
+	}
+	defer e.backStrace("compile", &err)
 	closure := e.steps(expr, env0)
 	c = e.makeCompiled(closure, env0)
 	return
 }
 
-func (e *Expr) logf(format string, a ...interface{}) {
-	if e.dbg != nil {
-		_, _ = fmt.Fprintf(e.dbg, format, a...)
-	}
-}
-
 func (e *Expr) initTrans() {
 	e.RegisterTransformer(trans.Desugar)
+}
+
+func (e *Expr) initOps() {
+	e.ops = oper.BuildIn()
 }
 
 func (e *Expr) initFuns() {
@@ -106,10 +108,10 @@ func (e *Expr) initFuns() {
 func (e *Expr) steps(expr string, env0 *types.Env) compile.Closure {
 	e.logf("expr: %s\n", expr)
 
-	toks := lex.Lex(expr)
+	toks := lexer.NewLexer(e.ops).Lex(expr)
 	e.logf("lexed: %s\n", toks)
 
-	parsed := parser.Parser(toks)
+	parsed := parser.NewParser(e.ops).Parse(toks)
 	e.logf("parsed: %s\n", parsed)
 
 	transed := parsed
@@ -128,20 +130,18 @@ func (e *Expr) steps(expr string, env0 *types.Env) compile.Closure {
 }
 
 func (e *Expr) makeCompiled(closure compile.Closure, env0 *types.Env) Compiled {
-	return func(env1 *val.Env) (val *val.Val, err error) {
-		defer func() {
-			if r := recover(); r != nil {
-				if e.dbg != nil {
-					e.logf("EVAL FAIL:\n")
-					_, _ = e.dbg.Write(debug.Stack())
-				}
-				err = fmt.Errorf("%s", r)
+	return func(v interface{}) (vl *val.Val, err error) {
+		env1, ok := v.(*val.Env)
+		if !ok {
+			env1, err = conv.ValEnvOf(v)
+			if err != nil {
+				return nil, err
 			}
-		}()
-
+		}
+		defer e.backStrace("eval", &err)
 		envCheck(env0, env1)
 		rt := env1.Inherit(e.runtime)
-		val = closure(rt)
+		vl = closure(rt)
 		return
 	}
 }
@@ -154,4 +154,20 @@ func envCheck(env0 *types.Env, env *val.Env) {
 		util.Assert(types.Equals(kind, v.Kind),
 			"type mismatched, expect `%s` actual `%s`", kind, v.Kind)
 	})
+}
+
+func (e *Expr) backStrace(scene string, err *error) {
+	if r := recover(); r != nil {
+		if e.dbg != nil {
+			e.logf("%s error:\n", scene)
+			_, _ = e.dbg.Write(debug.Stack())
+		}
+		*err = fmt.Errorf("%v", r)
+	}
+}
+
+func (e *Expr) logf(format string, a ...interface{}) {
+	if e.dbg != nil {
+		_, _ = fmt.Fprintf(e.dbg, format, a...)
+	}
 }

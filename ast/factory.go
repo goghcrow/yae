@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
 )
 
@@ -14,8 +15,8 @@ func Literal(typ LitType, lit string) *Expr {
 	return &e.Expr
 }
 
-func LitTrue() *Expr           { return Literal(LIT_TRUE, token.TRUE.Name()) }
-func LitFalse() *Expr          { return Literal(LIT_FALSE, token.FALSE.Name()) }
+func LitTrue() *Expr           { return Literal(LIT_TRUE, token.TRUE) }
+func LitFalse() *Expr          { return Literal(LIT_FALSE, token.FALSE) }
 func LitNum(lit string) *Expr  { return Literal(LIT_NUM, lit) }
 func LitStr(lit string) *Expr  { return Literal(LIT_STR, lit) }
 func LitTime(lit string) *Expr { return Literal(LIT_TIME, lit) }
@@ -35,18 +36,18 @@ func Obj(fields map[string]*Expr) *Expr {
 	return &e.Expr
 }
 
-func Unary(t token.Type, expr *Expr, prefix bool) *Expr {
-	e := UnaryExpr{Expr{UNARY}, t, expr, prefix}
+func Unary(n string, expr *Expr, prefix bool) *Expr {
+	e := UnaryExpr{Expr{UNARY}, n, expr, prefix}
 	return &e.Expr
 }
 
-func Binary(t token.Type, lhs *Expr, rhs *Expr) *Expr {
-	e := BinaryExpr{Expr{BINARY}, t, lhs, rhs}
+func Binary(n string, fixity oper.Fixity, lhs *Expr, rhs *Expr) *Expr {
+	e := BinaryExpr{Expr{BINARY}, n, fixity, lhs, rhs}
 	return &e.Expr
 }
 
-func Tenary(t token.Type, l *Expr, m *Expr, r *Expr) *Expr {
-	e := TenaryExpr{Expr{TENARY}, t, l, m, r}
+func Tenary(n string, l *Expr, m *Expr, r *Expr) *Expr {
+	e := TenaryExpr{Expr{TENARY}, n, l, m, r}
 	return &e.Expr
 }
 

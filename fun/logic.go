@@ -1,7 +1,7 @@
 package fun
 
 import (
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/oper"
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/val"
 )
@@ -20,7 +20,7 @@ var (
 	IF_BOOL_A_A = func() *val.Val {
 		T := types.Slot("a")
 		return val.LazyFun(
-			types.Fun(token.IF.Name(), []*types.Kind{types.Bool, T, T}, T),
+			types.Fun("if" /*token.IF.Name*/, []*types.Kind{types.Bool, T, T}, T),
 			// 注意 if 是 lazyFun, 参数都是 thunk
 			func(args ...*val.Val) *val.Val {
 				if args[0].Fun().V().Bool().V {
@@ -31,9 +31,42 @@ var (
 			},
 		)
 	}()
+	//LOGIC_AND_BOOL_BOOL and :: bool -> bool -> bool
+	LOGIC_AND_BOOL_BOOL = val.LazyFun(
+		types.Fun(oper.LOGIC_AND, []*types.Kind{types.Bool, types.Bool}, types.Bool),
+		func(args ...*val.Val) *val.Val {
+			thunk1 := args[0].Fun()
+			if thunk1.V().Bool().V {
+				thunk2 := args[1].Fun()
+				return thunk2.V().Bool().Vl()
+			} else {
+				return val.False
+			}
+		},
+	)
+	//LOGIC_OR_BOOL_BOOL or :: bool -> bool -> bool
+	LOGIC_OR_BOOL_BOOL = val.LazyFun(
+		types.Fun(oper.LOGIC_OR, []*types.Kind{types.Bool, types.Bool}, types.Bool),
+		func(args ...*val.Val) *val.Val {
+			thunk1 := args[0].Fun()
+			if thunk1.V().Bool().V {
+				return val.True
+			} else {
+				thunk2 := args[1].Fun()
+				return thunk2.V().Bool().Vl()
+			}
+		},
+	)
+	// LOGIC_NOT_BOOL not :: bool -> bool
+	LOGIC_NOT_BOOL = val.Fun(
+		types.Fun(oper.LOGIC_NOT, []*types.Kind{types.Bool}, types.Bool),
+		func(args ...*val.Val) *val.Val {
+			return val.Bool(!args[0].Bool().V)
+		},
+	)
 	//AND_BOOL_BOOL and :: bool -> bool -> bool
 	AND_BOOL_BOOL = val.LazyFun(
-		types.Fun(token.LOGIC_AND.Name(), []*types.Kind{types.Bool, types.Bool}, types.Bool),
+		types.Fun(oper.AND, []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			thunk1 := args[0].Fun()
 			if thunk1.V().Bool().V {
@@ -46,7 +79,7 @@ var (
 	)
 	//OR_BOOL_BOOL or :: bool -> bool -> bool
 	OR_BOOL_BOOL = val.LazyFun(
-		types.Fun(token.LOGIC_OR.Name(), []*types.Kind{types.Bool, types.Bool}, types.Bool),
+		types.Fun(oper.OR, []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			thunk1 := args[0].Fun()
 			if thunk1.V().Bool().V {
@@ -59,7 +92,7 @@ var (
 	)
 	// NOT_BOOL not :: bool -> bool
 	NOT_BOOL = val.Fun(
-		types.Fun(token.LOGIC_NOT.Name(), []*types.Kind{types.Bool}, types.Bool),
+		types.Fun(oper.NOT, []*types.Kind{types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			return val.Bool(!args[0].Bool().V)
 		},

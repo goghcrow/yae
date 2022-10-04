@@ -1,4 +1,6 @@
-package lex
+package lexer
+
+import "github.com/goghcrow/yae/util"
 
 // reserved 保留关键字, 以后可以改造成脚本语言
 var reserved = []string{
@@ -13,19 +15,14 @@ var reserved = []string{
 	"assert", "debugger",
 }
 
-type void struct{}
-
-var null void = struct{}{}
-
-var reservedSet = map[string]void{}
+var reservedSet = util.StrSet{}
 
 func init() {
 	for _, name := range reserved {
-		reservedSet[name] = null
+		reservedSet.Add(name)
 	}
 }
 
 func Reserved(name string) bool {
-	_, ok := reservedSet[name]
-	return ok
+	return reservedSet.Contains(name)
 }
