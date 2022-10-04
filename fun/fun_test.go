@@ -56,19 +56,6 @@ func TestFun(t *testing.T) {
 		{`!false`, val.True},
 		{`!true`, val.False},
 
-		{`false and false`, val.False},
-		{`false and true`, val.False},
-		{`true and false`, val.False},
-		{`true and true`, val.True},
-
-		{`false or false`, val.False},
-		{`false or true`, val.True},
-		{`true or false`, val.True},
-		{`true or true`, val.True},
-
-		{`not false`, val.True},
-		{`not true`, val.False},
-
 		{`true == true`, val.True},
 		{`true != true`, val.False},
 		{`false == false`, val.True},

@@ -11,10 +11,11 @@ func NewLexer(ops []oper.Operator) *lexer {
 	}
 }
 
+// Lex 表达式通常都很短, 这里没有要做成语法制导按需lex, e.g. chan *token.Token
 func (l *lexer) Lex(input string) []*token.Token {
 	l.input = input
 	l.idx = 0
-	toks := make([]*token.Token, 0)
+	var toks []*token.Token
 	for {
 		t := l.next()
 		if t == EOF {
@@ -33,10 +34,11 @@ type lexer struct {
 	idx   int
 }
 
+func isSpace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\r' || c == '\n'
+}
+
 func (l *lexer) skipSpace() {
-	isSpace := func(c byte) bool {
-		return c == ' ' || c == '\t' || c == '\r' || c == '\n'
-	}
 	for l.idx < len(l.input) {
 		if !isSpace(l.input[l.idx]) {
 			break

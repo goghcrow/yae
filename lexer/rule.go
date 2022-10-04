@@ -25,21 +25,25 @@ func str(t token.Type) rule {
 	}}
 }
 
+var keywordPostfix = regexp.MustCompile(`^[a-zA-Z\d\p{L}_]+`)
+
 func keyword(t token.Type) rule {
-	postfix := regexp.MustCompile(`^[a-zA-Z\d\p{L}_]+`)
 	return rule{t, func(s string) int {
-		k := string(t) // keyword 需要匹配完整单词
-		if strings.HasPrefix(s, k) && !postfix.MatchString(s[len(k):]) {
+		k := string(t)
+		completedWord := strings.HasPrefix(s, k) &&
+			!keywordPostfix.MatchString(s[len(k):])
+		if completedWord {
 			return len(k)
+		} else {
+			return -1
 		}
-		return -1
 	}}
 }
 
 func reg(t token.Type, pattern string) rule {
-	compiled := regexp.MustCompile("^" + pattern)
+	startWith := regexp.MustCompile("^" + pattern)
 	return rule{t, func(s string) int {
-		found := compiled.FindString(s)
+		found := startWith.FindString(s)
 		if found == "" {
 			return -1
 		} else {
@@ -48,7 +52,7 @@ func reg(t token.Type, pattern string) rule {
 	}}
 }
 
-// primOp . ? 等内置操作符的优先级最高, 特殊处理
+// primOp . ? 内置操作符的优先级高于自定义操作符, 且不是匹配最长, 需要特殊处理
 // e.g 比如自定义操作符 .^. 不能匹配成 [`.`, `^.`]
 func primOp(t token.Type) rule {
 	sz := len(string(t))
@@ -56,13 +60,11 @@ func primOp(t token.Type) rule {
 		if !strings.HasPrefix(s, string(t)) {
 			return -1
 		}
-		if len(s) == sz {
+		completedOper := len(s) == sz || !oper.HasPrefix(s[sz:])
+		if completedOper {
 			return sz
-		}
-		if oper.HasPrefix(s[sz:]) {
-			return -1
 		} else {
-			return sz
+			return -1
 		}
 	}}
 }

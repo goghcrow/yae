@@ -6,7 +6,7 @@ import (
 
 func Assert(cond bool, format string, a ...interface{}) {
 	if !cond {
-		panic(fmt.Sprintf(format, a...))
+		panic(fmt.Errorf(format, a...))
 	}
 }
 

@@ -2,14 +2,14 @@ package ast
 
 import (
 	"fmt"
+	"github.com/goghcrow/yae/util"
 	"strings"
 )
 
 func (e *Expr) String() string {
 	switch e.Type {
 	case LITERAL:
-		l := e.Literal()
-		return l.Val
+		return e.Literal().Val
 	case IDENT:
 		return e.Ident().Name
 	case LIST:
@@ -42,9 +42,11 @@ func (e *Expr) String() string {
 		return fmt.Sprintf("%s.%s", m.Obj, m.Field)
 	case IF:
 		iff := e.If()
-		return fmt.Sprintf("if %s then %s else %s", iff.Cond, iff.Then, iff.Else)
+		return fmt.Sprintf("if %s then %s else %s end", iff.Cond, iff.Then, iff.Else)
+	default:
+		util.Unreachable()
+		return ""
 	}
-	panic("not support exprType")
 }
 
 func stringfyMap(m *MapExpr) string {

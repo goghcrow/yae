@@ -6,7 +6,6 @@ type BP float32
 //goland:noinspection GoSnakeCaseUsage
 const (
 	BP_NONE       BP = iota
-	BP_COMMA         // ,
 	BP_LEFT_BRACE    // {
 	BP_COND          // ?:
 	BP_LOGIC_OR      // ||

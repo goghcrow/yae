@@ -64,17 +64,19 @@ func (e *Expr) EnableDebug(out io.Writer) *Expr {
 	return e
 }
 
-func (e *Expr) RegisterOperator(op oper.Operator) {
-	e.ops = append(e.ops, op)
+func (e *Expr) RegisterOperator(ops ...oper.Operator) {
+	e.ops = append(e.ops, ops...)
 }
 
-func (e *Expr) RegisterTransformer(trans trans.Transform) {
-	e.trans = append(e.trans, trans)
+func (e *Expr) RegisterTransformer(trans ...trans.Transform) {
+	e.trans = append(e.trans, trans...)
 }
 
-func (e *Expr) RegisterFun(v *val. /*Fun*/ Val) {
-	e.typeCheck.RegisterFun(v.Kind)
-	e.runtime.RegisterFun(v)
+func (e *Expr) RegisterFun(vs ...*val.Val) {
+	for _, v := range vs {
+		e.typeCheck.RegisterFun(v.Kind)
+		e.runtime.RegisterFun(v)
+	}
 }
 
 func (e *Expr) Compile(expr string, v interface{}) (c Compiled, err error) {
@@ -100,9 +102,7 @@ func (e *Expr) initOps() {
 }
 
 func (e *Expr) initFuns() {
-	for _, f := range fun.Funs {
-		e.RegisterFun(f)
-	}
+	e.RegisterFun(fun.Funs...)
 }
 
 func (e *Expr) steps(expr string, env0 *types.Env) compile.Closure {

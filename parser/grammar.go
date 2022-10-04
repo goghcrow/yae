@@ -30,7 +30,6 @@ type grammar struct {
 // 前缀操作符
 func (g *grammar) prefix(t token.Type, bp oper.BP, f nud) {
 	g.prefixs[t] = prefix{bp, f}
-
 }
 
 // 不结合中缀操作符
@@ -63,13 +62,13 @@ func (p *grammar) infixLbp(t *token.Token) oper.BP {
 	}
 }
 
-func (g *grammar) prefixNud(t *token.Token) prefix {
+func (g *grammar) mustPrefix(t *token.Token) prefix {
 	p, ok := g.prefixs[t.Type]
 	util.Assert(ok, "syntax error: %s", t)
 	return p
 }
 
-func (g *grammar) infixLed(t *token.Token) infix {
+func (g *grammar) mustInfix(t *token.Token) infix {
 	i, ok := g.infixs[t.Type]
 	util.Assert(ok, "syntax error: %s", t)
 	return i

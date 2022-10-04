@@ -29,6 +29,7 @@ func Test_IsOp(t *testing.T) {
 	}{
 		{":!#$%^&*+./<=>?@\\ˆ|~-", true},
 
+		{"ˆ.ˆ", true},
 		{"^.^", true},
 		{"^o^", false},
 		{"a", false},

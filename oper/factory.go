@@ -19,10 +19,6 @@ const (
 	LOGIC_NOT = "!"
 	LOGIC_AND = "&&"
 	LOGIC_OR  = "||"
-
-	NOT = "not"
-	AND = "and"
-	OR  = "or"
 )
 
 var ops = []Operator{
@@ -40,17 +36,13 @@ var ops = []Operator{
 
 	{LOGIC_OR, BP_LOGIC_OR, INFIX_L},
 	{LOGIC_AND, BP_LOGIC_AND, INFIX_L},
-	{LE, BP_COMP, INFIX_L},
-	{LT, BP_COMP, INFIX_L},
-	{GE, BP_COMP, INFIX_L},
-	{GT, BP_COMP, INFIX_L},
-	{EQ, BP_EQ, INFIX_L},
-	{NE, BP_EQ, INFIX_L},
+	{LE, BP_COMP, INFIX_N},
+	{LT, BP_COMP, INFIX_N},
+	{GE, BP_COMP, INFIX_N},
+	{GT, BP_COMP, INFIX_N},
+	{EQ, BP_EQ, INFIX_N},
+	{NE, BP_EQ, INFIX_N},
 	{LOGIC_NOT, BP_PREFIX, PREFIX},
-
-	{OR, BP_LOGIC_OR, INFIX_L},
-	{AND, BP_LOGIC_AND, INFIX_L},
-	{NOT, BP_PREFIX, PREFIX},
 }
 
 func BuildIn() []Operator {

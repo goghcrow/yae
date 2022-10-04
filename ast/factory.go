@@ -36,18 +36,18 @@ func Obj(fields map[string]*Expr) *Expr {
 	return &e.Expr
 }
 
-func Unary(n string, expr *Expr, prefix bool) *Expr {
-	e := UnaryExpr{Expr{UNARY}, n, expr, prefix}
+func Unary(name string, expr *Expr, prefix bool) *Expr {
+	e := UnaryExpr{Expr{UNARY}, name, expr, prefix}
 	return &e.Expr
 }
 
-func Binary(n string, fixity oper.Fixity, lhs *Expr, rhs *Expr) *Expr {
-	e := BinaryExpr{Expr{BINARY}, n, fixity, lhs, rhs}
+func Binary(name string, fixity oper.Fixity, lhs *Expr, rhs *Expr) *Expr {
+	e := BinaryExpr{Expr{BINARY}, name, fixity, lhs, rhs}
 	return &e.Expr
 }
 
-func Tenary(n string, l *Expr, m *Expr, r *Expr) *Expr {
-	e := TenaryExpr{Expr{TENARY}, n, l, m, r}
+func Tenary(name string, l *Expr, m *Expr, r *Expr) *Expr {
+	e := TenaryExpr{Expr{TENARY}, name, l, m, r}
 	return &e.Expr
 }
 
@@ -69,11 +69,5 @@ func Subscript(varExpr *Expr, expr *Expr) *Expr {
 // Member FieldSelection
 func Member(obj *Expr, field *IdentExpr) *Expr {
 	e := MemberExpr{Expr{MEMBER}, obj, field}
-	return &e.Expr
-}
-
-// Begin for multi expr, (begin ...)
-func Begin(exprs []*Expr) *Expr {
-	e := BeginExpr{Expr{BEGIN}, exprs}
 	return &e.Expr
 }

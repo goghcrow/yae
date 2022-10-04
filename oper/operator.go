@@ -14,7 +14,7 @@ type Operator struct {
 
 const (
 	// 允许自定义操作符字符列表
-	operators = ":!#$%^&*+./<=>?@\\ˆ^|~-"
+	operators = ":!#$%^&*+./<=>?@\\ˆ|~-"
 )
 
 var (

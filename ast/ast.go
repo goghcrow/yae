@@ -81,10 +81,6 @@ type MemberExpr struct {
 	Obj   *Expr
 	Field *IdentExpr
 }
-type BeginExpr struct {
-	Expr
-	Exprs []*Expr
-}
 
 func (e *Expr) Ident() *IdentExpr         { return (*IdentExpr)(unsafe.Pointer(e)) }
 func (e *Expr) Literal() *LiteralExpr     { return (*LiteralExpr)(unsafe.Pointer(e)) }

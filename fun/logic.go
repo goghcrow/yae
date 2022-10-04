@@ -64,37 +64,4 @@ var (
 			return val.Bool(!args[0].Bool().V)
 		},
 	)
-	//AND_BOOL_BOOL and :: bool -> bool -> bool
-	AND_BOOL_BOOL = val.LazyFun(
-		types.Fun(oper.AND, []*types.Kind{types.Bool, types.Bool}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			thunk1 := args[0].Fun()
-			if thunk1.V().Bool().V {
-				thunk2 := args[1].Fun()
-				return thunk2.V().Bool().Vl()
-			} else {
-				return val.False
-			}
-		},
-	)
-	//OR_BOOL_BOOL or :: bool -> bool -> bool
-	OR_BOOL_BOOL = val.LazyFun(
-		types.Fun(oper.OR, []*types.Kind{types.Bool, types.Bool}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			thunk1 := args[0].Fun()
-			if thunk1.V().Bool().V {
-				return val.True
-			} else {
-				thunk2 := args[1].Fun()
-				return thunk2.V().Bool().Vl()
-			}
-		},
-	)
-	// NOT_BOOL not :: bool -> bool
-	NOT_BOOL = val.Fun(
-		types.Fun(oper.NOT, []*types.Kind{types.Bool}, types.Bool),
-		func(args ...*val.Val) *val.Val {
-			return val.Bool(!args[0].Bool().V)
-		},
-	)
 )

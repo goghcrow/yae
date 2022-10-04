@@ -15,13 +15,13 @@ var reserved = []string{
 	"assert", "debugger",
 }
 
-var reservedSet = util.StrSet{}
-
-func init() {
+var reservedSet = func() util.StrSet {
+	s := util.StrSet{}
 	for _, name := range reserved {
-		reservedSet.Add(name)
+		s.Add(name)
 	}
-}
+	return s
+}()
 
 func Reserved(name string) bool {
 	return reservedSet.Contains(name)

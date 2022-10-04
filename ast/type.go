@@ -14,13 +14,11 @@ const (
 	BINARY
 	TENARY
 
-	IF
+	IF // if 如果是普通函数, 可以去掉
 	CALL
 
 	SUBSCRIPT
 	MEMBER
-
-	BEGIN
 )
 
 type LitType int

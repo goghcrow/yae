@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
@@ -9,90 +8,129 @@ import (
 	"testing"
 )
 
-func lex(input string) []*token.Token {
-	return lexer.NewLexer(oper.BuildIn()).Lex(input)
-}
-
-func parse(toks []*token.Token) *ast.Expr {
-	return NewParser(oper.BuildIn()).Parse(toks)
+func parse(s string, ops ...oper.Operator) string {
+	ops = append(oper.BuildIn(), ops...)
+	toks := lexer.NewLexer(ops).Lex(s)
+	ast := NewParser(ops).Parse(toks)
+	return trans.Desugar(ast).String()
 }
 
 func TestParser(t *testing.T) {
-	{
-		toks := lex(`-42 == 1`)
-		t.Log(toks)
-		ast := trans.Desugar(parse(toks))
-		t.Log(ast)
+	tests := []struct {
+		input  string
+		output string
+		ops    []oper.Operator
+	}{
+		// call
+		{"a()", "a()", nil},
+		{"a(b)", "a(b)", nil},
+		{"a(b, c)", "a(b, c)", nil},
+		{"a(b)(c)", "a(b)(c)", nil},
+		{"a(b) + c(d)", "+(a(b), c(d))", nil},
+		{"a(b ? c : d, e + f)", "a(if(b, c, d), +(e, f))", nil},
+
+		// Unary precedence
+		{"-1", "-(1)", nil},
+		{"+1", "+(1)", nil},
+		{"~!-+a", "~(!(-(+(a))))", []oper.Operator{{
+			Type:   token.Type("~"),
+			BP:     oper.BP_PREFIX,
+			Fixity: oper.PREFIX,
+		}}},
+		{"a!~!", "!(~(!(a)))", []oper.Operator{{
+			Type:   token.Type("!"),
+			BP:     oper.BP_POSTFIX,
+			Fixity: oper.POSTFIX,
+		}, {
+			Type:   token.Type("~"),
+			BP:     oper.BP_POSTFIX,
+			Fixity: oper.POSTFIX,
+		}}},
+
+		// Unary and binary precedence
+		{"-42 == 1", "==(-(42), 1)", nil},
+		{"1 + -1", "+(1, -(1))", nil},
+		{"1 - -1", "-(1, -(1))", nil},
+		{"-a * b", "*(-(a), b)", nil},
+		{"!a + b", "+(!(a), b)", nil},
+		{"~a ^ b", "^(~(a), b)", []oper.Operator{{
+			Type:   token.Type("~"),
+			BP:     oper.BP_PREFIX,
+			Fixity: oper.PREFIX,
+		}}},
+		{"-a!", "-(!(a))", []oper.Operator{{
+			Type:   token.Type("!"),
+			BP:     oper.BP_POSTFIX,
+			Fixity: oper.POSTFIX,
+		}}},
+		{"!a#", "!(#(a))", []oper.Operator{{
+			Type:   token.Type("#"),
+			BP:     oper.BP_POSTFIX,
+			Fixity: oper.POSTFIX,
+		}}},
+		{"-1 # 2", "#(-(1), 2)", []oper.Operator{{
+			Type:   token.Type("#"),
+			BP:     oper.BP_PREFIX,
+			Fixity: oper.INFIX_L,
+		}}},
+		{"-1 # 2", "-(#(1, 2))", []oper.Operator{{
+			Type:   token.Type("#"),
+			BP:     oper.BP_PREFIX + 1,
+			Fixity: oper.INFIX_L,
+		}}},
+
+		// Binary precedence
+		{"a == b + c * d ^ e - f / g", "==(a, -(+(b, *(c, ^(d, e))), /(f, g)))", nil},
+		{"1 - 2 + 3 * 4", "+(-(1, 2), *(3, 4))", nil},
+
+		// Binary associativity
+		{"a + b - c", "-(+(a, b), c)", nil},
+		{"a * b / c", "/(*(a, b), c)", nil},
+		{"a ^ b ^ c", "^(a, ^(b, c))", nil},
+
+		// Conditional operator
+		{"a ? b : c ? d : e", "if(a, b, if(c, d, e))", nil},
+		{"a ? b ? c : d : e", "if(a, if(b, c, d), e)", nil},
+		{"a + b ? c * d : e / f", "if(+(a, b), *(c, d), /(e, f))", nil},
+
+		// Grouping
+		{"a + (b + c) + d", "+(+(a, +(b, c)), d)", nil},
+		{"a ^ (b + c)", "^(a, +(b, c))", nil},
+		{"(!a)@", "@(!(a))", []oper.Operator{{
+			Type:   token.Type("@"),
+			BP:     oper.BP_POSTFIX,
+			Fixity: oper.POSTFIX,
+		}}},
 	}
 
-	//{
-	//	// todo
-	//	// 遇到一个比他小的前缀操作符应该结合不了!!!
-	//	// unary 构造器里头 实际上是 用 binary 的 lbp 去取表达式, 而不是实际的 0
-	//	//
-	//	// return ast.Unary(t.Type, p.expr(t.Type.BP), true), 这里就应该直接写 0 ???, 啥前缀都能
-	//
-	//	// 小于 binary - 的优先级的操作符，会发生结合不上得问题
-	//
-	//	def := append(oper.BuildIn(), &token.Type{
-	//		Name: "#",
-	//		//BP:     token.BP_TERM + 1, // -(#(1, 2))
-	//		//BP:     token.BP_TERM, // #(-(1), 2)
-	//		//BP:     token.BP_TERM - 1, // #(-(1), 2)
-	//		BP:     1,
-	//		Fixity: token.INFIX_L,
-	//	})
-	//
-	//	// `-1  2`
-	//	toks := lexer.NewLexer(def).Lex(`-1 # 2`)
-	//	t.Log(toks)
-	//
-	//	ast := trans.Desugar(NewParser(def).Parse(toks))
-	//	t.Log(ast)
-	//}
-
-	//{
-	//	toks := lexer.Lex(`1 - 2 + 3 * 4`)
-	//	t.Log(toks)
-	//	ast := trans.Desugar(Parse(toks))
-	//	t.Log(ast)
-	//}
-	//{
-	//	toks := lexer.Lex(`+1`)
-	//	t.Log(toks)
-	//	ast := trans.Desugar(Parse(toks))
-	//	t.Log(ast)
-	//}
-	//{
-	//	toks := lexer.Lex(`1 + -1`)
-	//	t.Log(toks)
-	//	ast := trans.Desugar(Parse(toks))
-	//	t.Log(ast)
-	//}
-	//{
-	//	toks := lexer.Lex(`1 - -1`)
-	//	t.Log(toks)
-	//	ast := trans.Desugar(Parse(toks))
-	//	t.Log(ast)
-	//}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			actual := parse(tt.input, tt.ops...)
+			if actual != tt.output {
+				t.Errorf("expected %s actual %s", tt.output, actual)
+			}
+		})
+	}
 }
 
 func TestSyntaxError(t *testing.T) {
 	for _, expr := range []string{
 		`"Hello" + `,
+		"a == b == c", // non-infix
+		"a b",         // multi
 	} {
-		ast := syntaxError(expr)
-		if ast != nil {
-			t.Errorf("expected syntax error get `%s`", ast)
+		s := syntaxError(expr)
+		if s != "" {
+			t.Errorf("expected syntax error get `%s`", expr)
 		}
 	}
 }
 
-func syntaxError(s string) (e *ast.Expr) {
+func syntaxError(s string) (r string) {
 	defer func() {
 		if r := recover(); r != nil {
-			e = nil
+			r = ""
 		}
 	}()
-	return parse(lex(s))
+	return parse(s)
 }

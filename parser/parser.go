@@ -9,7 +9,9 @@ import (
 )
 
 func NewParser(ops []oper.Operator) *parser {
-	return &parser{grammar: newGrammar(ops)}
+	return &parser{
+		grammar: newGrammar(ops),
+	}
 }
 
 func (p *parser) Parse(toks []*token.Token) *ast.Expr {
@@ -44,7 +46,7 @@ func (p *parser) eat() *token.Token {
 
 func (p *parser) mustEat(typ token.Type) *token.Token {
 	t := p.eat()
-	util.Assert(t.Type == typ, "syntax error: %s", t)
+	p.syntaxAssert(t.Type == typ, "expected %s actual %s", typ, t)
 	return t
 }
 
@@ -74,75 +76,43 @@ func (p *parser) any(fs ...func(p *parser) *ast.Expr) (expr *ast.Expr) {
 			return n
 		}
 	}
-	p.syntaxAssert(false)
+	util.Assert(false, "try parser fail")
 	return nil
-}
-
-func (p *parser) begin() *ast.Expr {
-	var exprs []*ast.Expr
-	for p.peek() == lexer.EOF {
-		exprs = append(exprs, p.expr(0))
-	}
-	return ast.Begin(exprs)
 }
 
 func (p *parser) expr(rbp oper.BP) *ast.Expr {
 	t := p.eat()
-	prefix := p.prefixNud(t)
-	left := prefix.nud(p, prefix.BP, t)
-	infix := p.parserInfix(left, rbp)
-	return p.check(infix)
-}
-
-func (p *parser) unary(bp oper.BP, t *token.Token) *ast.Expr {
-	return ast.Unary(t.Lexeme, p.expr(bp), true)
-}
-
-func (p *parser) unaryP(bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
-	return ast.Unary(t.Lexeme, lhs, false)
-}
-
-func (p *parser) binaryL(bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
-	rhs := p.expr(bp)
-	return ast.Binary(t.Lexeme, oper.INFIX_L, lhs, rhs)
-}
-
-func (p *parser) binaryR(bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
-	rhs := p.expr(bp - 1)
-	return ast.Binary(t.Lexeme, oper.INFIX_L, lhs, rhs)
-}
-
-func (p *parser) binaryN(bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
-	rhs := p.expr(bp) // 这里是否-1无所谓, 之后还得过 infixnCheck
-	return ast.Binary(t.Lexeme, oper.INFIX_L, lhs, rhs)
+	pre := p.mustPrefix(t)
+	left := pre.nud(p, pre.BP, t)
+	return p.parserInfix(left, rbp)
 }
 
 func (p *parser) parserInfix(left *ast.Expr, rbp oper.BP) *ast.Expr {
 	// 判断下一个 tok 是否要绑定 left ( 优先级 > left)
 	for p.infixLbp(p.peek()) > rbp {
 		t := p.eat()
-		infix := p.infixLed(t)
-		left = infix.led(p, infix.BP, left, t)
+		inf := p.mustInfix(t)
+		left = inf.led(p, inf.BP, left, t)
 	}
-	return left
+	return p.infixNCheck(left)
 }
 
-func (p *parser) check(expr *ast.Expr) *ast.Expr {
+func (p *parser) infixNCheck(expr *ast.Expr) *ast.Expr {
 	if expr.Type == ast.BINARY {
 		bin := expr.Binary()
 		opName := bin.Name
 		if bin.Fixity == oper.INFIX_N {
 			if bin.LHS.Type == ast.BINARY {
-				util.Assert(bin.LHS.Binary().Name != opName, "non-infix")
+				p.syntaxAssert(bin.LHS.Binary().Name != opName, "%s non-infix", opName)
 			}
 			if bin.RHS.Type == ast.BINARY {
-				util.Assert(bin.RHS.Binary().Name != opName, "non-infix")
+				p.syntaxAssert(bin.RHS.Binary().Name != opName, "%s non-infix", opName)
 			}
 		}
 	}
 	return expr
 }
 
-func (p *parser) syntaxAssert(cond bool) {
-	util.Assert(cond, "syntax error: %s", p.toks[p.idx:])
+func (p *parser) syntaxAssert(cond bool, format string, a ...interface{}) {
+	util.Assert(cond, "syntax error: "+format, a...)
 }
