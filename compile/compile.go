@@ -181,21 +181,21 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 			return staticDispatch(env1, call)
 		}
 
-	//IF 已经 desugar 成 lazyfun 了, 这里已经没用了
-	//case ast.IF:
-	//	iff := expr.If()
-	//	cond := Compile(env1, iff.Cond)
-	//	then := Compile(env1, iff.Then)
-	//	els := Compile(env1, iff.Else)
-	//
-	//	// if 分支是 lazy 的 (短路)
-	//	return func(env *val.Env) *val.Val {
-	//		if cond(env).Bool().V {
-	//			return then(env)
-	//		} else {
-	//			return els(env)
-	//		}
-	//	}
+	// IF 已经 desugar 成 lazyFun 了, 这里已经没用了
+	case ast.IF:
+		iff := expr.If()
+		cond := Compile(env1, iff.Cond)
+		then := Compile(env1, iff.Then)
+		els := Compile(env1, iff.Else)
+
+		// if 分支是 lazy 的 (短路)
+		return func(env *val.Env) *val.Val {
+			if cond(env).Bool().V {
+				return then(env)
+			} else {
+				return els(env)
+			}
+		}
 
 	default:
 		util.Unreachable()
