@@ -4,7 +4,7 @@ package fun
 
 import "github.com/goghcrow/yae/val"
 
-var Funs = []*val.Val{
+var funs = []*val.Val{
 	PLUS_STR_STR,
 	LEN_STR,
 	STRING_ANY,
@@ -56,3 +56,8 @@ var Funs = []*val.Val{
 	FLOOR_NUM,
 	ROUND_NUM,
 }
+
+func BuildIn() []*val.Val {
+	return funs
+}
+

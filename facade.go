@@ -36,20 +36,22 @@ func Eval(input string, v interface{}) (*val.Val, error) {
 }
 
 type Expr struct {
-	typeCheck *types.Env //类型检查环境
-	runtime   *val.Env   //编译期运行时环境
-	trans     []trans.Transform
-	ops       []oper.Operator
-	dbg       io.Writer
+	typeCheck  *types.Env //类型检查环境
+	runtime    *val.Env   //编译期运行时环境
+	trans      []trans.Transform
+	ops        []oper.Operator
+	dbg        io.Writer
+	useBuildIn bool
 }
 
 type Compiled func(v interface{}) (*val.Val, error)
 
 func NewExpr() *Expr {
 	e := Expr{
-		typeCheck: types.NewEnv(),
-		runtime:   val.NewEnv(),
-		trans:     []trans.Transform{},
+		typeCheck:  types.NewEnv(),
+		runtime:    val.NewEnv(),
+		trans:      []trans.Transform{},
+		useBuildIn: true,
 	}
 
 	e.initTrans()
@@ -61,6 +63,11 @@ func NewExpr() *Expr {
 
 func (e *Expr) EnableDebug(out io.Writer) *Expr {
 	e.dbg = out
+	return e
+}
+
+func (e *Expr) UseBuildIn(flag bool) *Expr {
+	e.useBuildIn = flag
 	return e
 }
 
@@ -98,11 +105,15 @@ func (e *Expr) initTrans() {
 }
 
 func (e *Expr) initOps() {
-	e.ops = oper.BuildIn()
+	if e.useBuildIn {
+		e.ops = oper.BuildIn()
+	}
 }
 
 func (e *Expr) initFuns() {
-	e.RegisterFun(fun.Funs...)
+	if e.useBuildIn {
+		e.RegisterFun(fun.BuildIn()...)
+	}
 }
 
 func (e *Expr) steps(expr string, env0 *types.Env) compile.Closure {

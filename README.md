@@ -56,15 +56,24 @@ No local scope, only global scope denoted by execution environment.
 Name binding and resolution are implemented through the global 
 environment(divided into compile-time environment and runtime environment).
 
-## Functions
+## Functions and Operators
 
 All callable is function, `obj.method(args ...)` will be desugar to `method(obj, args ...)`.
 
 So, if you want to implement `3.repeat("a") == "aaa"`, you can register func `repeat :: num -> str -> str`
 
-## BuildIn-Funs
+Only Member `(a.b)` and Ternary `(cond ? then : else)` operator are built-in. 
 
-Easy to add new generic functions and operators.
+It is easy to add new generic functions and operators.
+
+```golang
+expr := expr.NewExpr() // .UseBuildIn(true|false)
+// You can use your own defined operators and functions
+expr.RegisterOperator(...)
+expr.RegisterFun(...)
+```
+
+The following optional operators and functions are provided. 
 
 ```
 + :: num -> num

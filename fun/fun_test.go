@@ -287,7 +287,7 @@ func infer(s string) *types.Kind {
 }
 
 func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {
-	for _, f := range Funs {
+	for _, f := range BuildIn() {
 		typecheckEnv.RegisterFun(f.Kind)
 		compileEnv.RegisterFun(f)
 	}
