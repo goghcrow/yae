@@ -34,3 +34,7 @@ func HasPrefix(s string) bool {
 func IsIdentOp(name string) bool {
 	return idReg.MatchString(name)
 }
+
+func IsOp(s string) bool {
+	return opReg.MatchString(s)
+}

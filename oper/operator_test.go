@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-func IsOperator(s string) bool {
-	return opReg.MatchString(s)
-}
-
 func Test_IsOp(t *testing.T) {
 	bytes := []rune(operators)
 	rand.Seed(time.Now().UnixNano())
@@ -18,7 +14,7 @@ func Test_IsOp(t *testing.T) {
 		rand.Shuffle(len(bytes), func(i, j int) { bytes[i], bytes[j] = bytes[j], bytes[i] })
 		op := string(bytes)
 		t.Log(op)
-		if !IsOperator(op) {
+		if !IsOp(op) {
 			t.Errorf("!IsOperator(%s)", op)
 		}
 	}
@@ -39,7 +35,7 @@ func Test_IsOp(t *testing.T) {
 		{"<->", true},
 	} {
 		t.Run(tt.s, func(t *testing.T) {
-			if IsOperator(tt.s) != tt.is {
+			if IsOp(tt.s) != tt.is {
 				t.Errorf("IsOperator(%s) != %t", tt.s, tt.is)
 			}
 		})

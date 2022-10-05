@@ -7,7 +7,7 @@ import (
 
 func NewLexer(ops []oper.Operator) *lexer {
 	return &lexer{
-		lexicon: newLexicon(ops),
+		lexicon: newLexicon(oper.Sort(ops)),
 	}
 }
 

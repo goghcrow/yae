@@ -13,23 +13,27 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 	switch expr.Type {
 	case ast.LITERAL:
 		lit := expr.Literal()
+		var err error
 		switch lit.LitType {
 		case ast.LIT_STR:
-			_, err := strconv.Unquote(lit.Val)
-			util.Assert(err == nil, "invalid string literal: %s", lit.Val)
+			lit.Val, err = strconv.Unquote(lit.Text)
+			util.Assert(err == nil, "invalid string literal: %s", lit.Text)
 			return Str
 		case ast.LIT_TIME:
 			// time 字面量会被 desugar 成 strtotime, 这里留着测试场景
-			ts := util.Strtotime(lit.Val[1 : len(lit.Val)-1])
-			util.Assert(ts != 0, "invalid time literal: %s", lit.Val)
+			ts := util.Strtotime(lit.Text[1 : len(lit.Text)-1])
+			util.Assert(ts != 0, "invalid time literal: %s", lit.Text)
+			lit.Val = ts
 			return Time
 		case ast.LIT_NUM:
-			_, err := util.ParseNum(lit.Val)
-			util.Assert(err == nil, "invalid num literal %s", lit.Val)
+			lit.Val, err = util.ParseNum(lit.Text)
+			util.Assert(err == nil, "invalid num literal %s", lit.Text)
 			return Num
 		case ast.LIT_TRUE:
+			lit.Val = true
 			return Bool
 		case ast.LIT_FALSE:
+			lit.Val = false
 			return Bool
 		default:
 			util.Unreachable()

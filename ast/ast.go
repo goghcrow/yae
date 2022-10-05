@@ -12,7 +12,14 @@ type Expr struct {
 type LiteralExpr struct {
 	Expr
 	LitType
-	Val string
+	Text string
+	// 👇🏻 for typecheck and compile
+	// LIT_STR: string
+	// LIT_NUM: float64
+	// LIT_TIME: int64
+	// LIT_TRUE: bool
+	// LIT_FALSE: bool
+	Val interface{} // union
 }
 type ListExpr struct { // lit
 	Expr

@@ -12,9 +12,7 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		lit := expr.Literal()
 		if lit.LitType == ast.LIT_TIME {
 			// 'time str' ~~> strtotime(`time str`)
-			times := lit.Val[1 : len(lit.Val)-1]
-			util.Assert(util.Strtotime(times) != 0, "invalid time lit %s", lit.Val)
-			args := []*ast.Expr{ast.LitStr("`" + times + "`")}
+			args := []*ast.Expr{ast.LitStr("`" + lit.Text[1:len(lit.Text)-1] + "`")}
 			callee := ast.Ident("strtotime")
 			return ast.Call(callee, args)
 		} else {

@@ -1,8 +1,11 @@
 package token
 
-// Type 因为要支持动态添加操作符, int 不方便
+// Type 因为要支持动态添加操作符, 所以 Type 没有定义成 int 枚举
+// 这里需要自己保证 type 值不重复
 type Type string
 
+// '前缀的为 psuido
+//
 //goland:noinspection GoSnakeCaseUsage
 const (
 	QUESTION = "?"

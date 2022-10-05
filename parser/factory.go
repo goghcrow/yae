@@ -12,6 +12,8 @@ func newGrammar(ops []oper.Operator) grammar {
 		infixs:  map[token.Type]infix{},
 	}
 
+	// 这里如果 token.Type 不重复, 顺序无所谓, 重复默认覆盖
+
 	g.prefix(token.NAME, oper.BP_NONE, ident)
 
 	g.prefix(token.NULL, oper.BP_NONE, literal(ast.LIT_NULL))

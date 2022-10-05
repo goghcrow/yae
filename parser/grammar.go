@@ -22,6 +22,9 @@ type infix struct {
 	led
 }
 
+// 如果不支持自定操作符, 则 tokenType 可以定义成 int enum
+// prefixs & infixs 则可以定义成 tokenType 为下标的数组
+
 type grammar struct {
 	prefixs map[token.Type]prefix
 	infixs  map[token.Type]infix

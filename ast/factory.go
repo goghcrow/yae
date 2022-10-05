@@ -11,7 +11,7 @@ func Ident(name string) *Expr {
 }
 
 func Literal(typ LitType, lit string) *Expr {
-	e := LiteralExpr{Expr{LITERAL}, typ, lit}
+	e := LiteralExpr{Expr{LITERAL}, typ, lit, nil}
 	return &e.Expr
 }
 

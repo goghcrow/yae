@@ -5,7 +5,6 @@ import (
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
-	"strconv"
 	"time"
 	"unsafe"
 )
@@ -19,25 +18,24 @@ func (c Closure) String() string { return "Closure" }
 // implement compilers for embedded languages
 // 注意区分: env1 是编译期环境, env 是运行时环境
 // 能在编译期完成的, 尽可能在编译期计算完
-// 调用 Compile 之前必须先对 ast 调用 types.TypeCheck
-// 1. 需要在 ast 中繁饰部分类型信息, 简化 Compile 的类型处理
-// 2. Compile 中不检查错误, 假设 types.TypeCheck 已经全部检查
+// 调用 Compile 之前必须先对 ast 调用 types.TypeCheck:
+// 1. 处理字解析
+// 2. 繁饰 list/map/obj 类型, 简化 Compile 代码
+// 3. call.callee resolve
+// 4. 且, Compile 中不检查错误, 假设 types.TypeCheck 已经全部检查
 func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 	switch expr.Type {
 	case ast.LITERAL:
 		lit := expr.Literal()
 		switch lit.LitType {
 		case ast.LIT_STR:
-			unquote, _ := strconv.Unquote(lit.Val)
-			s := val.Str(unquote)
+			s := val.Str(lit.Val.(string))
 			return func(env *val.Env) *val.Val { return s }
 		case ast.LIT_TIME:
-			// time 字面量会被 desugar 成 strtotime, 这里留着测试场景
-			t := time.Unix(util.Strtotime(lit.Val[1:len(lit.Val)-1]), 0)
-			return func(env *val.Env) *val.Val { return val.Time(t) }
+			t := val.Time(time.Unix(lit.Val.(int64), 0))
+			return func(env *val.Env) *val.Val { return t }
 		case ast.LIT_NUM:
-			v, _ := util.ParseNum(lit.Val)
-			n := val.Num(v)
+			n := val.Num(lit.Val.(float64))
 			return func(env *val.Env) *val.Val { return n }
 		case ast.LIT_TRUE:
 			return func(env *val.Env) *val.Val { return val.True }

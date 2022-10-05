@@ -9,7 +9,7 @@ import (
 func (e *Expr) String() string {
 	switch e.Type {
 	case LITERAL:
-		return e.Literal().Val
+		return e.Literal().Text
 	case IDENT:
 		return e.Ident().Name
 	case LIST:

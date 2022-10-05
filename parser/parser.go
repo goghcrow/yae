@@ -10,7 +10,7 @@ import (
 
 func NewParser(ops []oper.Operator) *parser {
 	return &parser{
-		grammar: newGrammar(ops),
+		grammar: newGrammar(oper.Sort(ops)),
 	}
 }
 
@@ -18,7 +18,7 @@ func (p *parser) Parse(toks []*token.Token) *ast.Expr {
 	p.idx = 0
 	p.toks = toks
 	expr := p.expr(0)
-	util.Assert(p.peek() == lexer.EOF, "multi expr")
+	p.mustEat(token.EOF)
 	return expr
 }
 
