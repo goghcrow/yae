@@ -32,7 +32,7 @@ type MapExpr struct { // lit
 	Expr
 	Pairs []Pair
 	// 👇🏻 for typecheck and compile
-	Kind interface{} //*types.Kind
+	Kind interface{} // *types.Kind
 }
 type Field struct {
 	Name string
@@ -42,7 +42,7 @@ type ObjExpr struct { // lit
 	Expr
 	Fields []Field // 不用 map 是因为要保持声明顺序
 	// 👇🏻 for typecheck and compile
-	Kind interface{} //*types.Kind
+	Kind interface{} // *types.Kind
 }
 type IdentExpr struct {
 	Expr
@@ -79,8 +79,9 @@ type CallExpr struct {
 	Callee *Expr
 	Args   []*Expr
 	// 👇🏻 for typecheck and compile
-	Resolved string
-	Index    int
+	Resolved   string
+	Index      int
+	CalleeKind interface{} // *types.Kind
 }
 type SubscriptExpr struct {
 	Expr
@@ -91,6 +92,8 @@ type MemberExpr struct {
 	Expr
 	Obj   *Expr
 	Field *IdentExpr
+	// 👇🏻 for typecheck and compile
+	ObjKind interface{} // *types.Kind
 }
 type GroupExpr struct { // 仅仅用于 String(), Desugar 会去掉
 	Expr

@@ -34,17 +34,17 @@ type label string
 
 func (v *visualizer) node(label string) label {
 	n := newNode()
-	v.buf.WriteString(fmt.Sprintf("%s [label=%q] ;\n", n, label))
+	v.buf.WriteString(fmt.Sprintf("\t%s [label=%q] ;\n", n, label))
 	return n
 }
 
 func (v *visualizer) connect(parent, child label) {
-	v.buf.WriteString(fmt.Sprintf("%s -- %s ;\n", parent, child))
+	v.buf.WriteString(fmt.Sprintf("\t%s -- %s ;\n", parent, child))
 }
 
 func (v *visualizer) Dot(e *Expr, graphName string) string {
 	v.buf.WriteString(fmt.Sprintf("graph %q {\n", graphName))
-	v.buf.WriteString(fmt.Sprintf("label=%q\n", e.String()))
+	v.buf.WriteString(fmt.Sprintf("\tlabel=%q\n", e.String()))
 	v.dot(e)
 	v.buf.WriteString("}")
 	return v.buf.String()

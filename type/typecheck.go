@@ -127,10 +127,11 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 		objKind := TypeCheck(env, mem.Obj)
 		util.Assert(objKind.Type == TObj,
 			"type mismatched, expect `%s` actual `%s` in `%s`", TObj, objKind, expr)
-		fn := mem.Field.Name
-		fk, ok := objKind.Obj().Fields[fn]
-		util.Assert(ok, "undefined filed `%s` of `%s` in `%s`", fn, objKind, expr)
-		return fk
+		f := mem.Field.Name
+		fKind, ok := objKind.Obj().Fields[f]
+		util.Assert(ok, "undefined filed `%s` of `%s` in `%s`", f, objKind, expr)
+		mem.ObjKind = objKind // ast 附加类型
+		return fKind
 
 	case ast.CALL:
 		call := expr.Call()
@@ -164,6 +165,7 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 			typeAssert(paramKind, argKind, expr)
 		}
 
+		call.CalleeKind = fun // ast 附加类型
 		return fun.Return
 
 	// IF 已经 desugar 成 lazyFun 了, 这里已经没用了
