@@ -36,9 +36,9 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		return ast.Map(m)
 	case ast.OBJ:
 		fs := expr.Obj().Fields
-		obj := make(map[string]*ast.Expr, len(fs))
-		for name, v := range fs {
-			obj[name] = Desugar(v)
+		obj := make([]ast.Field, len(fs))
+		for i, f := range fs {
+			obj[i] = ast.Field{Name: f.Name, Val: Desugar(f.Val)}
 		}
 		return ast.Obj(obj)
 	case ast.UNARY:
@@ -109,6 +109,8 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		mem := expr.Member()
 		obj := Desugar(mem.Obj)
 		return ast.Member(obj, mem.Field)
+	case ast.GROUP:
+		return Desugar(expr.Group().SubExpr)
 	default:
 		util.Unreachable()
 		return nil

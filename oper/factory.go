@@ -37,10 +37,10 @@ var ops = []Operator{
 	{MINUS, BP_TERM, INFIX_L},
 	{EXP, BP_EXP, INFIX_R},
 
-	{LE, BP_COMP, INFIX_N},
-	{LT, BP_COMP, INFIX_N},
-	{GE, BP_COMP, INFIX_N},
-	{GT, BP_COMP, INFIX_N},
+	{LE, BP_CMP, INFIX_N},
+	{LT, BP_CMP, INFIX_N},
+	{GE, BP_CMP, INFIX_N},
+	{GT, BP_CMP, INFIX_N},
 	{EQ, BP_EQ, INFIX_N},
 	{NE, BP_EQ, INFIX_N},
 

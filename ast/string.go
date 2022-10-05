@@ -43,6 +43,8 @@ func (e *Expr) String() string {
 	case IF:
 		iff := e.If()
 		return fmt.Sprintf("if %s then %s else %s end", iff.Cond, iff.Then, iff.Else)
+	case GROUP:
+		return fmt.Sprintf("(%s)", e.Group().SubExpr)
 	default:
 		util.Unreachable()
 		return ""
@@ -79,15 +81,15 @@ func stringifyObj(m *ObjExpr) string {
 	buf := &strings.Builder{}
 	buf.WriteString("{")
 	isFst := true
-	for name, val := range fs {
+	for _, f := range fs {
 		if isFst {
 			isFst = false
 		} else {
 			buf.WriteString(", ")
 		}
-		buf.WriteString(name)
+		buf.WriteString(f.Name)
 		buf.WriteString(": ")
-		buf.WriteString(val.String())
+		buf.WriteString(f.Val.String())
 	}
 	buf.WriteString("}")
 	return buf.String()

@@ -31,7 +31,7 @@ func Map(pairs []Pair) *Expr {
 	return &e.Expr
 }
 
-func Obj(fields map[string]*Expr) *Expr {
+func Obj(fields []Field) *Expr {
 	e := ObjExpr{Expr{OBJ}, fields, nil}
 	return &e.Expr
 }
@@ -69,5 +69,10 @@ func Subscript(varExpr *Expr, expr *Expr) *Expr {
 // Member FieldSelection
 func Member(obj *Expr, field *IdentExpr) *Expr {
 	e := MemberExpr{Expr{MEMBER}, obj, field}
+	return &e.Expr
+}
+
+func Group(sub *Expr) *Expr {
+	e := GroupExpr{Expr{GROUP}, sub}
 	return &e.Expr
 }

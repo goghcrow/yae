@@ -128,7 +128,7 @@ func parseMap(p *parser) *ast.Expr {
 }
 
 func parseObj(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
-	fs := make(map[string]*ast.Expr, 0)
+	fs := make([]ast.Field, 0)
 	for {
 		if p.peek().Type == token.RIGHT_BRACE {
 			break
@@ -136,7 +136,7 @@ func parseObj(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
 		n := p.mustEat(token.NAME)
 		p.mustEat(token.COLON)
 		v := p.expr(0)
-		fs[n.Lexeme] = v
+		fs = append(fs, ast.Field{Name: n.Lexeme, Val: v})
 		if p.tryEat(token.COMMA) == nil {
 			break
 		}
@@ -148,7 +148,7 @@ func parseObj(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
 func parseGroup(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
 	expr := p.expr(0)
 	p.mustEat(token.RIGHT_PAREN)
-	return expr
+	return ast.Group(expr)
 }
 
 func parseQuestion(p *parser, bp oper.BP, l *ast.Expr, t *token.Token) *ast.Expr {

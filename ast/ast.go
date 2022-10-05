@@ -34,9 +34,13 @@ type MapExpr struct { // lit
 	// 👇🏻 for typecheck and compile
 	Kind interface{} //*types.Kind
 }
+type Field struct {
+	Name string
+	Val  *Expr
+}
 type ObjExpr struct { // lit
 	Expr
-	Fields map[string]*Expr
+	Fields []Field // 不用 map 是因为要保持声明顺序
 	// 👇🏻 for typecheck and compile
 	Kind interface{} //*types.Kind
 }
@@ -88,6 +92,10 @@ type MemberExpr struct {
 	Obj   *Expr
 	Field *IdentExpr
 }
+type GroupExpr struct { // 仅仅用于 String(), Desugar 会去掉
+	Expr
+	SubExpr *Expr
+}
 
 func (e *Expr) Ident() *IdentExpr         { return (*IdentExpr)(unsafe.Pointer(e)) }
 func (e *Expr) Literal() *LiteralExpr     { return (*LiteralExpr)(unsafe.Pointer(e)) }
@@ -101,3 +109,4 @@ func (e *Expr) If() *IfExpr               { return (*IfExpr)(unsafe.Pointer(e)) 
 func (e *Expr) Call() *CallExpr           { return (*CallExpr)(unsafe.Pointer(e)) }
 func (e *Expr) Subscript() *SubscriptExpr { return (*SubscriptExpr)(unsafe.Pointer(e)) }
 func (e *Expr) Member() *MemberExpr       { return (*MemberExpr)(unsafe.Pointer(e)) }
+func (e *Expr) Group() *GroupExpr         { return (*GroupExpr)(unsafe.Pointer(e)) }

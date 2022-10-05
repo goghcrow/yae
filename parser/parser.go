@@ -8,6 +8,9 @@ import (
 	"github.com/goghcrow/yae/util"
 )
 
+// parser 使用了 Top Down Operator Precedence
+// 可以参考道格拉斯的文章 https://www.crockford.com/javascript/tdop/tdop.html
+
 func NewParser(ops []oper.Operator) *parser {
 	return &parser{
 		grammar: newGrammar(oper.Sort(ops)),
@@ -80,8 +83,10 @@ func (p *parser) any(fs ...func(p *parser) *ast.Expr) (expr *ast.Expr) {
 	return nil
 }
 
+// parser bp > rbp 的表达式
 func (p *parser) expr(rbp oper.BP) *ast.Expr {
 	t := p.eat()
+	// tok 必须有 prefix 解析器, 否则一定语法错误
 	pre := p.mustPrefix(t)
 	left := pre.nud(p, pre.BP, t)
 	return p.parserInfix(left, rbp)

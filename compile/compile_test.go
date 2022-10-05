@@ -194,9 +194,9 @@ func TestCompile(t *testing.T) {
 		},
 		{
 			name: "obj{id:num, name:str}",
-			expr: Obj(map[string]*Expr{
-				"id":   LitNum("42"),
-				"name": LitStr(`"晓"`),
+			expr: Obj([]Field{
+				{"id", LitNum("42")},
+				{"name", LitStr(`"晓"`)},
 			}),
 			kind: types.Obj(map[string]*types.Kind{
 				"id":   types.Num,
@@ -227,9 +227,9 @@ func TestCompile(t *testing.T) {
 		{
 			name: "member",
 			expr: Member(
-				Obj(map[string]*Expr{
-					"id":   LitNum("42"),
-					"name": LitStr(`"晓"`),
+				Obj([]Field{
+					{"id", LitNum("42")},
+					{"name", LitStr(`"晓"`)},
 				}),
 				Ident("id").Ident(),
 			),

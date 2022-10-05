@@ -91,10 +91,10 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 		}
 
 		fs := make(map[string]*Kind, sz)
-		for name, val := range obj.Fields {
-			_, ok := fs[name]
-			util.Assert(!ok, "duplicated field %s in %s", name, expr)
-			fs[name] = TypeCheck(env, val)
+		for _, f := range obj.Fields {
+			_, ok := fs[f.Name]
+			util.Assert(!ok, "duplicated field %s in %s", f.Name, expr)
+			fs[f.Name] = TypeCheck(env, f.Val)
 		}
 
 		kind := Obj(fs)

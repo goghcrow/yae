@@ -111,8 +111,7 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 
 	case ast.OBJ:
 		obj := expr.Obj()
-		fs := obj.Fields
-		sz := len(fs)
+		sz := len(obj.Fields)
 		if sz == 0 {
 			return func(env *val.Env) *val.Val {
 				kind := types.Obj(map[string]*types.Kind{}).Obj()
@@ -120,17 +119,23 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 			}
 		}
 
-		kind := obj.Kind.(*types.Kind).Obj()
-		cs := make(map[string]Closure, sz)
-		for n, v := range fs {
-			cs[n] = Compile(env1, v)
+		type field struct {
+			name string
+			c    Closure
 		}
+		// 不用 map, 要保持 obj 字面量声明的执行顺序
+		fs := make([]field, sz)
+		for i, f := range obj.Fields {
+			fs[i] = field{f.Name, Compile(env1, f.Val)}
+		}
+
+		kind := obj.Kind.(*types.Kind).Obj()
 
 		return func(env *val.Env) *val.Val {
 			m := val.Obj(kind).Obj()
-			for n, c := range cs {
-				v := c(env)
-				m.V[n] = v
+			for _, f := range fs {
+				v := f.c(env)
+				m.V[f.name] = v
 			}
 			return m.Vl()
 		}

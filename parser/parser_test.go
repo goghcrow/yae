@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
@@ -8,11 +9,14 @@ import (
 	"testing"
 )
 
-func parse(s string, ops ...oper.Operator) string {
+func parse0(s string, ops ...oper.Operator) *ast.Expr {
 	ops = append(oper.BuildIn(), ops...)
 	toks := lexer.NewLexer(ops).Lex(s)
-	ast := NewParser(ops).Parse(toks)
-	return trans.Desugar(ast).String()
+	return NewParser(ops).Parse(toks)
+}
+
+func parse(s string, ops ...oper.Operator) string {
+	return trans.Desugar(parse0(s, ops...)).String()
 }
 
 func TestParser(t *testing.T) {
