@@ -109,7 +109,7 @@ func TestInfer(t *testing.T) {
 			})},
 		})), false},
 
-		{`has(["a":42], 1")`, nil, true},
+		{`has(["a":42], 1)`, nil, true},
 		{`has(["a":42], "")`, Bool, false},
 		{`get([42:"a"], "")`, Str, true},
 		{`get(["a":42], "")`, Num, false},
@@ -119,20 +119,15 @@ func TestInfer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.s, func(t *testing.T) {
-			defer func() {
-				if r := recover(); r != nil {
-					if !tt.err {
-						t.Errorf("expect %s actual err", tt.t)
-					}
-				}
-			}()
-
-			actual := TypeCheck(env, parse(tt.s))
+			actual, err := Infer(env, parse(tt.s))
 			if tt.err {
-				t.Errorf("expect err actual %s", actual)
-			}
-			if !Equals(actual, tt.t) {
-				t.Errorf("expect %s actual %s", tt.t, actual)
+				if err == nil {
+					t.Errorf("expect err actual %s", actual)
+				}
+			} else {
+				if !Equals(actual, tt.t) {
+					t.Errorf("expect %s actual %s", tt.t, actual)
+				}
 			}
 		})
 	}

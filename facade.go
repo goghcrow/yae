@@ -132,7 +132,7 @@ func (e *Expr) steps(expr string, env0 *types.Env) compile.Closure {
 	e.logf("transed: %s\n", transed)
 
 	checkEnv := env0.Inherit(e.typeCheck)
-	infered := types.TypeCheck(checkEnv, transed)
+	infered := types.Check(checkEnv, transed)
 	e.logf("type: %s\n", infered)
 
 	closure := compile.Compile(e.runtime, transed)

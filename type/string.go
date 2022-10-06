@@ -7,6 +7,15 @@ import (
 )
 
 func (k *Kind) String() string {
+	return stringify(k, 0)
+}
+
+func stringify(k *Kind, lv int) string {
+	if lv > 42 {
+		// 可以用 set 精确检查, 这里简单处理
+		return "*recursive?*"
+	}
+
 	switch k.Type {
 	case TNum:
 		return "num"
@@ -27,16 +36,16 @@ func (k *Kind) String() string {
 			} else {
 				buf.WriteString(", ")
 			}
-			buf.WriteString(kind.String())
+			buf.WriteString(stringify(kind, lv+1))
 		}
 		buf.WriteString(")")
 		return buf.String()
 	case TList:
 		l := k.List()
-		return fmt.Sprintf("list[%s]", l.El)
+		return fmt.Sprintf("list[%s]", stringify(l.El, lv+1))
 	case TMap:
 		m := k.Map()
-		return fmt.Sprintf("map[%s, %s]", m.Key, m.Val)
+		return fmt.Sprintf("map[%s, %s]", stringify(m.Key, lv+1), stringify(m.Val, lv+1))
 	case TObj:
 		fs := k.Obj().Fields
 		buf := &strings.Builder{}
@@ -50,17 +59,28 @@ func (k *Kind) String() string {
 			}
 			buf.WriteString(f.Name)
 			buf.WriteString(": ")
-			buf.WriteString(f.Val.String())
+			buf.WriteString(stringify(f.Val, lv+1))
 		}
 		buf.WriteString("}")
 		return buf.String()
 	case TFun:
 		f := k.Fun()
-		pt := make([]string, len(f.Param))
-		for i, param := range f.Param {
-			pt[i] = param.String()
+		buf := &strings.Builder{}
+		buf.WriteString("func ")
+		buf.WriteString(f.Name)
+		buf.WriteString("(")
+		isFst := true
+		for _, param := range f.Param {
+			if isFst {
+				isFst = false
+			} else {
+				buf.WriteString(", ")
+			}
+			buf.WriteString(stringify(param, lv+1))
 		}
-		return fmt.Sprintf("func %s(%s) %s", f.Name, strings.Join(pt, ","), f.Return)
+		buf.WriteString(") ")
+		buf.WriteString(stringify(f.Return, lv+1))
+		return buf.String()
 	case TSlot:
 		return k.Slot().Name
 	case TTop:

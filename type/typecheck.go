@@ -8,8 +8,12 @@ import (
 	"unsafe"
 )
 
-// TypeCheck check & infer
-func TypeCheck(env *Env, expr *ast.Expr) *Kind {
+func Infer(env *Env, expr *ast.Expr) (kind *Kind, err error) {
+	defer util.Recover(&err)
+	return Check(env, expr), err
+}
+
+func Check(env *Env, expr *ast.Expr) *Kind {
 	switch expr.Type {
 	case ast.LITERAL:
 		lit := expr.Literal()
@@ -54,9 +58,9 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 			return List(Bottom)
 		}
 
-		elKind := TypeCheck(env, lst.Elems[0])
+		elKind := Check(env, lst.Elems[0])
 		for i := 1; i < sz; i++ {
-			kind := TypeCheck(env, lst.Elems[i])
+			kind := Check(env, lst.Elems[i])
 			typeAssert(elKind, kind, expr)
 		}
 		kind := List(elKind)
@@ -70,13 +74,13 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 			return Map(Bottom, Bottom)
 		}
 
-		kKind := TypeCheck(env, m.Pairs[0].Key)
+		kKind := Check(env, m.Pairs[0].Key)
 		util.Assert(kKind.IsPrimitive(), "invalid type of map's key: %s", kKind)
-		vKind := TypeCheck(env, m.Pairs[0].Val)
+		vKind := Check(env, m.Pairs[0].Val)
 		for i := 1; i < sz; i++ {
-			kind := TypeCheck(env, m.Pairs[i].Key)
+			kind := Check(env, m.Pairs[i].Key)
 			typeAssert(kKind, kind, expr)
-			kind = TypeCheck(env, m.Pairs[i].Val)
+			kind = Check(env, m.Pairs[i].Val)
 			typeAssert(vKind, kind, expr)
 		}
 		kind := Map(kKind, vKind)
@@ -92,7 +96,7 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 
 		fs := make([]Field, sz)
 		for i, f := range obj.Fields {
-			fs[i] = Field{f.Name, TypeCheck(env, f.Val)}
+			fs[i] = Field{f.Name, Check(env, f.Val)}
 		}
 
 		kind := Obj(fs)
@@ -101,16 +105,16 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 
 	case ast.SUBSCRIPT:
 		sub := expr.Subscript()
-		varKind := TypeCheck(env, sub.Var)
+		varKind := Check(env, sub.Var)
 
 		if varKind.Type == TList {
-			idxKind := TypeCheck(env, sub.Idx)
+			idxKind := Check(env, sub.Idx)
 			typeAssert(idxKind, Num, expr)
 			elKind := varKind.List().El
 			return elKind
 		}
 		if varKind.Type == TMap {
-			idxKind := TypeCheck(env, sub.Idx)
+			idxKind := Check(env, sub.Idx)
 			keyKind := varKind.Map().Key
 			valKind := varKind.Map().Val
 			typeAssert(idxKind, keyKind, expr)
@@ -122,7 +126,7 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 
 	case ast.MEMBER:
 		mem := expr.Member()
-		objKind := TypeCheck(env, mem.Obj)
+		objKind := Check(env, mem.Obj)
 		util.Assert(objKind.Type == TObj,
 			"type mismatched, expect `%s` actual `%s` in `%s`", TObj, objKind, expr)
 		obj := objKind.Obj()
@@ -139,7 +143,7 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 		argSz := len(call.Args)
 		args := make([]*Kind, argSz)
 		for i := 0; i < argSz; i++ {
-			args[i] = TypeCheck(env, call.Args[i])
+			args[i] = Check(env, call.Args[i])
 		}
 
 		var fun *FunKind
@@ -149,7 +153,7 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 			fn := callee.Ident().Name
 			fun = resolveFun(env, call, fn, args)
 		} else {
-			f := TypeCheck(env, callee)
+			f := Check(env, callee)
 			util.Assert(f.Type == TFun, "non callable of `%s` in `%s`", callee, call)
 			fun = inferFun(f.Fun(), args)
 			util.Assert(fun != nil, "args `%s` mismatch fun `%s`", args, f)
@@ -169,10 +173,10 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 	// IF 已经 desugar 成 lazyFun 了, 这里已经没用了
 	case ast.IF:
 		iff := expr.If()
-		condKind := TypeCheck(env, iff.Cond)
+		condKind := Check(env, iff.Cond)
 		typeAssert(condKind, Bool, expr)
-		thenKind := TypeCheck(env, iff.Then)
-		elseKind := TypeCheck(env, iff.Else)
+		thenKind := Check(env, iff.Then)
+		elseKind := Check(env, iff.Else)
 		typeAssert(thenKind, elseKind, expr)
 		return thenKind
 
@@ -182,6 +186,8 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 	}
 }
 
+// desugar 会把所有操作符都转换成函数调用, 这里会统一处理操作符和函数
+//
 //goland:noinspection SpellCheckingInspection
 func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunKind {
 	// 1. 首先尝试 resolve mono fn
@@ -197,11 +203,12 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunK
 
 	// 2. 然后依次尝试 poly fn
 	// 这里 hack 参见: type/env.go::RegisterFun
+	// 先按 `函数名+参数个数` 查找重载的函数列表(包括泛型函数)
 	polyfk, _ := Fun(fnName, args, Slot("α")).Fun().Lookup()
 	fs, ok := env.Get(polyfk)
-	util.Assert(ok, "undefined fun %s in %s", monofk, call)
+	util.Assert(ok, "func `%s` has no overload for params`%s`", fnName, args)
 
-	// 这里在泛型函数的 table 中依次查找
+	// 然后在重载函数列表中依次查找
 	// 因为不支持子类型, 所以也没有最适合的规则, 找到匹配为止
 	// 并实例化函数 poly ~~> mono
 	fks := (*[]*FunKind)(unsafe.Pointer(fs))
@@ -215,7 +222,7 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunK
 		call.Index = i         // 以及在泛型函数表的中的位置
 		return monof
 	}
-	util.Assert(false, "undefined fun `%s` in `%s`", monofk, call)
+	util.Assert(false, "func `%s` has no overload for params`%s`", fnName, args)
 	return nil
 }
 
@@ -235,22 +242,22 @@ func inferFun(f *FunKind, args []*Kind) *FunKind {
 
 	// 3. 在环境 m 中 unify
 	m := map[string]*Kind{}
-	unifyFun := unify(psuidoFun, fun, m)
+	unifyFun := Unify(psuidoFun, fun, m)
 	if unifyFun == nil {
 		return nil
 	}
 
 	// 4. 替换得到参数类型
 	targ := Tuple(args)
-	targ1 := subst(s, m)
-	targ2 := unify(targ1, targ, m)
+	targ1 := applySubst(s, m)
+	targ2 := Unify(targ1, targ, m)
 	if targ2 == nil || targ2.Type != TTuple {
 		return nil
 	}
 
 	// 5. 替换得到返回类型
 	// 返回值必须是具体类型
-	tresult := subst(t, m)
+	tresult := applySubst(t, m)
 	if !slotFree(tresult) {
 		return nil
 	}

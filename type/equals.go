@@ -4,6 +4,14 @@ package types
 //func Subtype(k1, k2 *Kind) bool {}
 
 func Equals(x, y *Kind) bool {
+	return equals(x, y, 0)
+}
+
+func equals(x, y *Kind, lv int) bool {
+	if lv > 42 {
+		// 可以用 set 精确检查 recursive, 这里简化处理
+		return true
+	}
 	if x == nil || y == nil {
 		return false
 	}
@@ -19,65 +27,65 @@ func Equals(x, y *Kind) bool {
 	if x.Type == TMap {
 		m1 := x.Map()
 		m2 := y.Map()
-		return Equals(m1.Key, m2.Key) && Equals(m1.Val, m2.Val)
+		return equals(m1.Key, m2.Key, lv+1) && equals(m1.Val, m2.Val, lv+1)
 	}
 
 	if x.Type == TTuple {
-		return equalsTuple(x.Tuple(), y.Tuple())
+		return equalsTuple(x.Tuple(), y.Tuple(), lv)
 	}
 
 	if x.Type == TList {
-		return Equals(x.List().El, y.List().El)
+		return equals(x.List().El, y.List().El, lv+1)
 	}
 
 	// structural type (without sequence of fields)
 	if x.Type == TObj {
-		return equalsObj(x.Obj(), y.Obj())
+		return equalsObj(x.Obj(), y.Obj(), lv)
 	}
 
 	if x.Type == TFun {
-		return equalsFun(x.Fun(), y.Fun())
+		return equalsFun(x.Fun(), y.Fun(), lv)
 	}
 
 	return true
 }
 
-func equalsObj(x *ObjKind, y *ObjKind) bool {
+func equalsObj(x *ObjKind, y *ObjKind, lv int) bool {
 	if len(x.Fields) != len(y.Fields) {
 		return false
 	}
 
 	for _, xf := range x.Fields {
 		yf, ok := y.GetField(xf.Name)
-		if !ok || !Equals(xf.Val, yf.Val) {
+		if !ok || !equals(xf.Val, yf.Val, lv+1) {
 			return false
 		}
 	}
 	return true
 }
 
-func equalsTuple(x, y *TupleKind) bool {
+func equalsTuple(x, y *TupleKind, lv int) bool {
 	xt := x.Tuple()
 	yt := y.Tuple()
 	if len(xt.Val) != len(yt.Val) {
 		return false
 	}
 	for i := range xt.Val {
-		if !Equals(xt.Val[i], yt.Val[i]) {
+		if !equals(xt.Val[i], yt.Val[i], lv+1) {
 			return false
 		}
 	}
 	return true
 }
 
-func equalsFun(x, y *FunKind) bool {
+func equalsFun(x, y *FunKind, lv int) bool {
 	if len(x.Param) != len(y.Param) {
 		return false
 	}
 	for i := range x.Param {
-		if !Equals(x.Param[i], y.Param[i]) {
+		if !equals(x.Param[i], y.Param[i], lv+1) {
 			return false
 		}
 	}
-	return Equals(x.Return, y.Return)
+	return equals(x.Return, y.Return, lv+1)
 }

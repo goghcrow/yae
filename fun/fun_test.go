@@ -271,7 +271,7 @@ func eval(s string) *val.Val {
 	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
 	ast = trans.Desugar(ast)
 
-	_ = types.TypeCheck(typecheckEnv, ast)
+	_ = types.Check(typecheckEnv, ast)
 	closure := compile.Compile(compileEnv, ast)
 
 	runtimeEnv := val.NewEnv()
@@ -283,7 +283,7 @@ func infer(s string) *types.Kind {
 	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
 	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
 	ast = trans.Desugar(ast)
-	return types.TypeCheck(typecheckEnv, ast)
+	return types.Check(typecheckEnv, ast)
 }
 
 func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {

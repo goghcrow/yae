@@ -5,7 +5,8 @@ import (
 	"strconv"
 )
 
-// Slot 📢 每次调用都生成「不相等」的 slot
+// Slot 新建 Type Variable
+// 📢 每次调用都生成「不相等」的 slot
 var Slot = func() func(name string) *Kind {
 	n := 0
 	return func(name string) *Kind {

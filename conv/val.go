@@ -15,7 +15,7 @@ func ValOf(v interface{}) (vl *val.Val, err error) {
 
 func valOfRV(rv reflect.Value) (vl *val.Val, err error) {
 	defer util.Recover(&err)
-	return valOf(rv, 0), nil
+	return valOf(rv, 0), err
 }
 
 func valOf(rv reflect.Value, lv int) *val.Val {

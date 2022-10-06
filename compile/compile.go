@@ -18,11 +18,11 @@ func (c Closure) String() string { return "Closure" }
 // implement compilers for embedded languages
 // 注意区分: env1 是编译期环境, env 是运行时环境
 // 能在编译期完成的, 尽可能在编译期计算完
-// 调用 Compile 之前必须先对 ast 调用 types.TypeCheck:
+// 调用 Compile 之前必须先对 ast 调用 types.Check:
 // 1. 处理字解析
 // 2. 繁饰 list/map/obj 类型, 简化 Compile 代码
 // 3. call.callee resolve
-// 4. 且, Compile 中不检查错误, 假设 types.TypeCheck 已经全部检查
+// 4. 且, Compile 中不检查错误, 假设 types.Check 已经全部检查
 func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 	switch expr.Type {
 	case ast.LITERAL:

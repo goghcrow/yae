@@ -25,7 +25,7 @@ func typeOfRV(rv reflect.Value) (k *types.Kind, err error) {
 	}
 	err = nil
 	defer util.Recover(&err)
-	return typeOf(rv.Type(), 0), nil
+	return typeOf(rv.Type(), 0), err
 }
 
 func typeOf(rt reflect.Type, lv int) *types.Kind {

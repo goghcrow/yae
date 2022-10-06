@@ -11,34 +11,47 @@ import (
 // 如果 a 是 slot, 可以合一, 并且需要 m[a] 设置为 b；反之亦然.
 // 如果 a 和 b 都是 composite, 检查两者的构造器和参数是否都能合一, m 会最多被设置两次.
 // 对于其他一切情况, a 和 b 不能合一.
-func unify(x, y *Kind, m map[string]*Kind) *Kind {
+// m 即 substitution, type variable -> type
+func Unify(s, t *Kind, m map[string]*Kind) *Kind {
+	return unify(s, t, m, 0)
+}
+
+func unify(x, y *Kind, m map[string]*Kind, lv int) *Kind {
+	if lv > 42 {
+		// 可以用 set 精确检查 recursive, 这里简化处理
+		return nil
+	}
 	switch {
-	case x.Type == TSlot && y.Type == TSlot && Equals(subst(x, m), subst(y, m)):
+	case x.Type == TSlot && y.Type == TSlot && Equals(applySubst(x, m), applySubst(y, m)):
 		return x
 	case x.IsPrimitive() && y.IsPrimitive() && x.Type == y.Type:
 		return x
 	case x.IsComposite() && y.IsComposite() && x.Type == y.Type:
-		return unifyComposite(x, y, m)
+		return unifyComposite(x, y, m, lv)
 	case x.Type == TSlot:
-		y1 := subst(y, m)
+		y1 := applySubst(y, m)
+		// x 是 type var, 且 x 没有出现在 y 中
 		if freeFrom(y1, x.Slot()) {
 			k, ok := m[x.Slot().Name]
 			if ok && !Equals(k, y1) {
+				// 不满足 constrain
 				return nil
 			}
-			m[x.Slot().Name] = y1 //subst(y1, m)
+			m[x.Slot().Name] = y1 //applySubst(y1, m)
 			return y1
 		} else {
 			return nil
 		}
 	case y.Type == TSlot:
-		x1 := subst(x, m)
+		x1 := applySubst(x, m)
+		// y 是 type var, 且 y 没有出现在 x 中
 		if freeFrom(x1, y.Slot()) {
 			k, ok := m[y.Slot().Name]
 			if ok && !Equals(k, x1) {
+				// 不满足 constrain
 				return nil
 			}
-			m[y.Slot().Name] = x1 //subst(x1, m)
+			m[y.Slot().Name] = x1 //applySubst(x1, m)
 			return x1
 		} else {
 			return nil
@@ -48,24 +61,25 @@ func unify(x, y *Kind, m map[string]*Kind) *Kind {
 	case x.Type == TTop:
 		return x
 	default:
+		// 不满足 constrain
 		return nil
 	}
 }
 
-func unifyComposite(x, y *Kind, m map[string]*Kind) *Kind {
+func unifyComposite(x, y *Kind, m map[string]*Kind, lv int) *Kind {
 	switch x.Type {
 	case TList:
-		el := unify(x.List().El, y.List().El, m)
+		el := unify(x.List().El, y.List().El, m, lv+1)
 		if el == nil {
 			return nil
 		}
 		return List(el)
 	case TMap:
-		k := unify(x.Map().Key, y.Map().Key, m)
+		k := unify(x.Map().Key, y.Map().Key, m, lv+1)
 		if k == nil {
 			return nil
 		}
-		v := unify(x.Map().Val, y.Map().Val, m)
+		v := unify(x.Map().Val, y.Map().Val, m, lv+1)
 		if v == nil {
 			return nil
 		}
@@ -79,7 +93,7 @@ func unifyComposite(x, y *Kind, m map[string]*Kind) *Kind {
 		ks := make([]*Kind, len(xtv))
 		for i, xk := range xtv {
 			yk := ytv[i]
-			u := unify(xk, yk, m)
+			u := unify(xk, yk, m, lv+1)
 			if u == nil {
 				return nil
 			}
@@ -99,7 +113,7 @@ func unifyComposite(x, y *Kind, m map[string]*Kind) *Kind {
 			if !ok {
 				return nil
 			}
-			u := unify(xf.Val, yf.Val, m)
+			u := unify(xf.Val, yf.Val, m, lv+1)
 			if u == nil {
 				return nil
 			}
@@ -114,14 +128,14 @@ func unifyComposite(x, y *Kind, m map[string]*Kind) *Kind {
 		}
 		params := make([]*Kind, len(xf.Param))
 		for i := range xf.Param {
-			xp := subst(xf.Param[i], m)
-			yp := subst(yf.Param[i], m)
-			params[i] = unify(xp, yp, m)
+			xp := applySubst(xf.Param[i], m)
+			yp := applySubst(yf.Param[i], m)
+			params[i] = unify(xp, yp, m, lv+1)
 			if params[i] == nil {
 				return nil
 			}
 		}
-		ret := unify(xf.Return, yf.Return, m)
+		ret := unify(xf.Return, yf.Return, m, lv+1)
 		if ret == nil {
 			return nil
 		}
@@ -132,8 +146,8 @@ func unifyComposite(x, y *Kind, m map[string]*Kind) *Kind {
 	}
 }
 
-// subst substitution
-func subst(k *Kind, m map[string]*Kind) *Kind {
+// 对 term k 应用 type substitution m
+func applySubst(k *Kind, m map[string]*Kind) *Kind {
 	switch k.Type {
 	case TNum, TStr, TBool, TTime:
 		return k
@@ -146,35 +160,35 @@ func subst(k *Kind, m map[string]*Kind) *Kind {
 		if r.Type == TSlot && r.Slot().Name == k.Slot().Name {
 			return k
 		}
-		return subst(r, m)
+		return applySubst(r, m)
 	case TList:
-		return List(subst(k.List().El, m))
+		return List(applySubst(k.List().El, m))
 	case TMap:
 		return Map(
-			subst(k.Map().Key, m),
-			subst(k.Map().Val, m),
+			applySubst(k.Map().Key, m),
+			applySubst(k.Map().Val, m),
 		)
 	case TTuple:
 		t := k.Tuple()
 		ks := make([]*Kind, len(t.Val))
 		for i, xtv := range t.Val {
-			ks[i] = subst(xtv, m)
+			ks[i] = applySubst(xtv, m)
 		}
 		return Tuple(ks)
 	case TObj:
 		o := k.Obj()
 		fs := make([]Field, len(o.Fields))
 		for i, f := range o.Fields {
-			fs[i] = Field{f.Name, subst(f.Val, m)}
+			fs[i] = Field{f.Name, applySubst(f.Val, m)}
 		}
 		return Obj(fs)
 	case TFun:
 		f := k.Fun()
 		params := make([]*Kind, len(f.Param))
 		for i, param := range f.Param {
-			params[i] = subst(param, m)
+			params[i] = applySubst(param, m)
 		}
-		return Fun(f.Name, params, subst(f.Return, m))
+		return Fun(f.Name, params, applySubst(f.Return, m))
 	case TTop:
 		return k
 	case TBottom:
@@ -185,6 +199,7 @@ func subst(k *Kind, m map[string]*Kind) *Kind {
 	}
 }
 
+// occur? s 是否出现在k 中, 这里 free 是指没有出现
 func freeFrom(k *Kind, s *SlotKind) bool {
 	switch k.Type {
 	case TNum, TStr, TBool, TTime, TBottom, TTop:

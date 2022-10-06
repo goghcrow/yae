@@ -321,7 +321,7 @@ func TestCompile(t *testing.T) {
 			}()
 			{
 				// 注意 typeCheck 会修改 ast 的上附加的类型信息
-				actual := types.TypeCheck(typEnv, tt.expr)
+				actual := types.Check(typEnv, tt.expr)
 				expected := tt.kind
 				if !types.Equals(expected, actual) {
 					t.Errorf("expect `%s` actual `%s` in `%s`", expected, actual, tt.expr)
