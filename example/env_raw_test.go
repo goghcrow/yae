@@ -43,8 +43,8 @@ func TestRawEnv(t *testing.T) {
 
 	{
 		obj := val.Obj(entity.Obj()).Obj()
-		obj.PutVal("ID", val.Num(42))
-		obj.PutVal("姓名", val.Str("晓"))
+		obj.Put("ID", val.Num(42))
+		obj.Put("姓名", val.Str("晓"))
 		lst := val.List(entityLst.List(), 0).List()
 		lst.Add(obj.Vl())
 
@@ -69,8 +69,8 @@ func TestRawEnv(t *testing.T) {
 
 	{
 		obj := val.Obj(entity.Obj()).Obj()
-		obj.PutVal("ID", val.Num(42))
-		obj.PutVal("姓名", val.Str("晓"))
+		obj.Put("ID", val.Num(42))
+		obj.Put("姓名", val.Str("晓"))
 		lst := val.List(entityLst.List(), 0).List()
 		lst.Add(obj.Vl())
 

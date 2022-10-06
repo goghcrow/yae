@@ -13,7 +13,7 @@ import (
 
 func setObj(obj *val.ObjVal, m map[string]*val.Val) {
 	for n, v := range m {
-		if !obj.PutVal(n, v) {
+		if !obj.Put(n, v) {
 			panic(fmt.Errorf("field %s not found in %s", n, obj.Kind))
 		}
 	}
@@ -234,8 +234,8 @@ func TestConv(t *testing.T) {
 					{"Nested", nestedT.Kd()},
 				}).Obj()).Obj()
 				nested := val.Obj(nestedT).Obj()
-				nested.PutVal("A", val.Num(42))
-				obj.PutVal("Nested", nested.Vl())
+				nested.Put("A", val.Num(42))
+				obj.Put("Nested", nested.Vl())
 				return obj.Vl()
 			}(),
 		},
@@ -428,8 +428,8 @@ func TestConvValOf(t *testing.T) {
 					{"id", types.Num},
 					{"name", types.Str},
 				}).Obj()).Obj()
-				obj.PutVal("id", val.Num(42))
-				obj.PutVal("name", val.Str("晓"))
+				obj.Put("id", val.Num(42))
+				obj.Put("name", val.Str("晓"))
 				return obj.Vl()
 			}()},
 		{
@@ -476,7 +476,7 @@ func TestConvValOf(t *testing.T) {
 				}())
 
 				nestedVal := val.Obj(typeNested).Obj()
-				nestedVal.PutVal("props", m.Vl())
+				nestedVal.Put("props", m.Vl())
 
 				o := val.Obj(typeObj.Obj()).Obj()
 				setObj(o, map[string]*val.Val{
