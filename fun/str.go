@@ -8,6 +8,7 @@ import (
 	"github.com/goghcrow/yae/val"
 	"regexp"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -71,15 +72,80 @@ func stringify(v *val.Val) string {
 	case types.TTime:
 		return v.Time().V.String()
 	case types.TList:
-		return fmt.Sprintf("%s", v.List().V)
+		return stringifyList(v.List())
 	case types.TMap:
-		return fmt.Sprintf("%s", v.Map().V)
+		return stringifyMap(v.Map())
 	case types.TObj:
-		return fmt.Sprintf("%s", v.Obj().V)
+		return stringifyObj(v.Obj())
 	case types.TFun:
 		return "#fun"
 	default:
 		util.Unreachable()
 		return ""
 	}
+}
+
+func stringifyList(l *val.ListVal) string {
+	if len(l.V) == 0 {
+		return "[]"
+	}
+
+	buf := &strings.Builder{}
+	buf.WriteString("[")
+	isFst := true
+	for _, v := range l.V {
+		if isFst {
+			isFst = false
+		} else {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(stringify(v))
+	}
+	buf.WriteString("]")
+	return buf.String()
+}
+
+func stringifyMap(m *val.MapVal) string {
+	if len(m.V) == 0 {
+		return "[:]"
+	}
+
+	buf := &strings.Builder{}
+	buf.WriteString("[")
+	isFst := true
+	for k, v := range m.V {
+		if isFst {
+			isFst = false
+		} else {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(k.String())
+		buf.WriteString(": ")
+		buf.WriteString(stringify(v))
+	}
+	buf.WriteString("]")
+	return buf.String()
+}
+
+func stringifyObj(v *val.ObjVal) string {
+	if len(v.V) == 0 {
+		return "{}"
+	}
+
+	buf := &strings.Builder{}
+	buf.WriteString("{")
+	isFst := true
+	fs := v.Kind.Obj().Fields
+	for i, vl := range v.V {
+		if isFst {
+			isFst = false
+		} else {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(fs[i].Name)
+		buf.WriteString(": ")
+		buf.WriteString(stringify(vl))
+	}
+	buf.WriteString("}")
+	return buf.String()
 }

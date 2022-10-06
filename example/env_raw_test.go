@@ -22,9 +22,9 @@ func TestRawEnv(t *testing.T) {
 		Obj *Entity   `yae:"对象"`
 	}
 
-	entity := types.Obj(map[string]*types.Kind{
-		"ID": types.Num,
-		"姓名": types.Str,
+	entity := types.Obj([]types.Field{
+		{"ID", types.Num},
+		{"姓名", types.Str},
 	})
 	entityLst := types.List(entity)
 
@@ -43,8 +43,8 @@ func TestRawEnv(t *testing.T) {
 
 	{
 		obj := val.Obj(entity.Obj()).Obj()
-		obj.V["ID"] = val.Num(42)
-		obj.V["姓名"] = val.Str("晓")
+		obj.PutVal("ID", val.Num(42))
+		obj.PutVal("姓名", val.Str("晓"))
 		lst := val.List(entityLst.List(), 0).List()
 		lst.Add(obj.Vl())
 
@@ -69,8 +69,8 @@ func TestRawEnv(t *testing.T) {
 
 	{
 		obj := val.Obj(entity.Obj()).Obj()
-		obj.V["ID"] = val.Num(42)
-		obj.V["姓名"] = val.Str("晓")
+		obj.PutVal("ID", val.Num(42))
+		obj.PutVal("姓名", val.Str("晓"))
 		lst := val.List(entityLst.List(), 0).List()
 		lst.Add(obj.Vl())
 

@@ -2,6 +2,7 @@ package conv
 
 import (
 	"encoding/json"
+	"fmt"
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/val"
 	"reflect"
@@ -9,6 +10,14 @@ import (
 	"time"
 	"unsafe"
 )
+
+func setObj(obj *val.ObjVal, m map[string]*val.Val) {
+	for n, v := range m {
+		if !obj.PutVal(n, v) {
+			panic(fmt.Errorf("field %s not found in %s", n, obj.Kind))
+		}
+	}
+}
 
 func TestConv(t *testing.T) {
 	tests := []struct {
@@ -212,21 +221,21 @@ func TestConv(t *testing.T) {
 					}{42},
 				}
 			}(),
-			expectedType: types.Obj(map[string]*types.Kind{
-				"Nested": types.Obj(map[string]*types.Kind{
-					"A": types.Num,
-				}),
+			expectedType: types.Obj([]types.Field{
+				{"Nested", types.Obj([]types.Field{
+					{"A", types.Num},
+				})},
 			}),
 			expectedVal: func() *val.Val {
-				nestedT := types.Obj(map[string]*types.Kind{
-					"A": types.Num,
+				nestedT := types.Obj([]types.Field{
+					{"A", types.Num},
 				}).Obj()
-				obj := val.Obj(types.Obj(map[string]*types.Kind{
-					"Nested": nestedT.Kd(),
+				obj := val.Obj(types.Obj([]types.Field{
+					{"Nested", nestedT.Kd()},
 				}).Obj()).Obj()
 				nested := val.Obj(nestedT).Obj()
-				nested.V["A"] = val.Num(42)
-				obj.V["Nested"] = nested.Vl()
+				nested.PutVal("A", val.Num(42))
+				obj.PutVal("Nested", nested.Vl())
 				return obj.Vl()
 			}(),
 		},
@@ -241,10 +250,10 @@ func TestConv(t *testing.T) {
 					Nested: nil,
 				}
 			}(),
-			expectedType: types.Obj(map[string]*types.Kind{
-				"Nested": types.Obj(map[string]*types.Kind{
-					"A": types.Num,
-				}),
+			expectedType: types.Obj([]types.Field{
+				{"Nested", types.Obj([]types.Field{
+					{"A", types.Num},
+				})},
 			}),
 			expectedVal: nil,
 		},
@@ -279,48 +288,47 @@ func TestConv(t *testing.T) {
 				}(),
 			},
 			expectedType: func() *types.Kind {
-				return types.Obj(map[string]*types.Kind{
-					"A": types.Num,
-					"B": types.Num,
-					"C": types.Num,
-					"D": types.Num,
-					"E": types.Obj(map[string]*types.Kind{
-						"A": types.Num,
-					}),
-					"F": types.Obj(map[string]*types.Kind{
-						"A": types.Num,
-					}),
+				return types.Obj([]types.Field{
+					{"A", types.Num},
+					{"B", types.Num},
+					{"C", types.Num},
+					{"D", types.Num},
+					{"E", types.Obj([]types.Field{
+						{"A", types.Num},
+					})},
+					{"F", types.Obj([]types.Field{
+						{"A", types.Num},
+					})},
 				})
 			}(),
 			expectedVal: func() *val.Val {
-				obj := val.Obj(types.Obj(map[string]*types.Kind{
-					"A": types.Num,
-					"B": types.Num,
-					"C": types.Num,
-					"D": types.Num,
-					"E": types.Obj(map[string]*types.Kind{
-						"A": types.Num,
-					}),
-					"F": types.Obj(map[string]*types.Kind{
-						"A": types.Num,
-					}),
+				obj := val.Obj(types.Obj([]types.Field{
+					{"A", types.Num},
+					{"B", types.Num},
+					{"C", types.Num},
+					{"D", types.Num},
+					{"E", types.Obj([]types.Field{
+						{"A", types.Num},
+					})},
+					{"F", types.Obj([]types.Field{
+						{"A", types.Num},
+					})},
 				}).Obj()).Obj()
 
-				ef := val.Obj(types.Obj(map[string]*types.Kind{
-					"A": types.Num,
+				ef := val.Obj(types.Obj([]types.Field{
+					{"A", types.Num},
 				}).Obj()).Obj()
-				ef.V = map[string]*val.Val{
+				setObj(ef, map[string]*val.Val{
 					"A": val.Num(42),
-				}
-
-				obj.V = map[string]*val.Val{
+				})
+				setObj(obj, map[string]*val.Val{
 					"A": val.Num(42),
 					"B": val.Num(42),
 					"C": val.Num(42),
 					"D": val.Num(42),
 					"E": ef.Vl(),
 					"F": ef.Vl(),
-				}
+				})
 				return obj.Vl()
 			}(),
 		},
@@ -416,12 +424,12 @@ func TestConvValOf(t *testing.T) {
 				Name string `yae:"name"`
 			}{42, "晓"},
 			expected: func() *val.Val {
-				obj := val.Obj(types.Obj(map[string]*types.Kind{
-					"id":   types.Num,
-					"name": types.Str,
+				obj := val.Obj(types.Obj([]types.Field{
+					{"id", types.Num},
+					{"name", types.Str},
 				}).Obj()).Obj()
-				obj.V["id"] = val.Num(42)
-				obj.V["name"] = val.Str("晓")
+				obj.PutVal("id", val.Num(42))
+				obj.PutVal("name", val.Str("晓"))
 				return obj.Vl()
 			}()},
 		{
@@ -447,13 +455,13 @@ func TestConvValOf(t *testing.T) {
 			},
 			expected: func() *val.Val {
 				typeProps := types.Map(types.Str, types.List(types.Str)).Map()
-				typeNested := types.Obj(map[string]*types.Kind{
-					"props": typeProps.Kd(),
+				typeNested := types.Obj([]types.Field{
+					{"props", typeProps.Kd()},
 				}).Obj()
-				typeObj := types.Obj(map[string]*types.Kind{
-					"id":     types.Num,
-					"name":   types.Str,
-					"nested": typeNested.Kd(),
+				typeObj := types.Obj([]types.Field{
+					{"id", types.Num},
+					{"name", types.Str},
+					{"nested", typeNested.Kd()},
 				})
 				// list[{id: num, name: str, nested: {props: map[str, list[str]]}}]
 				typeRes := types.List(typeObj).List()
@@ -468,12 +476,14 @@ func TestConvValOf(t *testing.T) {
 				}())
 
 				nestedVal := val.Obj(typeNested).Obj()
-				nestedVal.V["props"] = m.Vl()
+				nestedVal.PutVal("props", m.Vl())
 
 				o := val.Obj(typeObj.Obj()).Obj()
-				o.V["id"] = val.Num(42)
-				o.V["name"] = val.Str("晓")
-				o.V["nested"] = nestedVal.Vl()
+				setObj(o, map[string]*val.Val{
+					"id":     val.Num(42),
+					"name":   val.Str("晓"),
+					"nested": nestedVal.Vl(),
+				})
 
 				res := val.List(typeRes, 0).List()
 				res.Add(o.Vl())

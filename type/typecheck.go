@@ -87,14 +87,12 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 		obj := expr.Obj()
 		sz := len(obj.Fields)
 		if sz == 0 {
-			return Obj(map[string]*Kind{})
+			return Obj([]Field{})
 		}
 
-		fs := make(map[string]*Kind, sz)
-		for _, f := range obj.Fields {
-			_, ok := fs[f.Name]
-			util.Assert(!ok, "duplicated field %s in %s", f.Name, expr)
-			fs[f.Name] = TypeCheck(env, f.Val)
+		fs := make([]Field, sz)
+		for i, f := range obj.Fields {
+			fs[i] = Field{f.Name, TypeCheck(env, f.Val)}
 		}
 
 		kind := Obj(fs)
@@ -127,11 +125,12 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 		objKind := TypeCheck(env, mem.Obj)
 		util.Assert(objKind.Type == TObj,
 			"type mismatched, expect `%s` actual `%s` in `%s`", TObj, objKind, expr)
-		f := mem.Field.Name
-		fKind, ok := objKind.Obj().Fields[f]
-		util.Assert(ok, "undefined filed `%s` of `%s` in `%s`", f, objKind, expr)
-		mem.ObjKind = objKind // ast 附加类型
-		return fKind
+		obj := objKind.Obj()
+		fName := mem.Field.Name
+		f, ok := obj.GetField(fName)
+		util.Assert(ok, "undefined filed `%s` of `%s` in `%s`", fName, objKind, expr)
+		mem.Index = obj.Index[fName] // attach obj index
+		return f.Val
 
 	case ast.CALL:
 		call := expr.Call()
@@ -165,7 +164,6 @@ func TypeCheck(env *Env, expr *ast.Expr) *Kind {
 			typeAssert(paramKind, argKind, expr)
 		}
 
-		call.CalleeKind = fun // ast 附加类型
 		return fun.Return
 
 	// IF 已经 desugar 成 lazyFun 了, 这里已经没用了
@@ -192,7 +190,7 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunK
 	f, ok := env.Get(monofk)
 	if ok {
 		util.Assert(f.Type == TFun, "non callable of %s in %s", call.Resolved, call)
-		call.Resolved = monofk //ast 标记 callee 在环境中的 key
+		call.Resolved = monofk // ast 标记 callee 在环境中的 key
 		monofun := f.Fun()
 		return monofun
 	}
@@ -213,7 +211,7 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunK
 		if monof == nil {
 			continue
 		}
-		call.Resolved = polyfk //ast 标记 callee 在环境中的 key
+		call.Resolved = polyfk // ast 标记 callee 在环境中的 key
 		call.Index = i         // 以及在泛型函数表的中的位置
 		return monof
 	}
@@ -278,8 +276,8 @@ func slotFree(k *Kind) bool {
 		}
 		return true
 	case TObj:
-		for _, fk := range k.Obj().Fields {
-			if !slotFree(fk) {
+		for _, f := range k.Obj().Fields {
+			if !slotFree(f.Val) {
 				return false
 			}
 		}

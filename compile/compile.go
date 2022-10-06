@@ -94,6 +94,7 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 		}
 
 		kind := m.Kind.(*types.Kind).Map()
+		// 保持字面量声明的执行顺序
 		cs := make([]struct{ k, v Closure }, sz)
 		for i, pair := range m.Pairs {
 			cs[i] = struct{ k, v Closure }{Compile(env1, pair.Key), Compile(env1, pair.Val)}
@@ -114,28 +115,20 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 		sz := len(obj.Fields)
 		if sz == 0 {
 			return func(env *val.Env) *val.Val {
-				kind := types.Obj(map[string]*types.Kind{}).Obj()
+				kind := types.Obj([]types.Field{}).Obj()
 				return val.Obj(kind)
 			}
 		}
-
-		type field struct {
-			name string
-			c    Closure
-		}
-		// 不用 map, 要保持 obj 字面量声明的执行顺序
-		fs := make([]field, sz)
+		// 保持字面量声明的执行顺序
+		cs := make([]Closure, sz)
 		for i, f := range obj.Fields {
-			fs[i] = field{f.Name, Compile(env1, f.Val)}
+			cs[i] = Compile(env1, f.Val)
 		}
-
 		kind := obj.Kind.(*types.Kind).Obj()
-
 		return func(env *val.Env) *val.Val {
 			m := val.Obj(kind).Obj()
-			for _, f := range fs {
-				v := f.c(env)
-				m.V[f.name] = v
+			for i, c := range cs {
+				m.V[i] = c(env)
 			}
 			return m.Vl()
 		}
@@ -166,11 +159,9 @@ func Compile(env1 *val.Env, expr *ast.Expr) Closure {
 		// 也可以 desugar 成 build-in-fun
 		mem := expr.Member()
 		obj := Compile(env1, mem.Obj)
-		field := mem.Field.Name
-
+		idx := mem.Index
 		return func(env *val.Env) *val.Val {
-			v, _ := obj(env).Obj().V[field]
-			return v
+			return obj(env).Obj().V[idx]
 		}
 
 	case ast.CALL:

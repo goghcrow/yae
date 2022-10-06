@@ -46,9 +46,10 @@ func equalsObj(x *ObjKind, y *ObjKind) bool {
 	if len(x.Fields) != len(y.Fields) {
 		return false
 	}
-	for name, f1 := range x.Fields {
-		f2, ok := y.Fields[name]
-		if !ok || !Equals(f1, f2) {
+
+	for _, xf := range x.Fields {
+		yf, ok := y.GetField(xf.Name)
+		if !ok || !Equals(xf.Val, yf.Val) {
 			return false
 		}
 	}

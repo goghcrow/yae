@@ -60,25 +60,25 @@ func TestInfer(t *testing.T) {
 
 		{"id([])", List(Bottom), false},
 		{"id([:])", Map(Bottom, Bottom), false},
-		{"id({})", Obj(map[string]*Kind{}), false},
+		{"id({})", Obj([]Field{}), false},
 
 		{"id([1])", List(Num), false},
 		{`id([1:"s"])`, Map(Num, Str), false},
-		{`id({id:1})`, Obj(map[string]*Kind{
-			"id": Num,
+		{`id({id:1})`, Obj([]Field{
+			{"id", Num},
 		}), false},
 
-		{`id([{a:[1:1]}])`, List(Obj(map[string]*Kind{
-			"a": Map(Num, Num),
+		{`id([{a:[1:1]}])`, List(Obj([]Field{
+			{"a", Map(Num, Num)},
 		})), false},
 
-		{`id({id:1, lst:[1], map:[1:"s"], obj:{id:1}})`, Obj(map[string]*Kind{
-			"id":  Num,
-			"lst": List(Num),
-			"map": Map(Num, Str),
-			"obj": Obj(map[string]*Kind{
-				"id": Num,
-			}),
+		{`id({id:1, lst:[1], map:[1:"s"], obj:{id:1}})`, Obj([]Field{
+			{"id", Num},
+			{"lst", List(Num)},
+			{"map", Map(Num, Str)},
+			{"obj", Obj([]Field{
+				{"id", Num},
+			})},
 		}), false},
 
 		{"list(1)", List(Num), false},
@@ -88,25 +88,25 @@ func TestInfer(t *testing.T) {
 
 		{"list([])", List(List(Bottom)), false},
 		{"list([:])", List(Map(Bottom, Bottom)), false},
-		{"list({})", List(Obj(map[string]*Kind{})), false},
+		{"list({})", List(Obj([]Field{})), false},
 
 		{"list([1])", List(List(Num)), false},
 		{`list([1:"s"])`, List(Map(Num, Str)), false},
-		{`list({id:1})`, List(Obj(map[string]*Kind{
-			"id": Num,
+		{`list({id:1})`, List(Obj([]Field{
+			{"id", Num},
 		})), false},
 
-		{`list([{a:[1:1]}])`, List(List(Obj(map[string]*Kind{
-			"a": Map(Num, Num),
+		{`list([{a:[1:1]}])`, List(List(Obj([]Field{
+			{"a", Map(Num, Num)},
 		}))), false},
 
-		{`list({id:1, lst:[1], map:[1:"s"], obj:{id:1}})`, List(Obj(map[string]*Kind{
-			"id":  Num,
-			"lst": List(Num),
-			"map": Map(Num, Str),
-			"obj": Obj(map[string]*Kind{
-				"id": Num,
-			}),
+		{`list({id:1, lst:[1], map:[1:"s"], obj:{id:1}})`, List(Obj([]Field{
+			{"id", Num},
+			{"lst", List(Num)},
+			{"map", Map(Num, Str)},
+			{"obj", Obj([]Field{
+				{"id", Num},
+			})},
 		})), false},
 
 		{`has(["a":42], 1")`, nil, true},

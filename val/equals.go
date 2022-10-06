@@ -73,9 +73,12 @@ func equalsObj(x, y *ObjVal) bool {
 	if len(x.V) != len(y.V) {
 		return false
 	}
-	for k, v1 := range x.V {
-		v2, ok := y.V[k]
-		if !ok || !Equals(v1, v2) {
+
+	xk := x.Obj().Kind.Obj()
+	for i, v1 := range x.V {
+		// 前置判断过类型相等, v2 一定存在
+		v2, _ := y.GetVal(xk.Fields[i].Name)
+		if !Equals(v1, v2) {
 			return false
 		}
 	}

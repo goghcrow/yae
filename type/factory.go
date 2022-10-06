@@ -32,8 +32,14 @@ func Map(k, v *Kind) *Kind {
 	return &m.Kind
 }
 
-func Obj(fields map[string]*Kind) *Kind {
-	t := ObjKind{Kind{TObj}, fields}
+func Obj(fields []Field) *Kind {
+	t := ObjKind{Kind{TObj}, fields, nil}
+	t.Index = make(map[string]int, len(fields))
+	for i, f := range fields {
+		j, ok := t.Index[f.Name]
+		util.Assert(!ok, "duplicated field %s in %d and %d", f.Name, i, j)
+		t.Index[f.Name] = i
+	}
 	return &t.Kind
 }
 

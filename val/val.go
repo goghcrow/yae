@@ -44,7 +44,7 @@ type MapVal struct {
 }
 type ObjVal struct {
 	Val
-	V map[string]*Val
+	V []*Val
 }
 type IFun func(...*Val) *Val
 type FunVal struct {
@@ -53,8 +53,8 @@ type FunVal struct {
 	Lazy bool // 惰性求值 for and or 等短路操作符/函数, 实参会被包成 thunk
 }
 
-func (n *NumVal) IsInt() bool { return n.V == math.Trunc(n.V) }
-func (n *NumVal) Int() int64  { return int64(n.V) }
+func (v *NumVal) IsInt() bool { return v.V == math.Trunc(v.V) }
+func (v *NumVal) Int() int64  { return int64(v.V) }
 
 func (v *Val) Bool() *BoolVal { return (*BoolVal)(unsafe.Pointer(v)) }
 func (v *Val) Num() *NumVal   { return (*NumVal)(unsafe.Pointer(v)) }

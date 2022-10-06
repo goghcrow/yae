@@ -13,12 +13,12 @@ func TestCompile(t *testing.T) {
 	num := val.Num(42)
 	list := val.List(types.List(types.Num).List(), 0).List().
 		Add(val.Num(1), val.Num(2), val.Num(3))
-	obj := val.Obj(types.Obj(map[string]*types.Kind{
-		"id":   types.Num,
-		"name": types.Str,
+	obj := val.Obj(types.Obj([]types.Field{
+		{"id", types.Num},
+		{"name", types.Str},
 	}).Obj()).Obj()
-	obj.V["id"] = val.Num(42)
-	obj.V["name"] = val.Str("晓")
+	obj.PutVal("id", val.Num(42))
+	obj.PutVal("name", val.Str("晓"))
 
 	typEnv := types.NewEnv()
 	typEnv.Put("var_str", types.Str)
@@ -198,9 +198,9 @@ func TestCompile(t *testing.T) {
 				{"id", LitNum("42")},
 				{"name", LitStr(`"晓"`)},
 			}),
-			kind: types.Obj(map[string]*types.Kind{
-				"id":   types.Num,
-				"name": types.Str,
+			kind: types.Obj([]types.Field{
+				{"id", types.Num},
+				{"name", types.Str},
 			}),
 			val: obj.Vl(),
 		},

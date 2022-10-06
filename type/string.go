@@ -42,15 +42,15 @@ func (k *Kind) String() string {
 		buf := &strings.Builder{}
 		buf.WriteString("{")
 		isFst := true
-		for name, kind := range fs {
+		for _, f := range fs {
 			if isFst {
 				isFst = false
 			} else {
 				buf.WriteString(", ")
 			}
-			buf.WriteString(name)
+			buf.WriteString(f.Name)
 			buf.WriteString(": ")
-			buf.WriteString(kind.String())
+			buf.WriteString(f.Val.String())
 		}
 		buf.WriteString("}")
 		return buf.String()
