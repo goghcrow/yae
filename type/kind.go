@@ -52,15 +52,28 @@ type MapKind struct {
 	Key *Kind
 	Val *Kind
 }
+type Field struct {
+	Name string
+	Val  *Kind
+}
 type ObjKind struct {
 	Kind
-	Fields map[string]*Kind
+	Fields []Field
+	Index  map[string]int
 }
 type FunKind struct {
 	Kind
 	Name   string
 	Param  []*Kind
 	Return *Kind
+}
+
+func (k *ObjKind) GetField(name string) (*Field, bool) {
+	i, ok := k.Index[name]
+	if !ok {
+		return nil, false
+	}
+	return &k.Fields[i], true
 }
 
 func (k *Kind) Slot() *SlotKind   { return (*SlotKind)(unsafe.Pointer(k)) }

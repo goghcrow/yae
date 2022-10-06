@@ -166,7 +166,7 @@ func TestEval(t *testing.T) {
 			name:     "obj/empty",
 			expr:     `{}`,
 			ctx:      nil,
-			expected: val.Obj(types.Obj(map[string]*types.Kind{}).Obj()),
+			expected: val.Obj(types.Obj([]types.Field{}).Obj()),
 		},
 		{
 			name:     "map/empty",

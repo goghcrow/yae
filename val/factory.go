@@ -40,7 +40,7 @@ func Map(kind *types.MapKind) *Val {
 }
 
 func Obj(kind *types.ObjKind) *Val {
-	v := ObjVal{Val{kind.Kd()}, make(map[string]*Val)}
+	v := ObjVal{Val{kind.Kd()}, make([]*Val, len(kind.Fields))}
 	return &v.Val
 }
 

@@ -24,8 +24,8 @@ func TypeEnvOf(v interface{}) (*types.Env, error) {
 		return nil, fmt.Errorf("expect struct type actual %s", reflect.TypeOf(v))
 	}
 	env := types.NewEnv()
-	for name, k := range kind.Obj().Fields {
-		env.Put(name, k)
+	for _, f := range kind.Obj().Fields {
+		env.Put(f.Name, f.Val)
 	}
 	return env, nil
 }

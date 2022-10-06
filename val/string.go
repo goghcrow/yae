@@ -65,13 +65,14 @@ func stringifyObj(o *ObjVal) string {
 	buf := &strings.Builder{}
 	buf.WriteString("{")
 	isFst := true
-	for name, val := range o.V {
+	fs := o.Kind.Obj().Fields
+	for i, val := range o.V {
 		if isFst {
 			isFst = false
 		} else {
 			buf.WriteString(", ")
 		}
-		buf.WriteString(name)
+		buf.WriteString(fs[i].Name)
 		buf.WriteString(": ")
 		buf.WriteString(val.String())
 	}

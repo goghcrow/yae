@@ -109,8 +109,8 @@ func valOfStruct(rv reflect.Value, lv int) *val.Val {
 		return val.Obj(kd.Obj()).Obj().Vl()
 	}
 
-	ks := make(map[string]*types.Kind)
-	vs := make(map[string]*val.Val)
+	vs := make([]*val.Val, 0)
+	ks := make([]types.Field, 0)
 	for i := 0; i < rt.NumField(); i++ {
 		ft := rt.Field(i)
 		if ft.IsExported() {
@@ -120,8 +120,9 @@ func valOfStruct(rv reflect.Value, lv int) *val.Val {
 			}
 			fv := rv.Field(i)
 			vl := valOf(fv, lv+1)
-			vs[name] = vl
-			ks[name] = vl.Kind
+
+			vs = append(vs, vl)
+			ks = append(ks, types.Field{Name: name, Val: vl.Kind})
 		}
 	}
 

@@ -228,7 +228,7 @@ func TestFun(t *testing.T) {
 			actual := eval(tt.expr)
 			expected := tt.expected
 			if !val.Equals(expected, actual) {
-				t.Errorf("expect `%s` actual `%s`", expected, actual)
+				t.Errorf("expect %s actual %s", expected, actual)
 			}
 		})
 	}

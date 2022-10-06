@@ -60,7 +60,7 @@ func typeOf(rt reflect.Type, lv int) *types.Kind {
 		el := typeOf(rt.Elem(), lv+1)
 		return types.Map(key, el)
 	case reflect.Struct:
-		fs := make(map[string]*types.Kind, rt.NumField())
+		fs := make([]types.Field, 0)
 		for i := 0; i < rt.NumField(); i++ {
 			f := rt.Field(i)
 			if f.IsExported() {
@@ -69,7 +69,7 @@ func typeOf(rt reflect.Type, lv int) *types.Kind {
 					name = f.Name
 				}
 				fk := typeOf(f.Type, lv+1)
-				fs[name] = fk
+				fs = append(fs, types.Field{Name: name, Val: fk})
 			}
 		}
 		return types.Obj(fs)

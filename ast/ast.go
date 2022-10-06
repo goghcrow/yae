@@ -27,7 +27,9 @@ type ListExpr struct { // lit
 	// 👇🏻 for typecheck and compile
 	Kind interface{} // *types.Kind
 }
-type Pair struct{ Key, Val *Expr }
+type Pair struct {
+	Key, Val *Expr
+}
 type MapExpr struct { // lit
 	Expr
 	Pairs []Pair
@@ -79,9 +81,8 @@ type CallExpr struct {
 	Callee *Expr
 	Args   []*Expr
 	// 👇🏻 for typecheck and compile
-	Resolved   string
-	Index      int
-	CalleeKind interface{} // *types.Kind
+	Resolved string
+	Index    int
 }
 type SubscriptExpr struct {
 	Expr
@@ -93,7 +94,7 @@ type MemberExpr struct {
 	Obj   *Expr
 	Field *IdentExpr
 	// 👇🏻 for typecheck and compile
-	ObjKind interface{} // *types.Kind
+	Index int
 }
 type GroupExpr struct { // 仅仅用于 String(), Desugar 会去掉
 	Expr

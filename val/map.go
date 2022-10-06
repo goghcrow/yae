@@ -36,9 +36,9 @@ func (v *Val) Key() Key {
 	case types.TNum:
 		return Key{v.Kind.Type, fmt.Sprintf("%f", v.Num().V)}
 	case types.TStr:
-		return Key{v.Kind.Type, v.Str().V}
+		return Key{v.Kind.Type, fmt.Sprintf("%q", v.Str().V)}
 	case types.TTime:
-		return Key{v.Kind.Type, v.Time().V.String()}
+		return Key{v.Kind.Type, fmt.Sprintf("%q", v.Time().V.String())}
 	default:
 		panic(fmt.Errorf("invalid map key type: %s", v.Kind))
 	}

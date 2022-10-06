@@ -92,17 +92,18 @@ func unifyComposite(x, y *Kind, m map[string]*Kind) *Kind {
 		if len(xfs) != len(yfs) {
 			return nil
 		}
-		fs := make(map[string]*Kind)
-		for name, xk := range xfs {
-			yk, ok := yfs[name]
+
+		fs := make([]Field, len(xfs))
+		for i, xf := range xfs {
+			yf, ok := y.Obj().GetField(xf.Name)
 			if !ok {
 				return nil
 			}
-			u := unify(xk, yk, m)
+			u := unify(xf.Val, yf.Val, m)
 			if u == nil {
 				return nil
 			}
-			fs[name] = u
+			fs[i] = Field{xf.Name, u}
 		}
 		return Obj(fs)
 	case TFun:
@@ -162,9 +163,9 @@ func subst(k *Kind, m map[string]*Kind) *Kind {
 		return Tuple(ks)
 	case TObj:
 		o := k.Obj()
-		fs := make(map[string]*Kind, len(o.Fields))
-		for name, kind := range o.Fields {
-			fs[name] = subst(kind, m)
+		fs := make([]Field, len(o.Fields))
+		for i, f := range o.Fields {
+			fs[i] = Field{f.Name, subst(f.Val, m)}
 		}
 		return Obj(fs)
 	case TFun:
@@ -193,8 +194,8 @@ func freeFrom(k *Kind, s *SlotKind) bool {
 	case TMap:
 		return freeFrom(k.Map().Key, s) && freeFrom(k.Map().Val, s)
 	case TObj:
-		for _, fk := range k.Obj().Fields {
-			if !freeFrom(fk, s) {
+		for _, f := range k.Obj().Fields {
+			if !freeFrom(f.Val, s) {
 				return false
 			}
 		}

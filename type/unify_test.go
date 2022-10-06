@@ -10,9 +10,9 @@ func TestUnify(t *testing.T) {
 	β := Slot("β")
 	A := Fun("",
 		[]*Kind{
-			Obj(map[string]*Kind{
-				"a": Fun("", []*Kind{Slot("α")}, β),
-				"b": List(Slot("γ")),
+			Obj([]Field{
+				{"a", Fun("", []*Kind{Slot("α")}, β)},
+				{"b", List(Slot("γ"))},
 			}),
 		},
 		List(β),
@@ -20,9 +20,9 @@ func TestUnify(t *testing.T) {
 	γ := Slot("γ")
 	B := Fun("",
 		[]*Kind{
-			Obj(map[string]*Kind{
-				"a": Fun("", []*Kind{γ}, Slot("δ")),
-				"b": List(γ),
+			Obj([]Field{
+				{"a", Fun("", []*Kind{γ}, Slot("δ"))},
+				{"b", List(γ)},
 			}),
 		},
 		Slot("ε"),
