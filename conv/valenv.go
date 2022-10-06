@@ -26,9 +26,9 @@ func ValEnvOf(v interface{}) (*val.Env, error) {
 	}
 	env := val.NewEnv()
 
-	k := vl.Obj().Kind.Obj()
+	fs := vl.Obj().Kind.Obj().Fields
 	for i, ov := range vl.Obj().V {
-		env.Put(k.Fields[i].Name, ov)
+		env.Put(fs[i].Name, ov)
 	}
 	return env, nil
 }

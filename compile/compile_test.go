@@ -17,8 +17,8 @@ func TestCompile(t *testing.T) {
 		{"id", types.Num},
 		{"name", types.Str},
 	}).Obj()).Obj()
-	obj.PutVal("id", val.Num(42))
-	obj.PutVal("name", val.Str("晓"))
+	obj.Put("id", val.Num(42))
+	obj.Put("name", val.Str("晓"))
 
 	typEnv := types.NewEnv()
 	typEnv.Put("var_str", types.Str)
@@ -190,7 +190,11 @@ func TestCompile(t *testing.T) {
 			name: "map[num, str]",
 			expr: Map([]Pair{{Key: LitNum("1"), Val: LitStr("`1`")}}),
 			kind: types.Map(types.Num, types.Str),
-			val:  val.Map(types.Map(types.Num, types.Str).Map()).Map().Put(val.Num(1), val.Str("1")).Vl(),
+			val: func() *val.Val {
+				v := val.Map(types.Map(types.Num, types.Str).Map())
+				v.Map().Put(val.Num(1), val.Str("1"))
+				return v
+			}(),
 		},
 		{
 			name: "obj{id:num, name:str}",

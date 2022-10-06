@@ -12,11 +12,10 @@ func (m *MapVal) Get(k *Val) (*Val, bool) {
 	return v, ok
 }
 
-func (m *MapVal) Put(k, v *Val) *MapVal {
+func (m *MapVal) Put(k, v *Val) {
 	util.Assert(types.Equals(m.Kind.Map().Key, k.Kind),
 		"type mismatched, expect `%s` actual `%s`", m.Kind.Map().Key, k)
 	m.V[k.Key()] = v
-	return m
 }
 
 // Key 只有 Primitive(bool,num,str,time) 允许作为 map 的 key
