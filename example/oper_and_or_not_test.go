@@ -30,9 +30,9 @@ var (
 		types.Fun(AND, []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			thunk1 := args[0].Fun()
-			if thunk1.V().Bool().V {
+			if thunk1.Call().Bool().V {
 				thunk2 := args[1].Fun()
-				return thunk2.V().Bool().Vl()
+				return thunk2.Call().Bool().Vl()
 			} else {
 				return val.False
 			}
@@ -43,11 +43,11 @@ var (
 		types.Fun(OR, []*types.Kind{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			thunk1 := args[0].Fun()
-			if thunk1.V().Bool().V {
+			if thunk1.Call().Bool().V {
 				return val.True
 			} else {
 				thunk2 := args[1].Fun()
-				return thunk2.V().Bool().Vl()
+				return thunk2.Call().Bool().Vl()
 			}
 		},
 	)

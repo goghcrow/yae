@@ -119,7 +119,7 @@ func TestInfer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.s, func(t *testing.T) {
-			actual, err := Infer(env, parse(tt.s))
+			actual, err := Infer(parse(tt.s), env)
 			if tt.err {
 				if err == nil {
 					t.Errorf("expect err actual %s", actual)

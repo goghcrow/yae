@@ -49,8 +49,10 @@ type ObjVal struct {
 type IFun func(...*Val) *Val
 type FunVal struct {
 	Val
-	V    IFun
-	Lazy bool // 惰性求值 for and or 等短路操作符/函数, 实参会被包成 thunk
+	V IFun
+	// 惰性求值 for and or 等短路操作符/函数, 实参会被包成 thunk
+	Lazy bool
+	// 不是闭包, 不需要引用 env
 }
 
 func (v *NumVal) IsInt() bool { return v.V == math.Trunc(v.V) }

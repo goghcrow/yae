@@ -2,7 +2,8 @@ package expr
 
 import (
 	"fmt"
-	"github.com/goghcrow/yae/compile"
+	"github.com/goghcrow/yae/closure"
+	"github.com/goghcrow/yae/compiler"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/fun"
 	"github.com/goghcrow/yae/lexer"
@@ -12,6 +13,7 @@ import (
 	types "github.com/goghcrow/yae/type"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
+	"github.com/goghcrow/yae/vm"
 	"io"
 	"runtime/debug"
 )
@@ -23,7 +25,7 @@ func Eval(input string, v interface{}) (*val.Val, error) {
 	if err != nil {
 		return nil, err
 	}
-	closure, err := expr.Compile(input, compileTimeEnv)
+	compiled, err := expr.Compile(input, compileTimeEnv)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +34,7 @@ func Eval(input string, v interface{}) (*val.Val, error) {
 	if err != nil {
 		return nil, err
 	}
-	return closure(runtimeEnv)
+	return compiled(runtimeEnv)
 }
 
 type Expr struct {
@@ -40,17 +42,20 @@ type Expr struct {
 	runtime    *val.Env   //编译期运行时环境
 	trans      []trans.Transform
 	ops        []oper.Operator
-	dbg        io.Writer
+	compiler   compiler.Compiler
 	useBuildIn bool
+	dbg        io.Writer
 }
 
-type Compiled func(v interface{}) (*val.Val, error)
+type Callable func(v interface{}) (*val.Val, error)
 
 func NewExpr() *Expr {
 	e := Expr{
-		typeCheck:  types.NewEnv(),
-		runtime:    val.NewEnv(),
-		trans:      []trans.Transform{},
+		typeCheck: types.NewEnv(),
+		runtime:   val.NewEnv(),
+		trans:     []trans.Transform{},
+		compiler:  closure.Compile,
+		//compiler:   vm.Compile,
 		useBuildIn: true,
 	}
 
@@ -63,6 +68,16 @@ func NewExpr() *Expr {
 
 func (e *Expr) EnableDebug(out io.Writer) *Expr {
 	e.dbg = out
+	return e
+}
+
+func (e *Expr) UseBytecodeCompiler() *Expr {
+	e.compiler = vm.Compile
+	return e
+}
+
+func (e *Expr) UseClosureCompiler() *Expr {
+	e.compiler = closure.Compile
 	return e
 }
 
@@ -86,7 +101,7 @@ func (e *Expr) RegisterFun(vs ...*val.Val) {
 	}
 }
 
-func (e *Expr) Compile(expr string, v interface{}) (c Compiled, err error) {
+func (e *Expr) Compile(expr string, v interface{}) (c Callable, err error) {
 	env0, ok := v.(*types.Env)
 	if !ok {
 		env0, err = conv.TypeEnvOf(v)
@@ -95,8 +110,8 @@ func (e *Expr) Compile(expr string, v interface{}) (c Compiled, err error) {
 		}
 	}
 	defer e.backStrace("compile", &err)
-	closure := e.steps(expr, env0)
-	c = e.makeCompiled(closure, env0)
+	compiled := e.steps(expr, env0)
+	c = e.makeCallable(compiled, env0)
 	return
 }
 
@@ -116,7 +131,7 @@ func (e *Expr) initFuns() {
 	}
 }
 
-func (e *Expr) steps(expr string, env0 *types.Env) compile.Closure {
+func (e *Expr) steps(expr string, env0 *types.Env) compiler.Closure {
 	e.logf("expr: %s\n", expr)
 
 	toks := lexer.NewLexer(e.ops).Lex(expr)
@@ -132,15 +147,16 @@ func (e *Expr) steps(expr string, env0 *types.Env) compile.Closure {
 	e.logf("transed: %s\n", transed)
 
 	checkEnv := env0.Inherit(e.typeCheck)
-	infered := types.Check(checkEnv, transed)
+	infered := types.Check(transed, checkEnv)
 	e.logf("type: %s\n", infered)
 
-	closure := compile.Compile(e.runtime, transed)
-	e.logf("compiled: %v\n", closure)
-	return closure
+	compiled := e.compiler(transed, e.runtime)
+	e.logf("compiled: %v\n", compiled)
+
+	return compiled
 }
 
-func (e *Expr) makeCompiled(closure compile.Closure, env0 *types.Env) Compiled {
+func (e *Expr) makeCallable(closure compiler.Closure, env0 *types.Env) Callable {
 	return func(v interface{}) (vl *val.Val, err error) {
 		env1, ok := v.(*val.Env)
 		if !ok {

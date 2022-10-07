@@ -57,18 +57,18 @@ func If(cond, then, els *Expr) *Expr {
 }
 
 func Call(callee *Expr, args []*Expr) *Expr {
-	e := CallExpr{Expr{CALL}, callee, args, "", -1}
+	e := CallExpr{Expr{CALL}, callee, args, nil, "", -1}
 	return &e.Expr
 }
 
 func Subscript(varExpr *Expr, expr *Expr) *Expr {
-	e := SubscriptExpr{Expr{SUBSCRIPT}, varExpr, expr}
+	e := SubscriptExpr{Expr{SUBSCRIPT}, varExpr, expr, nil}
 	return &e.Expr
 }
 
 // Member FieldSelection
 func Member(obj *Expr, field *IdentExpr) *Expr {
-	e := MemberExpr{Expr{MEMBER}, obj, field, -1}
+	e := MemberExpr{Expr{MEMBER}, obj, field, nil, -1}
 	return &e.Expr
 }
 

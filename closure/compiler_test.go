@@ -1,4 +1,4 @@
-package compile
+package closure
 
 import (
 	. "github.com/goghcrow/yae/ast"
@@ -321,15 +321,15 @@ func TestCompile(t *testing.T) {
 			}()
 			{
 				// 注意 typeCheck 会修改 ast 的上附加的类型信息
-				actual := types.Check(typEnv, tt.expr)
+				actual := types.Check(tt.expr, typEnv)
 				expected := tt.kind
 				if !types.Equals(expected, actual) {
 					t.Errorf("expect `%s` actual `%s` in `%s`", expected, actual, tt.expr)
 				}
 			}
 			{
-				closure := Compile(valEnv, tt.expr)
-				actual := closure(valEnv)
+				compiled := Compile(tt.expr, valEnv)
+				actual := compiled(valEnv)
 				expected := tt.val
 				if !val.Equals(expected, actual) {
 					t.Errorf("expect %s actual %s in `%s`", expected, actual, tt.expr)

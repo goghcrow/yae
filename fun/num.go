@@ -28,23 +28,23 @@ var (
 		},
 	)
 
-	// MINUS_NUM - :: num -> num
-	MINUS_NUM = val.Fun(
-		types.Fun(oper.MINUS, []*types.Kind{types.Num}, types.Num),
+	// SUB_NUM - :: num -> num
+	SUB_NUM = val.Fun(
+		types.Fun(oper.SUB, []*types.Kind{types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(-args[0].Num().V)
 		},
 	)
-	// MINUS_NUM_NUM - :: num -> num -> num
-	MINUS_NUM_NUM = val.Fun(
-		types.Fun(oper.MINUS, []*types.Kind{types.Num, types.Num}, types.Num),
+	// SUB_NUM_NUM - :: num -> num -> num
+	SUB_NUM_NUM = val.Fun(
+		types.Fun(oper.SUB, []*types.Kind{types.Num, types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(args[0].Num().V - args[1].Num().V)
 		},
 	)
-	// MINUS_TIME_TIME - :: time -> time -> num
-	MINUS_TIME_TIME = val.Fun(
-		types.Fun(oper.MINUS, []*types.Kind{types.Time, types.Time}, types.Num),
+	// SUB_TIME_TIME - :: time -> time -> num
+	SUB_TIME_TIME = val.Fun(
+		types.Fun(oper.SUB, []*types.Kind{types.Time, types.Time}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(args[0].Time().V.Sub(args[1].Time().V).Seconds())
 		},

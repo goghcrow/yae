@@ -8,36 +8,36 @@ import (
 	"unsafe"
 )
 
-func Infer(env *Env, expr *ast.Expr) (kind *Kind, err error) {
+func Infer(expr *ast.Expr, env *Env) (kind *Kind, err error) {
 	defer util.Recover(&err)
-	return Check(env, expr), err
+	return Check(expr, env), err
 }
 
-func Check(env *Env, expr *ast.Expr) *Kind {
+func Check(expr *ast.Expr, env *Env) *Kind {
 	switch expr.Type {
 	case ast.LITERAL:
 		lit := expr.Literal()
 		var err error
 		switch lit.LitType {
 		case ast.LIT_STR:
-			lit.Val, err = strconv.Unquote(lit.Text)
+			lit.Val, err = strconv.Unquote(lit.Text) // attach ast
 			util.Assert(err == nil, "invalid string literal: %s", lit.Text)
 			return Str
 		case ast.LIT_TIME:
 			// time 字面量会被 desugar 成 strtotime, 这里留着测试场景
 			ts := util.Strtotime(lit.Text[1 : len(lit.Text)-1])
 			util.Assert(ts != 0, "invalid time literal: %s", lit.Text)
-			lit.Val = ts
+			lit.Val = ts // attach ast
 			return Time
 		case ast.LIT_NUM:
-			lit.Val, err = util.ParseNum(lit.Text)
+			lit.Val, err = util.ParseNum(lit.Text) // attach ast
 			util.Assert(err == nil, "invalid num literal %s", lit.Text)
 			return Num
 		case ast.LIT_TRUE:
-			lit.Val = true
+			lit.Val = true // attach ast
 			return Bool
 		case ast.LIT_FALSE:
-			lit.Val = false
+			lit.Val = false // attach ast
 			return Bool
 		default:
 			util.Unreachable()
@@ -55,85 +55,95 @@ func Check(env *Env, expr *ast.Expr) *Kind {
 		lst := expr.List()
 		sz := len(lst.Elems)
 		if sz == 0 {
-			return List(Bottom)
+			kind := List(Bottom)
+			lst.Kind = kind // attach ast
+			return kind
 		}
 
-		elKind := Check(env, lst.Elems[0])
+		elKind := Check(lst.Elems[0], env)
 		for i := 1; i < sz; i++ {
-			kind := Check(env, lst.Elems[i])
+			kind := Check(lst.Elems[i], env)
 			typeAssert(elKind, kind, expr)
 		}
 		kind := List(elKind)
-		lst.Kind = kind // ast 附加类型
+		lst.Kind = kind // attach ast
 		return kind
 
 	case ast.MAP:
 		m := expr.Map()
 		sz := len(m.Pairs)
 		if sz == 0 {
-			return Map(Bottom, Bottom)
+			kind := Map(Bottom, Bottom)
+			m.Kind = kind // attach ast
+			return kind
 		}
 
-		kKind := Check(env, m.Pairs[0].Key)
+		kKind := Check(m.Pairs[0].Key, env)
 		util.Assert(kKind.IsPrimitive(), "invalid type of map's key: %s", kKind)
-		vKind := Check(env, m.Pairs[0].Val)
+		vKind := Check(m.Pairs[0].Val, env)
 		for i := 1; i < sz; i++ {
-			kind := Check(env, m.Pairs[i].Key)
+			kind := Check(m.Pairs[i].Key, env)
 			typeAssert(kKind, kind, expr)
-			kind = Check(env, m.Pairs[i].Val)
+			kind = Check(m.Pairs[i].Val, env)
 			typeAssert(vKind, kind, expr)
 		}
 		kind := Map(kKind, vKind)
-		m.Kind = kind // ast 附加类型
+		m.Kind = kind // attach ast
 		return kind
 
 	case ast.OBJ:
 		obj := expr.Obj()
 		sz := len(obj.Fields)
 		if sz == 0 {
-			return Obj([]Field{})
+			kind := Obj([]Field{})
+			obj.Kind = kind // attach ast
+			return kind
 		}
 
 		fs := make([]Field, sz)
 		for i, f := range obj.Fields {
-			fs[i] = Field{f.Name, Check(env, f.Val)}
+			fs[i] = Field{f.Name, Check(f.Val, env)}
 		}
 
 		kind := Obj(fs)
-		obj.Kind = kind // ast 附加类型
+		obj.Kind = kind // attach ast
 		return kind
 
 	case ast.SUBSCRIPT:
 		sub := expr.Subscript()
-		varKind := Check(env, sub.Var)
+		varKind := Check(sub.Var, env)
 
-		if varKind.Type == TList {
-			idxKind := Check(env, sub.Idx)
+		switch varKind.Type {
+		case TList:
+			idxKind := Check(sub.Idx, env)
 			typeAssert(idxKind, Num, expr)
 			elKind := varKind.List().El
+			sub.VarKind = varKind // attach ast
 			return elKind
-		}
-		if varKind.Type == TMap {
-			idxKind := Check(env, sub.Idx)
+		case TMap:
+			idxKind := Check(sub.Idx, env)
 			keyKind := varKind.Map().Key
 			valKind := varKind.Map().Val
 			typeAssert(idxKind, keyKind, expr)
+			sub.VarKind = varKind // attach ast
 			return valKind
+		default:
+			util.Assert(false,
+				"type mismatched, expect `list | map` actual `%s` in `%s`", varKind, sub.Var)
+			return nil
 		}
-		util.Assert(false,
-			"type mismatched, expect `list | map` actual `%s` in `%s`", varKind, sub.Var)
-		return nil
 
 	case ast.MEMBER:
 		mem := expr.Member()
-		objKind := Check(env, mem.Obj)
+		objKind := Check(mem.Obj, env)
 		util.Assert(objKind.Type == TObj,
 			"type mismatched, expect `%s` actual `%s` in `%s`", TObj, objKind, expr)
 		obj := objKind.Obj()
 		fName := mem.Field.Name
 		f, ok := obj.GetField(fName)
 		util.Assert(ok, "undefined filed `%s` of `%s` in `%s`", fName, objKind, expr)
-		mem.Index = obj.Index[fName] // attach obj index
+		mem.ObjKind = objKind        // attach ast
+		mem.Index = obj.Index[fName] // attach ast, obj index
 		return f.Val
 
 	case ast.CALL:
@@ -143,7 +153,7 @@ func Check(env *Env, expr *ast.Expr) *Kind {
 		argSz := len(call.Args)
 		args := make([]*Kind, argSz)
 		for i := 0; i < argSz; i++ {
-			args[i] = Check(env, call.Args[i])
+			args[i] = Check(call.Args[i], env)
 		}
 
 		var fun *FunKind
@@ -153,7 +163,7 @@ func Check(env *Env, expr *ast.Expr) *Kind {
 			fn := callee.Ident().Name
 			fun = resolveFun(env, call, fn, args)
 		} else {
-			f := Check(env, callee)
+			f := Check(callee, env)
 			util.Assert(f.Type == TFun, "non callable of `%s` in `%s`", callee, call)
 			fun = inferFun(f.Fun(), args)
 			util.Assert(fun != nil, "args `%s` mismatch fun `%s`", args, f)
@@ -168,15 +178,16 @@ func Check(env *Env, expr *ast.Expr) *Kind {
 			typeAssert(paramKind, argKind, expr)
 		}
 
+		call.CalleeKind = fun.Kd() // attach ast
 		return fun.Return
 
 	// IF 已经 desugar 成 lazyFun 了, 这里已经没用了
 	case ast.IF:
 		iff := expr.If()
-		condKind := Check(env, iff.Cond)
+		condKind := Check(iff.Cond, env)
 		typeAssert(condKind, Bool, expr)
-		thenKind := Check(env, iff.Then)
-		elseKind := Check(env, iff.Else)
+		thenKind := Check(iff.Then, env)
+		elseKind := Check(iff.Else, env)
 		typeAssert(thenKind, elseKind, expr)
 		return thenKind
 
@@ -195,8 +206,8 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunK
 	util.Assert(mono, "unexpected")
 	f, ok := env.Get(monofk)
 	if ok {
-		util.Assert(f.Type == TFun, "non callable of %s in %s", call.Resolved, call)
-		call.Resolved = monofk // ast 标记 callee 在环境中的 key
+		util.Assert(f.Type == TFun, "non callable of %s in %s", monofk, call)
+		call.Resolved = monofk // attach ast, 标记 callee 在环境中的 key
 		monofun := f.Fun()
 		return monofun
 	}
@@ -218,8 +229,8 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunK
 		if monof == nil {
 			continue
 		}
-		call.Resolved = polyfk // ast 标记 callee 在环境中的 key
-		call.Index = i         // 以及在泛型函数表的中的位置
+		call.Resolved = polyfk // attach ast, 标记 callee 在环境中的 key
+		call.Index = i         // attach ast, 以及在泛型函数表的中的位置
 		return monof
 	}
 	util.Assert(false, "func `%s` has no overload for params`%s`", fnName, args)

@@ -4,12 +4,12 @@ import "sort"
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	PLUS  = "+"
-	MINUS = "-"
-	MUL   = "*"
-	DIV   = "/"
-	MOD   = "%"
-	EXP   = "^"
+	PLUS = "+"
+	SUB  = "-"
+	MUL  = "*"
+	DIV  = "/"
+	MOD  = "%"
+	EXP  = "^"
 
 	GT = ">"
 	GE = ">="
@@ -26,15 +26,15 @@ const (
 // 内置的操作符与自定义操作符一致, 可以不使用或选择使用
 var ops = []Operator{
 	{PLUS, BP_PREFIX, PREFIX},
-	{MINUS, BP_PREFIX, PREFIX}, // NEGATE
+	{SUB, BP_PREFIX, PREFIX}, // NEGATE
 
 	{PLUS, BP_TERM, INFIX_L},
-	{MINUS, BP_TERM, INFIX_L},
+	{SUB, BP_TERM, INFIX_L},
 	{MUL, BP_FACTOR, INFIX_L},
 	{DIV, BP_FACTOR, INFIX_L},
 	{MOD, BP_FACTOR, INFIX_L},
 	{PLUS, BP_TERM, INFIX_L},
-	{MINUS, BP_TERM, INFIX_L},
+	{SUB, BP_TERM, INFIX_L},
 	{EXP, BP_EXP, INFIX_R},
 
 	{LE, BP_CMP, INFIX_N},

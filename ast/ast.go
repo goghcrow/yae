@@ -81,20 +81,24 @@ type CallExpr struct {
 	Callee *Expr
 	Args   []*Expr
 	// 👇🏻 for typecheck and compile
-	Resolved string
-	Index    int
+	CalleeKind interface{} // *types.Kind
+	Resolved   string
+	Index      int
 }
 type SubscriptExpr struct {
 	Expr
 	Var *Expr
 	Idx *Expr
+	// 👇🏻 for typecheck and compile
+	VarKind interface{} // *types.Kind
 }
 type MemberExpr struct {
 	Expr
 	Obj   *Expr
 	Field *IdentExpr
 	// 👇🏻 for typecheck and compile
-	Index int
+	ObjKind interface{} // *types.Kind
+	Index   int
 }
 type GroupExpr struct { // 仅仅用于 String(), Desugar 会去掉
 	Expr

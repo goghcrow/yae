@@ -1,7 +1,7 @@
 package fun
 
 import (
-	"github.com/goghcrow/yae/compile"
+	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
@@ -271,19 +271,19 @@ func eval(s string) *val.Val {
 	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
 	ast = trans.Desugar(ast)
 
-	_ = types.Check(typecheckEnv, ast)
-	closure := compile.Compile(compileEnv, ast)
+	_ = types.Check(ast, typecheckEnv)
+	compiled := closure.Compile(ast, compileEnv)
 
 	runtimeEnv := val.NewEnv()
 	runtimeEnv = runtimeEnv.Inherit(compileEnv)
-	return closure(runtimeEnv)
+	return compiled(runtimeEnv)
 }
 
 func infer(s string) *types.Kind {
 	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
 	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
 	ast = trans.Desugar(ast)
-	return types.Check(typecheckEnv, ast)
+	return types.Check(ast, typecheckEnv)
 }
 
 func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {

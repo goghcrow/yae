@@ -53,8 +53,8 @@ If high precision is required, consider replacing float64 with big.Float.
 
 No local scope, only global scope denoted by execution environment.
 
-Name binding and resolution are implemented through the global 
-environment(divided into compile-time environment and runtime environment).
+Name binding and resolution are implemented through the global  environment(divided into 
+typed environment for type checking and valued environment for compiling and evaluating).
 
 ## Functions and Operators
 

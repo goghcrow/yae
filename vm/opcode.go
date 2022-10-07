@@ -1,0 +1,46 @@
+package vm
+
+type op byte
+
+//goland:noinspection GoSnakeCaseUsage
+const (
+	OP_NOP op = iota
+	OP_RETURN
+
+	OP_CONST
+	OP_LOAD
+
+	OP_NEW_LIST
+	OP_NEW_MAP
+	OP_NEW_OBJ
+
+	OP_LIST_LOAD
+	OP_MAP_LOAD
+	OP_OBJ_LOAD
+
+	OP_INVOKE_STATIC
+	OP_INVOKE_STATIC_LAZY
+	OP_INVOKE_DYNAMIC
+
+	//special TODO
+
+	OP_IF
+	OP_JUMP
+
+	OP_ADD_NUM
+	OP_SUB_NUM
+	OP_ADD_NUM_NUM
+	OP_SUB_NUM_NUM
+	OP_MUL_NUM_NUM
+	OP_DIV_NUM_NUM
+	OP_MOD_NUM_NUM
+	OP_EXP_NUM_NUM
+
+	OP_AND
+	OP_OR
+	OP_NOT
+
+	OP_CMP_NUM_NUM
+
+	OP_LEN
+)

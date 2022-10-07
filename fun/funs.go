@@ -17,9 +17,9 @@ var funs = []*val.Val{
 	LOGIC_NOT_BOOL,
 	PLUS_NUM,
 	PLUS_NUM_NUM,
-	MINUS_NUM,
-	MINUS_NUM_NUM,
-	MINUS_TIME_TIME,
+	SUB_NUM,
+	SUB_NUM_NUM,
+	SUB_TIME_TIME,
 	MUL_NUM_NUM,
 	DIV_NUM_NUM,
 	MOD_NUM_NUM,
@@ -60,4 +60,3 @@ var funs = []*val.Val{
 func BuildIn() []*val.Val {
 	return funs
 }
-
