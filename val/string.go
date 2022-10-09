@@ -2,7 +2,7 @@ package val
 
 import (
 	"fmt"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"strconv"
 	"strings"
@@ -17,7 +17,7 @@ func stringify(v *Val, lv int) string {
 		// 可以用 set 精确检查, 这里简单处理
 		return "*recursive?*"
 	}
-	
+
 	switch v.Kind.Type {
 	case types.TNum:
 		n := v.Num()

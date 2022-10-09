@@ -3,9 +3,10 @@ package vm
 import (
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/compiler"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
+	"math"
 	"strconv"
 	"time"
 	"unsafe"
@@ -217,7 +218,7 @@ func (b *bytecode) emit(ops ...byte) { b.code = append(b.code, ops...) }
 func (b *bytecode) emitOP(op op)     { b.emit(byte(op)) }
 
 func (b *bytecode) emitUint8(ui int) {
-	util.Assert(ui <= int(^uint8(0)), "overflow")
+	util.Assert(ui <= math.MaxUint8, "overflow")
 	b.emit(uint8(ui))
 }
 
@@ -226,12 +227,21 @@ func (b *bytecode) readUint8(offset int) int {
 }
 
 func (b *bytecode) emitUint16(ui int) {
-	util.Assert(ui <= int(^uint16(0)), "overflow")
+	util.Assert(ui <= math.MaxUint16, "overflow")
 	b.emit(uint16ToByte(uint16(ui))...)
 }
 
 func (b *bytecode) readUint16(offset int) int {
 	return int(byteToUInt16(b.code[offset : offset+2]))
+}
+
+func (b *bytecode) placeholderUint16() func(int) {
+	offset := len(b.code)
+	b.emitUint16(0)
+	return func(i int) {
+		util.Assert(i <= math.MaxUint16, "overflow")
+		copy(b.code[offset:], uint16ToByte(uint16(i)))
+	}
 }
 
 func (b *bytecode) emitConst(v interface{}) {
@@ -251,9 +261,8 @@ func (b *bytecode) readMediumInt(offset int) (n, i int) {
 	return b.readUint16(offset), 2
 }
 
-func (b *bytecode) setMediumInt(offset int, sz int) {
-	util.Assert(sz <= int(^uint16(0)), "overflow")
-	copy(b.code[offset:], uint16ToByte(uint16(sz)))
+func (b *bytecode) placeholderForMediumInt() func(int) {
+	return b.placeholderUint16()
 }
 
 func (b *bytecode) end() {

@@ -1,8 +1,8 @@
 package example
 
 import (
-	expr "github.com/goghcrow/yae"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"os"
 	"testing"
@@ -35,7 +35,7 @@ func TestRawEnv(t *testing.T) {
 	typeEnv.Put("列表", entityLst)
 	typeEnv.Put("对象", entity)
 
-	expr := expr.NewExpr().EnableDebug(os.Stderr)
+	expr := yae.NewExpr().EnableDebug(os.Stderr)
 	closure, err := expr.Compile("if(布尔, 列表[0].姓名.len() + 数字, 0)", typeEnv)
 	if err != nil {
 		panic(err)

@@ -3,7 +3,7 @@ package conv
 import (
 	"encoding/json"
 	"fmt"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"reflect"
 	"testing"

@@ -1,7 +1,7 @@
 package example
 
 import (
-	expr "github.com/goghcrow/yae"
+	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/val"
 	"os"
@@ -26,7 +26,7 @@ func TestStructEnv(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	expr := expr.NewExpr().EnableDebug(os.Stderr)
+	expr := yae.NewExpr().EnableDebug(os.Stderr)
 	closure, err := expr.Compile("if(布尔, 列表[0].姓名.len() + 数字, 0)", typeEnv)
 	if err != nil {
 		panic(err)

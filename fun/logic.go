@@ -2,7 +2,7 @@ package fun
 
 import (
 	"github.com/goghcrow/yae/oper"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 )
 

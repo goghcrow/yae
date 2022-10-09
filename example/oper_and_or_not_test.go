@@ -1,11 +1,10 @@
 package example
 
 import (
-	expr "github.com/goghcrow/yae"
+	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/oper"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"os"
 	"testing"
 )
 
@@ -61,7 +60,7 @@ var (
 )
 
 func TestRegisterAndOrNot(t *testing.T) {
-	expr := expr.NewExpr().EnableDebug(os.Stderr)
+	expr := yae.NewExpr() //.EnableDebug(os.Stderr)
 	expr.RegisterOperator(ops...)
 	expr.RegisterFun(AND_BOOL_BOOL, OR_BOOL_BOOL, NOT_BOOL)
 
@@ -75,7 +74,7 @@ func TestRegisterAndOrNot(t *testing.T) {
 		panic(err)
 	}
 
-	{
+	t.Run("", func(t *testing.T) {
 		v, err := cachedClosure(map[string]interface{}{
 			"X": 100,
 			"Y": 20,
@@ -85,11 +84,11 @@ func TestRegisterAndOrNot(t *testing.T) {
 			panic(err)
 		}
 		if v != val.True {
-			t.Fail()
+			t.Errorf("(X > Y and not (X <= Z) or Z == 42) != True")
 		}
-	}
+	})
 
-	{
+	t.Run("", func(t *testing.T) {
 		v, err := cachedClosure(struct {
 			X int
 			Y int
@@ -103,9 +102,9 @@ func TestRegisterAndOrNot(t *testing.T) {
 			panic(err)
 		}
 		if v != val.True {
-			t.Fail()
+			t.Errorf("(X > Y and not (X <= Z) or Z == 42) != True")
 		}
-	}
+	})
 
 	eval := func(s string) *val.Val {
 		closure, err := expr.Compile(s, nil)

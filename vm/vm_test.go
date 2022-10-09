@@ -7,7 +7,7 @@ import (
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/trans"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"testing"
 )
@@ -27,8 +27,9 @@ func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {
 
 func TestX(t *testing.T) {
 	//input := `{id:42,name:"晓", map:["lst":[1,2]]}.map["lst"][1] + 100`
-	input := `if(false,1,{id:42,name:"晓", map:["lst":[1,2]]}.map["lst"][1] + 100)`
-	//input := "if(false,1,2)"
+	//input := `if(false,1,{id:42,name:"晓", map:["lst":[1,2]]}.map["lst"][1] + 100)`
+	//input := "1 + 1 > 1 && 1 < 1 || !false"
+	input := "if(false, 1, if(true, 2+3, 4+2))+n"
 
 	ops := oper.BuildIn()
 	toks := lexer.NewLexer(ops).Lex(input)

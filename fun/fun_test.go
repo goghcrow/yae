@@ -6,12 +6,10 @@ import (
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/trans"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"testing"
 )
-
-//go:generate /bin/bash gen.sh
 
 func TestIf(t *testing.T) {
 	tests := []struct {

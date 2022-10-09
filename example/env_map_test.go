@@ -1,7 +1,7 @@
 package example
 
 import (
-	expr "github.com/goghcrow/yae"
+	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/val"
 	"os"
@@ -28,7 +28,7 @@ func TestMapEnv(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	expr := expr.NewExpr().EnableDebug(os.Stderr)
+	expr := yae.NewExpr().EnableDebug(os.Stderr)
 	closure, err := expr.Compile("if(ok, lst[0].Name.len() + n, 0)", typeEnv)
 	if err != nil {
 		panic(err)

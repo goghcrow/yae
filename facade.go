@@ -1,4 +1,4 @@
-package expr
+package yae
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/trans"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"github.com/goghcrow/yae/vm"
@@ -40,7 +40,7 @@ func Eval(input string, v interface{}) (*val.Val, error) {
 type Expr struct {
 	typeCheck  *types.Env //类型检查环境
 	runtime    *val.Env   //编译期运行时环境
-	trans      []trans.Transform
+	trans      []trans.Translate
 	ops        []oper.Operator
 	compiler   compiler.Compiler
 	useBuildIn bool
@@ -53,7 +53,7 @@ func NewExpr() *Expr {
 	e := Expr{
 		typeCheck: types.NewEnv(),
 		runtime:   val.NewEnv(),
-		trans:     []trans.Transform{},
+		trans:     []trans.Translate{},
 		compiler:  closure.Compile,
 		//compiler:   vm.Compile,
 		useBuildIn: true,
@@ -90,7 +90,7 @@ func (e *Expr) RegisterOperator(ops ...oper.Operator) {
 	e.ops = append(e.ops, ops...)
 }
 
-func (e *Expr) RegisterTransformer(trans ...trans.Transform) {
+func (e *Expr) RegisterTranslator(trans ...trans.Translate) {
 	e.trans = append(e.trans, trans...)
 }
 
@@ -116,7 +116,7 @@ func (e *Expr) Compile(expr string, v interface{}) (c Callable, err error) {
 }
 
 func (e *Expr) initTrans() {
-	e.RegisterTransformer(trans.Desugar)
+	e.RegisterTranslator(trans.Desugar)
 }
 
 func (e *Expr) initOps() {

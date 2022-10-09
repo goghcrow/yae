@@ -2,7 +2,7 @@ package closure
 
 import (
 	. "github.com/goghcrow/yae/ast"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"strconv"
 	"testing"

@@ -1,16 +1,16 @@
 package example
 
 import (
-	expr "github.com/goghcrow/yae"
+	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/oper"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"os"
 	"testing"
 )
 
 func TestRegisterContains(t *testing.T) {
-	expr := expr.NewExpr().EnableDebug(os.Stderr)
+	expr := yae.NewExpr().EnableDebug(os.Stderr)
 
 	// 添加一个自定义操作符, 同时添加对应的函数
 	// contains :: forall a.(list[a] -> a -> bool)

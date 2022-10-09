@@ -3,7 +3,7 @@ package closure
 import (
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/compiler"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"time"

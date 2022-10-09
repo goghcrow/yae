@@ -1,7 +1,7 @@
 package fun
 
 import (
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"time"

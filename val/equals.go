@@ -1,9 +1,8 @@
 package val
 
 import (
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
-	"math"
 )
 
 func Equals(x, y *Val) bool {
@@ -16,7 +15,7 @@ func Equals(x, y *Val) bool {
 
 	switch x.Kind.Type {
 	case types.TNum:
-		return equalsNum(x.Num(), y.Num())
+		return NumEQ(x.Num(), y.Num())
 	case types.TBool:
 		return x.Bool().V == y.Bool().V
 	case types.TStr:
@@ -36,12 +35,6 @@ func Equals(x, y *Val) bool {
 		util.Unreachable()
 		return false
 	}
-}
-
-const epsilon = 1e-9
-
-func equalsNum(x, y *NumVal) bool {
-	return math.Abs(x.V-y.V) < epsilon
 }
 
 func equalsList(x, y *ListVal) bool {

@@ -2,7 +2,7 @@ package fun
 
 import (
 	"github.com/goghcrow/yae/oper"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 )
 
@@ -26,14 +26,14 @@ var (
 	EQ_NUM_NUM = val.Fun(
 		types.Fun(oper.EQ, []*types.Kind{types.Num, types.Num}, types.Bool),
 		func(args ...*val.Val) *val.Val {
-			return val.Bool(val.Equals(args[0], args[1]))
+			return val.Bool(val.NumEQ(args[0].Num(), args[1].Num()))
 		},
 	)
 	// NE_NUM_NUM != :: num -> num -> bool
 	NE_NUM_NUM = val.Fun(
 		types.Fun(oper.NE, []*types.Kind{types.Num, types.Num}, types.Bool),
 		func(args ...*val.Val) *val.Val {
-			return val.Bool(!val.Equals(args[0], args[1]))
+			return val.Bool(val.NumNE(args[0].Num(), args[1].Num()))
 		},
 	)
 	// EQ_STR_STR == :: str -> str -> bool
@@ -115,28 +115,28 @@ var (
 	GT_NUM_NUM = val.Fun(
 		types.Fun(oper.GT, []*types.Kind{types.Num, types.Num}, types.Bool),
 		func(args ...*val.Val) *val.Val {
-			return val.Bool(args[0].Num().V > args[1].Num().V && !val.Equals(args[0], args[1]))
+			return val.Bool(val.NumGT(args[0].Num(), args[1].Num()))
 		},
 	)
 	// GE_NUM_NUM >= :: num -> num -> bool
 	GE_NUM_NUM = val.Fun(
 		types.Fun(oper.GE, []*types.Kind{types.Num, types.Num}, types.Bool),
 		func(args ...*val.Val) *val.Val {
-			return val.Bool(args[0].Num().V > args[1].Num().V || val.Equals(args[0], args[1]))
+			return val.Bool(val.NumGE(args[0].Num(), args[1].Num()))
 		},
 	)
 	// LT_NUM_NUM < :: num -> num -> bool
 	LT_NUM_NUM = val.Fun(
 		types.Fun(oper.LT, []*types.Kind{types.Num, types.Num}, types.Bool),
 		func(args ...*val.Val) *val.Val {
-			return val.Bool(args[0].Num().V < args[1].Num().V && !val.Equals(args[0], args[1]))
+			return val.Bool(val.NumLT(args[0].Num(), args[1].Num()))
 		},
 	)
 	// LE_NUM_NUM <= :: num -> num -> bool
 	LE_NUM_NUM = val.Fun(
 		types.Fun(oper.LE, []*types.Kind{types.Num, types.Num}, types.Bool),
 		func(args ...*val.Val) *val.Val {
-			return val.Bool(args[0].Num().V < args[1].Num().V || val.Equals(args[0], args[1]))
+			return val.Bool(val.NumLE(args[0].Num(), args[1].Num()))
 		},
 	)
 

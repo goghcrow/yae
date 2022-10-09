@@ -2,7 +2,7 @@ package conv
 
 import (
 	"fmt"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"reflect"
 )
 

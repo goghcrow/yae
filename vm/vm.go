@@ -2,7 +2,7 @@ package vm
 
 import (
 	"fmt"
-	types "github.com/goghcrow/yae/type"
+	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"math"
@@ -35,6 +35,7 @@ func (v *VM) interp(b *bytecode, env *val.Env) *val.Val {
 		v.pc += 1
 
 		switch opcode {
+
 		case OP_CONST:
 			c, w := b.readConst(v.pc)
 			v.pc += w
@@ -47,6 +48,7 @@ func (v *VM) interp(b *bytecode, env *val.Env) *val.Val {
 			v.Push(vl)
 
 		case OP_ADD_NUM:
+			// nothing to do
 
 		case OP_ADD_NUM_NUM:
 			rhs := v.Pop().Num().V
@@ -82,21 +84,89 @@ func (v *VM) interp(b *bytecode, env *val.Env) *val.Val {
 			lhs := v.Pop().Num().V
 			v.Push(val.Num(math.Pow(lhs, rhs)))
 
+		case OP_EQ_NUM_NUM:
+			rhs := v.Pop().Num()
+			lhs := v.Pop().Num()
+			v.Push(val.Bool(val.NumEQ(lhs, rhs)))
+
+		case OP_EQ_BOOL_BOOL:
+			rhs := v.Pop().Str().V
+			lhs := v.Pop().Str().V
+			v.Push(val.Bool(lhs == rhs))
+
+		case OP_EQ_STR_STR:
+			rhs := v.Pop().Bool().V
+			lhs := v.Pop().Bool().V
+			v.Push(val.Bool(lhs == rhs))
+
+		case OP_NE_NUM_NUM:
+			rhs := v.Pop().Num()
+			lhs := v.Pop().Num()
+			v.Push(val.Bool(val.NumNE(lhs, rhs)))
+
+		case OP_NE_BOOL_BOOL:
+			rhs := v.Pop().Str().V
+			lhs := v.Pop().Str().V
+			v.Push(val.Bool(lhs != rhs))
+
+		case OP_NE_STR_STR:
+			rhs := v.Pop().Bool().V
+			lhs := v.Pop().Bool().V
+			v.Push(val.Bool(lhs != rhs))
+
+		case OP_LT_NUM_NUM:
+			rhs := v.Pop().Num()
+			lhs := v.Pop().Num()
+			v.Push(val.Bool(val.NumLT(lhs, rhs)))
+
+		case OP_LT_TIME_TIME:
+			rhs := v.Pop().Time().V
+			lhs := v.Pop().Time().V
+			v.Push(val.Bool(lhs.Before(rhs)))
+
+		case OP_LE_NUM_NUM:
+			rhs := v.Pop().Num()
+			lhs := v.Pop().Num()
+			v.Push(val.Bool(val.NumLE(lhs, rhs)))
+
+		case OP_LE_TIME_TIME:
+			rhs := v.Pop().Time().V
+			lhs := v.Pop().Time().V
+			v.Push(val.Bool(lhs.Before(rhs) || lhs.Equal(rhs)))
+
+		case OP_GT_NUM_NUM:
+			rhs := v.Pop().Num()
+			lhs := v.Pop().Num()
+			v.Push(val.Bool(val.NumGT(lhs, rhs)))
+
+		case OP_GT_TIME_TIME:
+			rhs := v.Pop().Time().V
+			lhs := v.Pop().Time().V
+			v.Push(val.Bool(lhs.After(rhs)))
+
+		case OP_GE_NUM_NUM:
+			rhs := v.Pop().Num()
+			lhs := v.Pop().Num()
+			v.Push(val.Bool(val.NumGE(lhs, rhs)))
+
+		case OP_GE_TIME_TIME:
+			rhs := v.Pop().Time().V
+			lhs := v.Pop().Time().V
+			v.Push(val.Bool(lhs.After(rhs) || lhs.Equal(rhs)))
+
 		case OP_JUMP:
 			off, _ := b.readMediumInt(v.pc)
-			//v.pc += w
 			v.pc = off
 
-		case OP_IF:
-			tpc, w := b.readMediumInt(v.pc)
-			v.pc += w
+		case OP_IF_TRUE:
 			fpc, w := b.readMediumInt(v.pc)
 			v.pc += w
-			if v.Pop().Bool().V {
-				v.pc = tpc
-			} else {
+			if !v.Pop().Bool().V {
 				v.pc = fpc
 			}
+
+		case OP_LOGICAL_NOT:
+			v.Push(val.Bool(!v.Pop().Bool().V))
 
 		case OP_NEW_LIST:
 			kd, w := b.readConst(v.pc)
