@@ -9,6 +9,14 @@ import (
 	"time"
 )
 
+func MustValOf(v interface{}) *val.Val {
+	vl, err := ValOf(v)
+	if err != nil {
+		panic(err)
+	}
+	return vl
+}
+
 func ValOf(v interface{}) (vl *val.Val, err error) {
 	return valOfRV(reflect.ValueOf(v))
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/util"
-	"strconv"
 	"unsafe"
 )
 
@@ -17,27 +16,17 @@ func Check(expr *ast.Expr, env *Env) *Kind {
 	switch expr.Type {
 	case ast.LITERAL:
 		lit := expr.Literal()
-		var err error
 		switch lit.LitType {
 		case ast.LIT_STR:
-			lit.Val, err = strconv.Unquote(lit.Text) // attach ast
-			util.Assert(err == nil, "invalid string literal: %s", lit.Text)
 			return Str
 		case ast.LIT_TIME:
 			// time 字面量会被 desugar 成 strtotime, 这里留着测试场景
-			ts := util.Strtotime(lit.Text[1 : len(lit.Text)-1])
-			util.Assert(ts != 0, "invalid time literal: %s", lit.Text)
-			lit.Val = ts // attach ast
 			return Time
 		case ast.LIT_NUM:
-			lit.Val, err = util.ParseNum(lit.Text) // attach ast
-			util.Assert(err == nil, "invalid num literal %s", lit.Text)
 			return Num
 		case ast.LIT_TRUE:
-			lit.Val = true // attach ast
 			return Bool
 		case ast.LIT_FALSE:
-			lit.Val = false // attach ast
 			return Bool
 		default:
 			util.Unreachable()

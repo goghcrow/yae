@@ -1,7 +1,8 @@
-package lexer
+package test
 
 import (
 	"fmt"
+	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
 	"testing"
@@ -16,13 +17,13 @@ func TestLexer(t *testing.T) {
 		}
 	})
 	t.Run("", func(t *testing.T) {
-		toks := NewLexer(oper.BuildIn()).Lex("iff")
+		toks := lexer.NewLexer(oper.BuildIn()).Lex("iff")
 		if len(toks) != 1 {
 			t.Fail()
 		}
 	})
 	t.Run("", func(t *testing.T) {
-		toks := NewLexer([]oper.Operator{
+		toks := lexer.NewLexer([]oper.Operator{
 			{
 				Type:   "as",
 				BP:     oper.BP_TERM,
@@ -35,7 +36,7 @@ func TestLexer(t *testing.T) {
 	})
 	t.Run("", func(t *testing.T) {
 		s := ".^."
-		toks := NewLexer(append(oper.BuildIn(), oper.Operator{
+		toks := lexer.NewLexer(append(oper.BuildIn(), oper.Operator{
 			Type:   token.Type(s),
 			BP:     oper.BP_TERM,
 			Fixity: oper.INFIX_N,
@@ -52,6 +53,6 @@ func lexError(s string) (err error) {
 			err = fmt.Errorf("%v", r)
 		}
 	}()
-	NewLexer(oper.BuildIn()).Lex(s)
+	lexer.NewLexer(oper.BuildIn()).Lex(s)
 	return nil
 }

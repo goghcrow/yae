@@ -1,9 +1,10 @@
-package parser
+package test
 
 import (
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/token"
 	"github.com/goghcrow/yae/trans"
 	"testing"
@@ -12,11 +13,11 @@ import (
 func parse0(s string, ops ...oper.Operator) *ast.Expr {
 	ops = append(oper.BuildIn(), ops...)
 	toks := lexer.NewLexer(ops).Lex(s)
-	return NewParser(ops).Parse(toks)
+	return parser.NewParser(ops).Parse(toks)
 }
 
-func parse(s string, ops ...oper.Operator) string {
-	return trans.Desugar(parse0(s, ops...)).String()
+func parse(s string, ops ...oper.Operator) *ast.Expr {
+	return trans.Desugar(parse0(s, ops...))
 }
 
 func TestParser(t *testing.T) {
@@ -109,7 +110,7 @@ func TestParser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			actual := parse(tt.input, tt.ops...)
+			actual := parse(tt.input, tt.ops...).String()
 			if actual != tt.output {
 				t.Errorf("expect %s actual %s", tt.output, actual)
 			}
@@ -136,5 +137,5 @@ func syntaxError(s string) (r string) {
 			r = ""
 		}
 	}()
-	return parse(s)
+	return parse(s).String()
 }

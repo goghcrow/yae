@@ -29,7 +29,8 @@ func TestX(t *testing.T) {
 	//input := `{id:42,name:"晓", map:["lst":[1,2]]}.map["lst"][1] + 100`
 	//input := `if(false,1,{id:42,name:"晓", map:["lst":[1,2]]}.map["lst"][1] + 100)`
 	//input := "1 + 1 > 1 && 1 < 1 || !false"
-	input := "if(false, 1, if(true, 2+3, 4+2))+n"
+	//input := "if(false, 1, if(true, 2+3, 4+2))+n"
+	input := "if(false, 1, 2)"
 
 	ops := oper.BuildIn()
 	toks := lexer.NewLexer(ops).Lex(input)
@@ -40,20 +41,19 @@ func TestX(t *testing.T) {
 	//cmd := exec.Command("open", "https://dreampuf.github.io/GraphvizOnline/#"+url.PathEscape(dot))
 	//_, _ = cmd.Output()
 
-	typeEnv, _ := conv.TypeEnvOf(struct {
+	typeEnv := conv.MustTypeEnvOf(struct {
 		Lst []string `yae:"lst"`
 		N   int      `yae:"n"`
-	}{})
-	_ = types.Check(expr, typeEnv.Inherit(typecheckEnv))
+	}{}).Inherit(typecheckEnv)
+	_ = types.Check(expr, typeEnv)
 
 	bytecode := NewCompile().Compile(expr, compileEnv)
 	t.Log(bytecode)
 
-	runtimeEnv, _ := conv.ValEnvOf(map[string]interface{}{
+	runtimeEnv := conv.MustValEnvOf(map[string]interface{}{
 		"lst": []string{"hello", "world"},
 		"n":   1,
-	})
-	runtimeEnv = runtimeEnv.Inherit(compileEnv)
+	}).Inherit(compileEnv)
 
 	r := NewVM().Interp(bytecode, runtimeEnv)
 	t.Log(r)

@@ -1,8 +1,9 @@
-package conv
+package test
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"reflect"
@@ -340,7 +341,7 @@ func TestConv(t *testing.T) {
 					t.Errorf("%v", r)
 				}
 			}()
-			k, err := TypeOf(tt.v)
+			k, err := conv.TypeOf(tt.v)
 			if err != nil {
 				if tt.expectedType != nil {
 					t.Errorf("[typeof] expect %s actual error `%s`", tt.expectedType, err)
@@ -353,7 +354,7 @@ func TestConv(t *testing.T) {
 				}
 			}
 
-			v, err := ValOf(tt.v)
+			v, err := conv.ValOf(tt.v)
 			if err != nil {
 				if tt.expectedVal != nil {
 					t.Errorf("expect %s actual error `%s`", tt.expectedVal, err)
@@ -498,7 +499,7 @@ func TestConvValOf(t *testing.T) {
 					t.Errorf("%v", r)
 				}
 			}()
-			vl, err := ValOf(tt.v)
+			vl, err := conv.ValOf(tt.v)
 			if err != nil {
 				t.Errorf("error %s", err.Error())
 			}
@@ -514,7 +515,7 @@ func TestTypeOf(t *testing.T) {
 	ttptr := &tt
 	ttptrptr := &ttptr
 
-	kind, err := TypeOf(tt)
+	kind, err := conv.TypeOf(tt)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -522,7 +523,7 @@ func TestTypeOf(t *testing.T) {
 		t.Errorf("expect time, actual %s", kind)
 	}
 
-	kind, err = TypeOf(ttptr)
+	kind, err = conv.TypeOf(ttptr)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -530,7 +531,7 @@ func TestTypeOf(t *testing.T) {
 		t.Errorf("expect time actual %s", kind)
 	}
 
-	kind, err = TypeOf(ttptrptr)
+	kind, err = conv.TypeOf(ttptrptr)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -538,7 +539,7 @@ func TestTypeOf(t *testing.T) {
 		t.Errorf("expect time, actual %s", kind)
 	}
 
-	kind, err = TypeOf(map[string]interface{}{})
+	kind, err = conv.TypeOf(map[string]interface{}{})
 	if err == nil || kind != nil {
 		t.Errorf("expect err")
 	}
@@ -546,19 +547,19 @@ func TestTypeOf(t *testing.T) {
 
 func TestPtrInterface(t *testing.T) {
 	var i interface{} = 42
-	k, err := TypeOf(i)
+	k, err := conv.TypeOf(i)
 	assert(err == nil)
 	assert(k == types.Num)
 
-	k, err = TypeOf(&i)
+	k, err = conv.TypeOf(&i)
 	assert(err == nil)
 	assert(k == types.Num)
 
-	v, err := ValOf(i)
+	v, err := conv.ValOf(i)
 	assert(err == nil)
 	assert(val.Equals(v, val.Num(42)))
 
-	v, err = ValOf(&i)
+	v, err = conv.ValOf(&i)
 	assert(err == nil)
 	assert(val.Equals(v, val.Num(42)))
 }

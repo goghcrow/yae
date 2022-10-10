@@ -7,6 +7,14 @@ import (
 	"reflect"
 )
 
+func MustValEnvOf(v interface{}) *val.Env {
+	env, err := ValEnvOf(v)
+	if err != nil {
+		panic(err)
+	}
+	return env
+}
+
 func ValEnvOf(v interface{}) (*val.Env, error) {
 	if v == nil {
 		return val.NewEnv(), nil

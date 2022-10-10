@@ -13,15 +13,15 @@ import (
 
 //goland:noinspection GoSnakeCaseUsage
 var (
-	// PLUS_NUM + :: num -> num
-	PLUS_NUM = val.Fun(
+	// ADD_NUM + :: num -> num
+	ADD_NUM = val.Fun(
 		types.Fun(oper.PLUS, []*types.Kind{types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return args[0]
 		},
 	)
-	// PLUS_NUM_NUM + :: num -> num -> num
-	PLUS_NUM_NUM = val.Fun(
+	// ADD_NUM_NUM + :: num -> num -> num
+	ADD_NUM_NUM = val.Fun(
 		types.Fun(oper.PLUS, []*types.Kind{types.Num, types.Num}, types.Num),
 		func(args ...*val.Val) *val.Val {
 			return val.Num(args[0].Num().V + args[1].Num().V)

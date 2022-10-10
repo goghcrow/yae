@@ -7,7 +7,6 @@ import (
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"math"
-	"strconv"
 	"time"
 	"unsafe"
 )
@@ -54,19 +53,14 @@ func (b *bytecode) compile(c *Compiler, expr *ast.Expr, env *val.Env) {
 		lit := expr.Literal()
 		switch lit.LitType {
 		case ast.LIT_STR:
-			s, err := strconv.Unquote(lit.Text)
-			util.Assert(err == nil, "invalid string literal: %s", lit.Val)
 			b.emitOP(OP_CONST)
-			b.emitConst(val.Str(s))
+			b.emitConst(val.Str(lit.Val.(string)))
 		case ast.LIT_TIME:
-			ts := util.Strtotime(lit.Text[1 : len(lit.Text)-1])
 			b.emitOP(OP_CONST)
-			b.emitConst(val.Time(time.Unix(ts, 0)))
+			b.emitConst(val.Time(time.Unix(lit.Val.(int64), 0)))
 		case ast.LIT_NUM:
-			n, err := util.ParseNum(lit.Text)
-			util.Assert(err == nil, "invalid num literal %s", lit.Val)
 			b.emitOP(OP_CONST)
-			b.emitConst(val.Num(n))
+			b.emitConst(val.Num(lit.Val.(float64)))
 		case ast.LIT_TRUE:
 			b.emitOP(OP_CONST)
 			b.emitConst(val.True)
@@ -171,9 +165,9 @@ func (b *bytecode) compileInvokeStatic(c *Compiler, call *ast.CallExpr, env *val
 	}
 
 	// 性能考虑, 加入 intrinsic, 生成特化的 opcode
-	intrCBV, ok := intrinsicsCallByValue[f]
+	opCBV, ok := intrinsicsCallByValue[f]
 	if ok {
-		intrCBV(c, b, env)
+		b.emitOP(opCBV)
 		return
 	}
 
@@ -215,7 +209,7 @@ func (b *bytecode) addConst(v interface{}) int {
 }
 
 func (b *bytecode) emit(ops ...byte) { b.code = append(b.code, ops...) }
-func (b *bytecode) emitOP(op op)     { b.emit(byte(op)) }
+func (b *bytecode) emitOP(op opcode) { b.emit(byte(op)) }
 
 func (b *bytecode) emitUint8(ui int) {
 	util.Assert(ui <= math.MaxUint8, "overflow")

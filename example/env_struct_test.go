@@ -22,10 +22,7 @@ func TestStructEnv(t *testing.T) {
 		Obj *Entity   `yae:"对象"`
 	}
 
-	typeEnv, err := conv.TypeEnvOf(Ctx{})
-	if err != nil {
-		panic(err)
-	}
+	typeEnv := conv.MustTypeEnvOf(Ctx{})
 	expr := yae.NewExpr().EnableDebug(os.Stderr)
 	closure, err := expr.Compile("if(布尔, 列表[0].姓名.len() + 数字, 0)", typeEnv)
 	if err != nil {
@@ -33,7 +30,7 @@ func TestStructEnv(t *testing.T) {
 	}
 
 	{
-		valEnv, err := conv.ValEnvOf(&Ctx{
+		valEnv := conv.MustValEnvOf(&Ctx{
 			Ok: true,
 			N:  42,
 			T:  time.Now(),
@@ -42,9 +39,6 @@ func TestStructEnv(t *testing.T) {
 			},
 			Obj: &Entity{Id: 42, Name: "晓"},
 		})
-		if err != nil {
-			panic(err)
-		}
 		v, err := closure(valEnv)
 		if err != nil {
 			panic(err)
@@ -54,7 +48,7 @@ func TestStructEnv(t *testing.T) {
 		}
 	}
 	{
-		valEnv, err := conv.ValEnvOf(&Ctx{
+		valEnv := conv.MustValEnvOf(&Ctx{
 			Ok: true,
 			N:  100,
 			T:  time.Now(),
@@ -63,9 +57,6 @@ func TestStructEnv(t *testing.T) {
 			},
 			Obj: &Entity{Id: 42, Name: "晓"},
 		})
-		if err != nil {
-			panic(err)
-		}
 		v, err := closure(valEnv)
 		if err != nil {
 			panic(err)

@@ -1,17 +1,10 @@
-package types
+package test
 
 import (
-	"github.com/goghcrow/yae/ast"
-	"github.com/goghcrow/yae/lexer"
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/parser"
+	"github.com/goghcrow/yae/fun"
+	. "github.com/goghcrow/yae/types"
 	"testing"
 )
-
-func parse(s string) *ast.Expr {
-	ops := oper.BuildIn()
-	return parser.NewParser(ops).Parse(lexer.NewLexer(ops).Lex(s))
-}
 
 func TestInfer(t *testing.T) {
 	env := NewEnv()
@@ -47,6 +40,8 @@ func TestInfer(t *testing.T) {
 		v := Slot("v")
 		return Fun("get", []*Kind{Map(k, v), k}, v)
 	}())
+
+	env.RegisterFun(fun.STRTOTIME_STR.Fun().Kind)
 
 	tests := []struct {
 		s   string
@@ -117,6 +112,7 @@ func TestInfer(t *testing.T) {
 		{`if( has(["a":42], "a"), get(["a":42], "a"),  1)`, Num, false},
 		{`if( has([1:"42"], 1), get([1:"42"], 1),  "")`, Str, false},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.s, func(t *testing.T) {
 			actual, err := Infer(parse(tt.s), env)

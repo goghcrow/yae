@@ -9,7 +9,6 @@ const stackInit = 42
 const stackGrow = 500
 
 type stack struct {
-	pc    int
 	stack []*val.Val // 这里 stack slot 简单处理成 *val.Val
 	sp    int
 }

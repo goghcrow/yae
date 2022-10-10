@@ -14,6 +14,14 @@ var typeOfTime = reflect.TypeOf(time.Time{})
 
 var tagName = "yae"
 
+func MustTypeOf(v interface{}) *types.Kind {
+	k, err := TypeOf(v)
+	if err != nil {
+		panic(err)
+	}
+	return k
+}
+
 func TypeOf(v interface{}) (k *types.Kind, err error) {
 	return typeOfRV(reflect.ValueOf(v))
 }

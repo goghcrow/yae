@@ -19,8 +19,8 @@ var (
 			},
 		)
 	}()
-	// ISSET_MAP_K isset :: forall k v. (map[k, v] -> k -> bool)
-	ISSET_MAP_K = func() *val.Val {
+	// ISSET_MAP_ANY isset :: forall k v. (map[k, v] -> k -> bool)
+	ISSET_MAP_ANY = func() *val.Val {
 		K := types.Slot("k")
 		V := types.Slot("v")
 		mapKV := types.Map(K, V)
@@ -29,6 +29,25 @@ var (
 			func(args ...*val.Val) *val.Val {
 				_, ok := args[0].Map().V[args[1].Key()]
 				return val.Bool(ok)
+			},
+		)
+	}()
+	// GET_MAP_ANY_ANY get :: forall a. (map[k,v] -> k -> v -> v)
+	GET_MAP_ANY_ANY = func() *val.Val {
+		K := types.Slot("k")
+		V := types.Slot("v")
+		mapKV := types.Map(K, V)
+		return val.Fun(
+			types.Fun(GET, []*types.Kind{mapKV, K, V}, V),
+			func(args ...*val.Val) *val.Val {
+				m := args[0].Map().V
+				key := args[1].Key()
+				defVl := args[2]
+				vl, ok := m[key]
+				if !ok || vl == nil {
+					return defVl
+				}
+				return vl
 			},
 		)
 	}()

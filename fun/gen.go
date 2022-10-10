@@ -1,3 +1,67 @@
+// Generated Code; DO NOT EDIT.
+
 package fun
 
+import "github.com/goghcrow/yae/val"
+
 //go:generate /bin/bash gen.sh
+
+var funs = []*val.Val{
+	ABS_NUM,
+	ADD_NUM,
+	ADD_NUM_NUM,
+	ADD_STR_STR,
+	CEIL_NUM,
+	DIV_NUM_NUM,
+	EQ_BOOL_BOOL,
+	EQ_LIST_LIST,
+	EQ_MAP_MAP,
+	EQ_NUM_NUM,
+	EQ_STR_STR,
+	EQ_TIME_TIME,
+	EXP_NUM_NUM,
+	FLOOR_NUM,
+	GET_LIST_NUM_ANY,
+	GET_MAP_ANY_ANY,
+	GE_NUM_NUM,
+	GE_TIME_TIME,
+	GT_NUM_NUM,
+	GT_TIME_TIME,
+	IF_BOOL_ANY_ANY,
+	ISSET_MAP_ANY,
+	LEN_LIST,
+	LEN_MAP,
+	LEN_STR,
+	LE_NUM_NUM,
+	LE_TIME_TIME,
+	LOGIC_AND_BOOL_BOOL,
+	LOGIC_NOT_BOOL,
+	LOGIC_OR_BOOL_BOOL,
+	LT_NUM_NUM,
+	LT_TIME_TIME,
+	MATCH_STR_STR,
+	MAX_LIST,
+	MAX_NUM_NUM,
+	MIN_LIST,
+	MIN_NUM_NUM,
+	MOD_NUM_NUM,
+	MUL_NUM_NUM,
+	NE_BOOL_BOOL,
+	NE_LIST_LIST,
+	NE_MAP_MAP,
+	NE_NUM_NUM,
+	NE_STR_STR,
+	NE_TIME_TIME,
+	PRINT_ANY,
+	ROUND_NUM,
+	STRING_ANY,
+	STRTOTIME_STR,
+	SUB_NUM,
+	SUB_NUM_NUM,
+	SUB_TIME_TIME,
+}
+
+func BuildIn() []*val.Val {
+	return funs
+}
+

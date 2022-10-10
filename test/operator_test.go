@@ -1,6 +1,7 @@
-package oper
+package test
 
 import (
+	"github.com/goghcrow/yae/oper"
 	"testing"
 )
 
@@ -33,7 +34,7 @@ func Test_IsOp(t *testing.T) {
 		{"<->", true},
 	} {
 		t.Run(tt.s, func(t *testing.T) {
-			if IsOp(tt.s) != tt.is {
+			if oper.IsOp(tt.s) != tt.is {
 				t.Errorf("IsOperator(%s) != %t", tt.s, tt.is)
 			}
 		})

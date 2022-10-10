@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"fmt"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
 )
@@ -15,11 +16,18 @@ func Literal(typ LitType, lit string) *Expr {
 	return &e.Expr
 }
 
-func LitTrue() *Expr           { return Literal(LIT_TRUE, token.TRUE) }
-func LitFalse() *Expr          { return Literal(LIT_FALSE, token.FALSE) }
-func LitNum(lit string) *Expr  { return Literal(LIT_NUM, lit) }
-func LitStr(lit string) *Expr  { return Literal(LIT_STR, lit) }
-func LitTime(lit string) *Expr { return Literal(LIT_TIME, lit) }
+func LitTrue() *Expr  { return Literal(LIT_TRUE, token.TRUE) }
+func LitFalse() *Expr { return Literal(LIT_FALSE, token.FALSE) }
+func LitNum(f float64) *Expr {
+	lit := Literal(LIT_NUM, fmt.Sprintf("%f", f))
+	lit.Literal().Val = f
+	return lit
+}
+func LitStr(s string) *Expr {
+	lit := Literal(LIT_STR, fmt.Sprintf("%q", s))
+	lit.Literal().Val = s
+	return lit
+}
 
 func List(elems []*Expr) *Expr {
 	e := ListExpr{Expr{LIST}, elems, nil}

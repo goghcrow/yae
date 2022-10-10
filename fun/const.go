@@ -21,4 +21,5 @@ const (
 	STRTOTIME = "strtotime"
 
 	ISSET = "isset"
+	GET   = "get"
 )

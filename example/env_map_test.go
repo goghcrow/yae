@@ -24,10 +24,7 @@ func TestMapEnv(t *testing.T) {
 		}{},
 	}
 
-	typeEnv, err := conv.TypeEnvOf(ctx)
-	if err != nil {
-		panic(err)
-	}
+	typeEnv := conv.MustTypeEnvOf(ctx)
 	expr := yae.NewExpr().EnableDebug(os.Stderr)
 	closure, err := expr.Compile("if(ok, lst[0].Name.len() + n, 0)", typeEnv)
 	if err != nil {
@@ -35,7 +32,7 @@ func TestMapEnv(t *testing.T) {
 	}
 
 	{
-		valEnv, err := conv.ValEnvOf(map[string]interface{}{
+		valEnv := conv.MustValEnvOf(map[string]interface{}{
 			"ok": true,
 			"n":  42,
 			"t":  time.Now(),
@@ -56,9 +53,7 @@ func TestMapEnv(t *testing.T) {
 				Name: "晓",
 			},
 		})
-		if err != nil {
-			panic(err)
-		}
+
 		v, err := closure(valEnv)
 		if err != nil {
 			panic(err)
@@ -69,7 +64,7 @@ func TestMapEnv(t *testing.T) {
 	}
 
 	{
-		valEnv, err := conv.ValEnvOf(map[string]interface{}{
+		valEnv := conv.MustValEnvOf(map[string]interface{}{
 			"ok": true,
 			"n":  100,
 			"t":  time.Now(),
@@ -90,9 +85,6 @@ func TestMapEnv(t *testing.T) {
 				Name: "晓",
 			},
 		})
-		if err != nil {
-			panic(err)
-		}
 		v, err := closure(valEnv)
 		if err != nil {
 			panic(err)

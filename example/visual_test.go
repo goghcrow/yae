@@ -41,6 +41,8 @@ func TestVisual(t *testing.T) {
 	s := buf.String()
 	t.Log(s)
 
-	cmd := exec.Command("open", "https://dreampuf.github.io/GraphvizOnline/#"+url.PathEscape(s))
-	_, _ = cmd.Output()
+	if false {
+		cmd := exec.Command("open", "https://dreampuf.github.io/GraphvizOnline/#"+url.PathEscape(s))
+		_, _ = cmd.Output()
+	}
 }

@@ -1,13 +1,16 @@
-package fun
+package test
 
 import (
 	"github.com/goghcrow/yae/closure"
+	"github.com/goghcrow/yae/compiler"
+	"github.com/goghcrow/yae/fun"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/trans"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
+	"github.com/goghcrow/yae/vm"
 	"testing"
 )
 
@@ -27,7 +30,20 @@ func TestIf(t *testing.T) {
 					t.Errorf("%v", r)
 				}
 			}()
-			actual := eval(tt.expr)
+			actual := eval(tt.expr, closure.Compile, types.NewEnv(), val.NewEnv())
+			expected := tt.expected
+			if !val.Equals(expected, actual) {
+				t.Errorf("expect `%s` actual `%s`", expected, actual)
+			}
+		})
+
+		t.Run(tt.expr, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
+			actual := eval(tt.expr, vm.Compile, types.NewEnv(), val.NewEnv())
 			expected := tt.expected
 			if !val.Equals(expected, actual) {
 				t.Errorf("expect `%s` actual `%s`", expected, actual)
@@ -214,6 +230,14 @@ func TestFun(t *testing.T) {
 
 		{`isset([1:""], 0)`, val.False},
 		{`isset([1:""], 1)`, val.True},
+
+		{`[1,2,3,n].get(2, 42) == 3`, val.True},
+		{`[1,2,3,n].get(3, 42) == 42`, val.True},
+		{`[1,2,3,n].get(4, 42) == 42`, val.True},
+
+		{`["id":1,"nil":n].get("id", 42) == 1`, val.True},
+		{`["id":1,"nil":n].get("nil", 42) == 42`, val.True},
+		{`["id":1,"nil":n].get("not_exist", 42) == 42`, val.True},
 	}
 
 	for _, tt := range tests {
@@ -223,7 +247,28 @@ func TestFun(t *testing.T) {
 					t.Errorf("%v", r)
 				}
 			}()
-			actual := eval(tt.expr)
+			typeEnv := types.NewEnv()
+			valEnv := val.NewEnv()
+			typeEnv.Put("n", types.Num)
+			valEnv.Put("n", nil)
+			actual := eval(tt.expr, closure.Compile, typeEnv, valEnv)
+			expected := tt.expected
+			if !val.Equals(expected, actual) {
+				t.Errorf("expect %s actual %s", expected, actual)
+			}
+		})
+
+		t.Run(tt.expr, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
+			typeEnv := types.NewEnv()
+			valEnv := val.NewEnv()
+			typeEnv.Put("n", types.Num)
+			valEnv.Put("n", nil)
+			actual := eval(tt.expr, vm.Compile, typeEnv, valEnv)
 			expected := tt.expected
 			if !val.Equals(expected, actual) {
 				t.Errorf("expect %s actual %s", expected, actual)
@@ -264,16 +309,17 @@ func init() {
 	initEnv(typecheckEnv, compileEnv)
 }
 
-func eval(s string) *val.Val {
+func eval(s string, compile compiler.Compiler, typedEnv *types.Env, compileEvalEnv *val.Env) *val.Val {
 	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
 	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
 	ast = trans.Desugar(ast)
 
-	_ = types.Check(ast, typecheckEnv)
-	compiled := closure.Compile(ast, compileEnv)
+	_ = types.Check(ast, typedEnv.Inherit(typecheckEnv))
+	valuedEnv := compileEvalEnv.Inherit(compileEnv)
+	compiled := compile(ast, valuedEnv)
 
 	runtimeEnv := val.NewEnv()
-	runtimeEnv = runtimeEnv.Inherit(compileEnv)
+	runtimeEnv = runtimeEnv.Inherit(valuedEnv)
 	return compiled(runtimeEnv)
 }
 
@@ -285,7 +331,7 @@ func infer(s string) *types.Kind {
 }
 
 func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {
-	for _, f := range BuildIn() {
+	for _, f := range fun.BuildIn() {
 		typecheckEnv.RegisterFun(f.Kind)
 		compileEnv.RegisterFun(f)
 	}

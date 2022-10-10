@@ -134,6 +134,9 @@ string :: forall a. (a -> str)
 
 isset :: forall k v. (map[k, v] -> k -> bool)
 
+get :: forall a. (list[a] -> num -> a -> a)
+get :: forall a. (map[k,v] -> k -> v -> v)
+
 strtotime :: str -> time
 
 print :: forall a. (a -> a)

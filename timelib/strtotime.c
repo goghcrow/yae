@@ -3,7 +3,6 @@
 
 extern timelib_tzinfo *parse_tzfile(const char *formal_tzname, const timelib_tzdb *tzdb, int *dummy_error_code);
 
-// 移植下 php 的 strtotime
 long long strtotime(char *times, int len, long long preset_ts, timelib_tzinfo *tzi) {
 	int parse_error, epoch_does_not_fit_in;
 	timelib_error_container *error;

@@ -1,34 +1,32 @@
-package closure
+package test
 
 import (
-	. "github.com/goghcrow/yae/ast"
+	"github.com/goghcrow/yae/closure"
+	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
+	"github.com/goghcrow/yae/vm"
 	"strconv"
 	"testing"
 )
 
 func TestCompile(t *testing.T) {
-	str := val.Str("Hello")
-	num := val.Num(42)
-	list := val.List(types.List(types.Num).List(), 0).List().
-		Add(val.Num(1), val.Num(2), val.Num(3))
-	obj := val.Obj(types.Obj([]types.Field{
-		{"id", types.Num},
-		{"name", types.Str},
-	}).Obj()).Obj()
-	obj.Put("id", val.Num(42))
-	obj.Put("name", val.Str("晓"))
+	obj, _ := conv.ValOf(struct {
+		Id   int    `yae:"id"`
+		Name string `yae:"name"`
+	}{42, "晓"})
 
-	typEnv := types.NewEnv()
-	typEnv.Put("var_str", types.Str)
-	typEnv.Put("var_num", types.Num)
-	typEnv.Put("var_list_num", types.List(types.Num))
+	typEnv := conv.MustTypeEnvOf(struct {
+		Str  string `yae:"var_str"`
+		Num  int    `yae:"var_num"`
+		List []int  `yae:"var_list_num"`
+	}{}).Inherit(typecheckEnv)
 
-	valEnv := val.NewEnv()
-	valEnv.Put("var_str", str)
-	valEnv.Put("var_num", num)
-	valEnv.Put("var_list_num", list.Vl())
+	valEnv := conv.MustValEnvOf(map[string]interface{}{
+		"var_str":      "Hello",
+		"var_num":      42,
+		"var_list_num": []int{1, 2, 3},
+	}).Inherit(compileEnv)
 
 	{
 		// num -> str
@@ -80,233 +78,191 @@ func TestCompile(t *testing.T) {
 
 	tests := []struct {
 		name string
-		expr *Expr
+		expr string
 		kind *types.Kind
 		val  *val.Val
 	}{
 		{
 			name: "str",
-			expr: LitStr(`"Hello World!"`),
+			expr: `"Hello World!"`,
 			kind: types.Str,
 			val:  val.Str("Hello World!"),
 		},
 		{
 			name: "str/raw",
-			expr: LitStr("`raw str`"),
+			expr: "`raw str`",
 			kind: types.Str,
 			val:  val.Str("raw str"),
 		},
 		{
 			name: "str/escape",
-			expr: LitStr(`"abc晓\r\n\t"`),
+			expr: `"abc晓\r\n\t"`,
 			kind: types.Str,
 			val:  val.Str("abc晓\r\n\t"),
 		},
 		{
 			name: "num/zero",
-			expr: LitNum("0"),
+			expr: "0",
 			kind: types.Num,
 			val:  val.Num(0),
 		},
 		{
 			name: "num/int",
-			expr: LitNum("42"),
+			expr: "42",
 			kind: types.Num,
-			val:  num,
+			val:  conv.MustValOf(42),
 		},
 		{
 			name: "num/float",
-			expr: LitNum("123.456"),
+			expr: "123.456",
 			kind: types.Num,
 			val:  val.Num(123.456),
 		},
 		{
 			name: "num/e",
-			expr: LitNum("123.456e-78"),
+			expr: "123.456e-78",
 			kind: types.Num,
 			val:  val.Num(123.456e-78),
 		},
 		{
 			name: "num/neg",
-			expr: LitNum("-123.456E-78"),
+			expr: "-123.456E-78",
 			kind: types.Num,
 			val:  val.Num(-123.456e-78),
 		},
 		{
 			name: "num/bin",
-			expr: LitNum("0b10101"),
+			expr: "0b10101",
 			kind: types.Num,
 			val:  val.Num(0b10101),
 		},
 		{
 			name: "num/oct",
-			expr: LitNum("0o1234567"),
+			expr: "0o1234567",
 			kind: types.Num,
 			val:  val.Num(0o1234567),
 		},
 		{
 			name: "num/hex",
-			expr: LitNum("0x123456789abcdef"),
+			expr: "0x123456789abcdef",
 			kind: types.Num,
 			val:  val.Num(0x123456789abcdef),
 		},
 		{
 			name: "bool/true",
-			expr: LitTrue(),
+			expr: "true",
 			kind: types.Bool,
 			val:  val.True,
 		},
 		{
 			name: "bool/false",
-			expr: LitFalse(),
+			expr: "false",
 			kind: types.Bool,
 			val:  val.False,
 		},
 		{
 			name: "var/num",
-			expr: Ident("var_num"),
+			expr: "var_num",
 			kind: types.Num,
-			val:  num,
+			val:  conv.MustValOf(42),
 		},
 		{
 			name: "var/str",
-			expr: Ident("var_str"),
+			expr: "var_str",
 			kind: types.Str,
-			val:  str,
+			val:  conv.MustValOf("Hello"),
 		},
 		{
 			name: "var/list[num]",
-			expr: Ident("var_list_num"),
+			expr: "var_list_num",
 			kind: types.List(types.Num),
-			val:  list.Vl(),
+			val:  conv.MustValOf([]int{1, 2, 3}),
 		},
 		{
 			name: "list[num]",
-			expr: List([]*Expr{LitNum("1"), LitNum("2")}),
+			expr: "[1, 2]",
 			kind: types.List(types.Num),
-			val:  val.List(types.List(types.Num).List(), 0).List().Add(val.Num(1), val.Num(2)).Vl(),
+			val:  conv.MustValOf([]int{1, 2}),
 		},
 		{
 			name: "map[num, str]",
-			expr: Map([]Pair{{Key: LitNum("1"), Val: LitStr("`1`")}}),
+			expr: "[1:`1`]",
 			kind: types.Map(types.Num, types.Str),
-			val: func() *val.Val {
-				v := val.Map(types.Map(types.Num, types.Str).Map())
-				v.Map().Put(val.Num(1), val.Str("1"))
-				return v
-			}(),
+			val:  conv.MustValOf(map[int]string{1: "1"}),
 		},
 		{
 			name: "obj{id:num, name:str}",
-			expr: Obj([]Field{
-				{"id", LitNum("42")},
-				{"name", LitStr(`"晓"`)},
-			}),
+			expr: "{id:42, name:`晓`}",
 			kind: types.Obj([]types.Field{
 				{"id", types.Num},
 				{"name", types.Str},
 			}),
-			val: obj.Vl(),
+			val: obj,
 		},
 		{
 			name: "subscript/list",
-			expr: Subscript(
-				List([]*Expr{LitNum("1"), LitNum("2")}),
-				LitNum("0"),
-			),
+			expr: "[1,2][0]",
 			kind: types.Num,
 			val:  val.Num(1),
 		},
 		{
 			name: "subscript/map",
-			expr: Subscript(
-				Map([]Pair{
-					{Key: LitNum("1"), Val: LitStr("`1`")},
-				}),
-				LitNum("1"),
-			),
+			expr: "[1:`1`][1]",
 			kind: types.Str,
 			val:  val.Str("1"),
 		},
 		{
 			name: "member",
-			expr: Member(
-				Obj([]Field{
-					{"id", LitNum("42")},
-					{"name", LitStr(`"晓"`)},
-				}),
-				Ident("id").Ident(),
-			),
+			expr: "{id:42,name:`晓`}.id",
 			kind: types.Num,
 			val:  val.Num(42),
 		},
 		{
 			name: "call/mono",
-			expr: Call(Ident("mono_itoa"), []*Expr{LitNum("42")}),
+			expr: "mono_itoa(42)",
 			kind: types.Str,
 			val:  val.Str("42"),
 		},
 		{
 			name: "call/poly/id/num",
-			expr: Call(Ident("poly_id"), []*Expr{LitNum("42")}),
+			expr: "poly_id(42)",
 			kind: types.Num,
 			val:  val.Num(42),
 		},
 		{
 			name: "call/poly/id/str",
-			expr: Call(Ident("poly_id"), []*Expr{LitStr(`"晓"`)}),
+			expr: "poly_id(`晓`)",
 			kind: types.Str,
 			val:  val.Str("晓"),
 		},
 		{
 			name: "call/poly/len/emptyList",
-			expr: Call(Ident("poly_len"), []*Expr{
-				List([]*Expr{}),
-			}),
+			expr: "poly_len([])",
 			kind: types.Num,
 			val:  val.Num(0),
 		},
 		{
 			name: "call/poly/len/list",
-			expr: Call(Ident("poly_len"), []*Expr{
-				List([]*Expr{LitNum("1"), LitNum("2")}),
-			}),
+			expr: "poly_len([1,2])",
 			kind: types.Num,
 			val:  val.Num(2),
 		},
 		{
 			name: "call/poly/len/emptyMap",
-			expr: Call(Ident("poly_len"), []*Expr{
-				Map([]Pair{}),
-			}),
+			expr: "poly_len([:])",
 			kind: types.Num,
 			val:  val.Num(0),
 		},
 		{
 			name: "call/poly/len/map",
-			expr: Call(Ident("poly_len"), []*Expr{
-				Map([]Pair{
-					{Key: LitNum("1"), Val: LitStr("`1`")},
-				}),
-			}),
+			expr: "poly_len([1:`1`])",
 			kind: types.Num,
 			val:  val.Num(1),
 		},
 		// 动态分派
 		{
 			name: "call/dynamic",
-			// [poly_id][0](1),
-			expr: Call(
-				Subscript(
-					List([]*Expr{
-						Ident("mono_itoa"),
-					}),
-					LitNum("0"),
-				),
-				[]*Expr{
-					LitNum("1"),
-				},
-			),
+			expr: "[mono_itoa][0](1)",
 			kind: types.Str,
 			val:  val.Str("1"),
 		},
@@ -314,27 +270,46 @@ func TestCompile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer func() {
-				if r := recover(); r != nil {
-					t.Errorf("%v", r)
-				}
-			}()
-			{
-				// 注意 typeCheck 会修改 ast 的上附加的类型信息
-				actual := types.Check(tt.expr, typEnv)
+			// 注意 typeCheck 会修改 ast 的上附加的类型信息
+			parsed := parse(tt.expr)
+
+			t.Run("typecheck", func(t *testing.T) {
+				actual := types.Check(parsed, typEnv)
 				expected := tt.kind
 				if !types.Equals(expected, actual) {
 					t.Errorf("expect `%s` actual `%s` in `%s`", expected, actual, tt.expr)
 				}
-			}
-			{
-				compiled := Compile(tt.expr, valEnv)
+			})
+
+			t.Run("closure.Compile", func(t *testing.T) {
+				defer func() {
+					if r := recover(); r != nil {
+						t.Errorf("%v", r)
+					}
+				}()
+
+				compiled := closure.Compile(parsed, valEnv)
 				actual := compiled(valEnv)
 				expected := tt.val
 				if !val.Equals(expected, actual) {
 					t.Errorf("expect %s actual %s in `%s`", expected, actual, tt.expr)
 				}
-			}
+			})
+			t.Run("bytecode.Compile", func(t *testing.T) {
+				defer func() {
+					if r := recover(); r != nil {
+						t.Errorf("%v", r)
+					}
+				}()
+
+				compiled := vm.Compile(parsed, valEnv)
+				actual := compiled(valEnv)
+				expected := tt.val
+				if !val.Equals(expected, actual) {
+					t.Errorf("expect %s actual %s in `%s`", expected, actual, tt.expr)
+				}
+			})
+
 		})
 	}
 }

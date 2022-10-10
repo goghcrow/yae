@@ -18,9 +18,9 @@ import (
 
 //goland:noinspection GoSnakeCaseUsage
 var (
-	// IF_BOOL_A_A if :: forall a. (bool -> α -> α -> α)
+	// IF_BOOL_ANY_ANY if :: forall a. (bool -> α -> α -> α)
 	// if 可以声明成惰性求值的泛型函数
-	IF_BOOL_A_A = func() *val.Val {
+	IF_BOOL_ANY_ANY = func() *val.Val {
 		T := types.Slot("a")
 		return val.LazyFun(
 			types.Fun(IF /*token.IF.Name*/, []*types.Kind{types.Bool, T, T}, T),

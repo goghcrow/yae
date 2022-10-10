@@ -1,10 +1,29 @@
-package util
+package test
 
 import (
+	. "github.com/goghcrow/yae/timelib"
 	"testing"
+	"time"
 )
 
-func TestStrtotime(t *testing.T) {
+func Test_Strtotime_Example(t *testing.T) {
+
+	t.Run("母亲节", func(t *testing.T) {
+		t.Log(time.Unix(Strtotime("second sunday of may 2022"), 0))
+	})
+
+	t.Run("父亲节", func(t *testing.T) {
+		t.Log(time.Unix(Strtotime("third sunday of june 2022"), 0))
+	})
+
+	t.Run("感恩节", func(t *testing.T) {
+		t.Log(time.Unix(Strtotime("fourth thursday of november 2022"), 0))
+	})
+
+	t.Run("2022年二月的最后一天 12:22", func(t *testing.T) {
+		t.Log(time.Unix(Strtotime("last day of february 2022 12:22"), 0))
+	})
+
 	times := []string{
 		"now",
 		"yesterday",
@@ -100,7 +119,8 @@ func TestStrtotime(t *testing.T) {
 		"Sun, 13 Nov 2020 22:56:10 -0800 (PST)",
 		"May 18th 5:05pm",
 	}
+
 	for _, it := range times {
-		t.Log(Strtotime(it))
+		t.Log(time.Unix(Strtotime(it), 0))
 	}
 }

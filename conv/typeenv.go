@@ -6,6 +6,14 @@ import (
 	"reflect"
 )
 
+func MustTypeEnvOf(v interface{}) *types.Env {
+	env, err := TypeEnvOf(v)
+	if err != nil {
+		panic(err)
+	}
+	return env
+}
+
 func TypeEnvOf(v interface{}) (*types.Env, error) {
 	if v == nil {
 		return types.NewEnv(), nil

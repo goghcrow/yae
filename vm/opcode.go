@@ -1,33 +1,51 @@
 package vm
 
-type op byte
+type opcode byte
 
 // 生成 String 函数
-//go:generate /bin/bash genopstr.sh
+//go:generate /bin/bash gen.sh
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	OP_NOP op = iota
+	OP_NOP opcode = iota
 	OP_RETURN
 
 	OP_CONST
 	OP_LOAD
 
 	OP_ADD_NUM
-	OP_SUB_NUM
 	OP_ADD_NUM_NUM
+	OP_ADD_STR_STR
+	OP_SUB_NUM
 	OP_SUB_NUM_NUM
+	OP_SUB_TIME_TIME
 	OP_MUL_NUM_NUM
 	OP_DIV_NUM_NUM
 	OP_MOD_NUM_NUM
 	OP_EXP_NUM_NUM
 
+	OP_ABS_NUM
+	OP_CEIL_NUM
+	OP_FLOOR_NUM
+	OP_ROUND_NUM
+
+	OP_MIN_NUM_NUM
+	OP_MAX_NUM_NUM
+
 	OP_EQ_NUM_NUM
 	OP_EQ_BOOL_BOOL
 	OP_EQ_STR_STR
+	OP_EQ_TIME_TIME
+	OP_EQ_LIST_LIST
+	OP_EQ_MAP_MAP
+
 	OP_NE_NUM_NUM
 	OP_NE_BOOL_BOOL
 	OP_NE_STR_STR
+	OP_NE_TIME_TIME
+	OP_NE_LIST_LIST
+	OP_NE_MAP_MAP
+
 	OP_LT_NUM_NUM
 	OP_LT_TIME_TIME
 	OP_LE_NUM_NUM
@@ -44,6 +62,12 @@ const (
 	OP_LIST_LOAD
 	OP_MAP_LOAD
 	OP_OBJ_LOAD
+
+	OP_LEN_STR
+	OP_LEN_LIST
+	OP_LEN_MAP
+
+	OP_STRTOTIME_STR
 
 	OP_INVOKE_STATIC
 	OP_INVOKE_STATIC_LAZY

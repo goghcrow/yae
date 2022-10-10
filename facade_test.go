@@ -2,8 +2,8 @@ package yae
 
 import (
 	"fmt"
+	"github.com/goghcrow/yae/timelib"
 	"github.com/goghcrow/yae/types"
-	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"testing"
 	"time"
@@ -35,7 +35,7 @@ func TestEval(t *testing.T) {
 			name:     "strtotime",
 			expr:     `'first day of next month'`,
 			ctx:      nil,
-			expected: val.Time(time.Unix(util.Strtotime("first day of next month"), 0)),
+			expected: val.Time(time.Unix(timelib.Strtotime("first day of next month"), 0)),
 		},
 		{
 			name:     "map",
@@ -106,7 +106,7 @@ func TestEval(t *testing.T) {
 				"时间": time.Now(),
 			},
 			expected: func() *val.Val {
-				if time.Now().Unix() < util.Strtotime("today 08:00") {
+				if time.Now().Unix() < timelib.Strtotime("today 08:00") {
 					return val.Num(10)
 				} else {
 					return val.Num(20)

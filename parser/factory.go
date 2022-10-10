@@ -58,7 +58,9 @@ func ident(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
 }
 
 func literal(typ ast.LitType) nud {
-	return func(p *parser, bp oper.BP, t *token.Token) *ast.Expr { return ast.Literal(typ, t.Lexeme) }
+	return func(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
+		return parseLit(typ, t.Lexeme)
+	}
 }
 
 func binaryL(p *parser, bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
