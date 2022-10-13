@@ -18,42 +18,44 @@ type Val struct {
 	Kind *types.Kind
 }
 
-type BoolVal struct {
-	Val
-	V bool
-}
-type NumVal struct {
-	Val
-	V float64 // 需要高精度考虑 big.Int / big.Float
-}
-type StrVal struct {
-	Val
-	V string
-}
-type TimeVal struct {
-	Val
-	V time.Time
-}
-type ListVal struct {
-	Val
-	V []*Val
-}
-type MapVal struct {
-	Val
-	V map[Key]*Val
-}
-type ObjVal struct {
-	Val
-	V []*Val
-}
-type IFun func(...*Val) *Val
-type FunVal struct {
-	Val
-	V IFun
-	// 惰性求值 for and or 等短路操作符/函数, 实参会被包成 thunk
-	Lazy bool
-	// 不是闭包, 不需要引用 env
-}
+type (
+	BoolVal struct {
+		Val
+		V bool
+	}
+	NumVal struct {
+		Val
+		V float64 // 需要高精度考虑 big.Int / big.Float
+	}
+	StrVal struct {
+		Val
+		V string
+	}
+	TimeVal struct {
+		Val
+		V time.Time
+	}
+	ListVal struct {
+		Val
+		V []*Val
+	}
+	MapVal struct {
+		Val
+		V map[Key]*Val
+	}
+	ObjVal struct {
+		Val
+		V []*Val
+	}
+	IFun   func(...*Val) *Val
+	FunVal struct {
+		Val
+		V IFun
+		// 惰性求值 for and or 等短路操作符/函数, 实参会被包成 thunk
+		Lazy bool
+		// 不是闭包, 不需要引用 env
+	}
+)
 
 func (v *NumVal) IsInt() bool { return v.V == math.Trunc(v.V) }
 func (v *NumVal) Int() int64  { return int64(v.V) }

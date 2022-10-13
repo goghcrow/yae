@@ -23,50 +23,53 @@ type Kind struct {
 	Type
 }
 
-type SlotKind struct {
-	Kind
-	Name string
-}
-type BoolKind struct {
-	Kind
-}
-type NumKind struct {
-	Kind
-}
-type StrKind struct {
-	Kind
-}
-type TimeKind struct {
-	Kind
-}
-type TupleKind struct {
-	Kind
-	Val []*Kind
-}
-type ListKind struct {
-	Kind
-	El *Kind
-}
-type MapKind struct {
-	Kind
-	Key *Kind
-	Val *Kind
-}
-type Field struct {
-	Name string
-	Val  *Kind
-}
-type ObjKind struct {
-	Kind
-	Fields []Field
-	Index  map[string]int
-}
-type FunKind struct {
-	Kind
-	Name   string
-	Param  []*Kind
-	Return *Kind
-}
+type (
+	// SlotKind TypeVariable
+	SlotKind struct {
+		Kind
+		Name string
+	}
+	BoolKind struct {
+		Kind
+	}
+	NumKind struct {
+		Kind
+	}
+	StrKind struct {
+		Kind
+	}
+	TimeKind struct {
+		Kind
+	}
+	TupleKind struct {
+		Kind
+		Val []*Kind
+	}
+	ListKind struct {
+		Kind
+		El *Kind
+	}
+	MapKind struct {
+		Kind
+		Key *Kind
+		Val *Kind
+	}
+	Field struct {
+		Name string
+		Val  *Kind
+	}
+	ObjKind struct {
+		Kind
+		Fields []Field
+		Index  map[string]int
+	}
+	FunKind struct {
+		Kind
+		Name   string
+		Param  []*Kind
+		Return *Kind
+	}
+)
 
 func (k *Kind) Slot() *SlotKind   { return (*SlotKind)(unsafe.Pointer(k)) }
 func (k *Kind) Bool() *BoolKind   { return (*BoolKind)(unsafe.Pointer(k)) }

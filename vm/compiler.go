@@ -8,7 +8,6 @@ import (
 	"github.com/goghcrow/yae/val"
 	"math"
 	"time"
-	"unsafe"
 )
 
 // 字节码的本质是 ast 后序遍历的产生的线性序列
@@ -137,14 +136,15 @@ func (b *bytecode) compile(c *Compiler, expr *ast.Expr, env *val.Env) {
 }
 
 func (b *bytecode) compileInvokeStatic(c *Compiler, call *ast.CallExpr, env *val.Env) {
-	f, _ := env.Get(call.Resolved)
-	// 多态函数, 这里有点 hack, 手动狗头
-	if call.Index >= 0 {
-		fnTbl := *(*[]*val.FunVal)(unsafe.Pointer(f))
-		f = fnTbl[call.Index].Vl()
+	var fun *val.FunVal
+	if call.Index < 0 {
+		fun, _ = env.GetMonoFun(call.Resolved)
+	} else {
+		fnTbl, _ := env.GetPolyFuns(call.Resolved)
+		fun = fnTbl[call.Index]
 	}
+	f := fun.Vl()
 
-	fun := f.Fun()
 	lazy := fun.Lazy
 	params := fun.Kind.Fun().Param
 
@@ -172,9 +172,9 @@ func (b *bytecode) compileInvokeStatic(c *Compiler, call *ast.CallExpr, env *val
 	}
 
 	if lazy {
-		b.emitOP(OP_INVOKE_STATIC_LAZY)
+		b.emitOP(OP_CALL_BY_NEED)
 	} else {
-		b.emitOP(OP_INVOKE_STATIC)
+		b.emitOP(OP_CALL_BY_VALUE)
 	}
 
 	b.emitConst(f)
@@ -199,7 +199,7 @@ func (b *bytecode) compileInvokeDynamic(c *Compiler, call *ast.CallExpr, env *va
 	for _, arg := range call.Args {
 		b.compile(c, arg, env)
 	}
-	b.emitOP(OP_INVOKE_DYNAMIC)
+	b.emitOP(OP_DYNAMIC_CALL)
 	b.emitUint8(len(call.Args)) // 参数最多 256
 }
 

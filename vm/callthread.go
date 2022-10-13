@@ -83,9 +83,9 @@ func init() {
 	instructions[OP_LEN_LIST] = OP_LEN_LIST_Handler
 	instructions[OP_LEN_MAP] = OP_LEN_MAP_Handler
 	instructions[OP_STRTOTIME_STR] = OP_STRTOTIME_STR_Handler
-	instructions[OP_INVOKE_STATIC] = OP_INVOKE_STATIC_Handler
-	instructions[OP_INVOKE_STATIC_LAZY] = OP_INVOKE_STATIC_LAZY_Handler
-	instructions[OP_INVOKE_DYNAMIC] = OP_INVOKE_DYNAMIC_Handler
+	instructions[OP_CALL_BY_VALUE] = OP_CALL_BY_VALUE_Handler
+	instructions[OP_CALL_BY_NEED] = OP_CALL_BY_NEED_Handler
+	instructions[OP_DYNAMIC_CALL] = OP_DYNAMIC_CALL_Handler
 
 	instructions[OP_NOP] = OP_NOP_Handler
 }
@@ -455,7 +455,7 @@ func OP_STRTOTIME_STR_Handler(v *VM) {
 }
 
 //goland:noinspection GoSnakeCaseUsage
-func OP_INVOKE_STATIC_Handler(v *VM) {
+func OP_CALL_BY_VALUE_Handler(v *VM) {
 	fv, w := v.readConst(v.pc)
 	v.pc += w
 	argc := v.readUint8(v.pc)
@@ -470,7 +470,7 @@ func OP_INVOKE_STATIC_Handler(v *VM) {
 }
 
 //goland:noinspection GoSnakeCaseUsage
-func OP_INVOKE_STATIC_LAZY_Handler(v *VM) {
+func OP_CALL_BY_NEED_Handler(v *VM) {
 	fv, w := v.readConst(v.pc)
 	v.pc += w
 	argc := v.readUint8(v.pc)
@@ -495,7 +495,7 @@ func OP_INVOKE_STATIC_LAZY_Handler(v *VM) {
 }
 
 //goland:noinspection GoSnakeCaseUsage
-func OP_INVOKE_DYNAMIC_Handler(v *VM) {
+func OP_DYNAMIC_CALL_Handler(v *VM) {
 	argc := v.readUint8(v.pc)
 	v.pc += 1
 	args := make([]*val.Val, argc)

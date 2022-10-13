@@ -38,11 +38,11 @@ func TestCompile(t *testing.T) {
 
 		// 测试动态分派
 		lookup, _ := fun.Fun().Lookup()
-		monoFunKind, _ := typEnv.Get(lookup)
-		typEnv.Put("mono_itoa", monoFunKind)
+		monoFunKind, _ := typEnv.GetMonoFun(lookup)
+		typEnv.Put("mono_itoa", monoFunKind.Kd())
 
-		monoFunVal, _ := valEnv.Get(lookup)
-		valEnv.Put("mono_itoa", monoFunVal)
+		monoFunVal, _ := valEnv.GetMonoFun(lookup)
+		valEnv.Put("mono_itoa", monoFunVal.Vl())
 	}
 
 	{

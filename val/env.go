@@ -3,17 +3,17 @@ package val
 import (
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
-	"unsafe"
 )
 
 // Env for compile and runtime
 type Env struct {
 	parent *Env
 	ctx    map[string]*Val
+	fnTbl  map[string]interface{} // *FunVal | []*FunVal
 }
 
 func NewEnv() *Env {
-	return &Env{nil, map[string]*Val{}}
+	return &Env{nil, map[string]*Val{}, map[string]interface{}{}}
 }
 
 func (e *Env) Inherit(parent *Env) *Env {
@@ -23,7 +23,7 @@ func (e *Env) Inherit(parent *Env) *Env {
 }
 
 func (e *Env) Derive() *Env {
-	return &Env{e, map[string]*Val{}}
+	return &Env{e, map[string]*Val{}, map[string]interface{}{}}
 }
 
 func (e *Env) Get(name string) (*Val, bool) {
@@ -44,15 +44,35 @@ func (e *Env) RegisterFun(f *Val) {
 	util.Assert(f.Kind.Type == types.TFun, "expect FunVal actual %s", f)
 	lookup, mono := f.Kind.Fun().Lookup()
 	if mono {
-		e.Put(lookup, f)
+		e.fnTbl[lookup] = f.Fun()
 	} else {
-		hackPtr, ok := e.Get(lookup)
+		tbl, ok := e.fnTbl[lookup].([]*FunVal)
 		if !ok {
-			hackPtr = (*Val)(unsafe.Pointer(&[]*FunVal{}))
-			e.Put(lookup, hackPtr)
+			tbl = []*FunVal{}
 		}
+		tbl = append(tbl, f.Fun())
+		e.fnTbl[lookup] = tbl
+	}
+}
 
-		fnTblPtr := (*[]*FunVal)(unsafe.Pointer(hackPtr))
-		*fnTblPtr = append(*fnTblPtr, f.Fun())
+func (e *Env) GetMonoFun(name string) (*FunVal, bool) {
+	fk, ok := e.fnTbl[name].(*FunVal)
+	if ok {
+		return fk, true
+	} else if e.parent != nil {
+		return e.parent.GetMonoFun(name)
+	} else {
+		return nil, false
+	}
+}
+
+func (e *Env) GetPolyFuns(name string) ([]*FunVal, bool) {
+	fk, ok := e.fnTbl[name].([]*FunVal)
+	if ok {
+		return fk, true
+	} else if e.parent != nil {
+		return e.parent.GetPolyFuns(name)
+	} else {
+		return nil, false
 	}
 }

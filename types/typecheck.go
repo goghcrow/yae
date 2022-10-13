@@ -4,7 +4,6 @@ import (
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/util"
-	"unsafe"
 )
 
 func Infer(expr *ast.Expr, env *Env) (kind *Kind, err error) {
@@ -193,7 +192,7 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunK
 	// 1. 首先尝试 resolve mono fn
 	monofk, mono := Fun(fnName, args, Bottom /*返回类型无所谓*/).Fun().Lookup()
 	util.Assert(mono, "unexpected")
-	f, ok := env.Get(monofk)
+	f, ok := env.GetMonoFun(monofk)
 	if ok {
 		util.Assert(f.Type == TFun, "non callable of %s in %s", monofk, call)
 		call.Resolved = monofk // attach ast, 标记 callee 在环境中的 key
@@ -202,17 +201,15 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Kind) *FunK
 	}
 
 	// 2. 然后依次尝试 poly fn
-	// 这里 hack 参见: type/env.go::RegisterFun
 	// 先按 `函数名+参数个数` 查找重载的函数列表(包括泛型函数)
 	polyfk, _ := Fun(fnName, args, Slot("α")).Fun().Lookup()
-	fs, ok := env.Get(polyfk)
+	fks, ok := env.GetPolyFuns(polyfk)
 	util.Assert(ok, "func `%s` has no overload for params`%s`", fnName, args)
 
 	// 然后在重载函数列表中依次查找
 	// 因为不支持子类型, 所以也没有最适合的规则, 找到匹配为止
 	// 并实例化函数 poly ~~> mono
-	fks := (*[]*FunKind)(unsafe.Pointer(fs))
-	for i, f := range *fks {
+	for i, f := range fks {
 		util.Assert(f.Type == TFun, "non callable of %s in %s", fnName, call)
 		monof := inferFun(f, args)
 		if monof == nil {

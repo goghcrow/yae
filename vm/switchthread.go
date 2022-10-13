@@ -293,7 +293,7 @@ func switchThreading(v *VM) *val.Val {
 			v.Push(val.Time(time.Unix(ts, 0)))
 
 		// -----------------------------------------------
-		case OP_INVOKE_STATIC:
+		case OP_CALL_BY_VALUE:
 			fv, w := v.readConst(v.pc)
 			v.pc += w
 			argc := v.readUint8(v.pc)
@@ -306,7 +306,7 @@ func switchThreading(v *VM) *val.Val {
 			}
 			v.Push(f.Call(args...))
 
-		case OP_INVOKE_STATIC_LAZY:
+		case OP_CALL_BY_NEED:
 			fv, w := v.readConst(v.pc)
 			v.pc += w
 			argc := v.readUint8(v.pc)
@@ -329,7 +329,7 @@ func switchThreading(v *VM) *val.Val {
 			}
 			v.Push(f.Call(args...))
 
-		case OP_INVOKE_DYNAMIC:
+		case OP_DYNAMIC_CALL:
 			argc := v.readUint8(v.pc)
 			v.pc += 1
 			args := make([]*val.Val, argc)

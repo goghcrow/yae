@@ -7,7 +7,6 @@ import (
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"time"
-	"unsafe"
 )
 
 // Compile 编译成闭包
@@ -197,14 +196,14 @@ func Compile(expr *ast.Expr, env1 *val.Env) compiler.Closure {
 
 // 函数在编译期 resolve, 通过 golang 闭包的 upval 传递给运行时
 func staticDispatch(env1 *val.Env, call *ast.CallExpr) compiler.Closure {
-	f, _ := env1.Get(call.Resolved)
-	// 多态函数, 这里有点 hack, 手动狗头
-	if call.Index >= 0 {
-		fnTbl := *(*[]*val.FunVal)(unsafe.Pointer(f))
-		f = fnTbl[call.Index].Vl()
+	var fun *val.FunVal
+	if call.Index < 0 {
+		fun, _ = env1.GetMonoFun(call.Resolved)
+	} else {
+		fnTbl, _ := env1.GetPolyFuns(call.Resolved)
+		fun = fnTbl[call.Index]
 	}
 
-	fun := f.Fun()
 	argc, cs := compileArgs(env1, call)
 	return makeCallClosure(fun, argc, cs)
 }

@@ -1,7 +1,8 @@
-package yae
+package test
 
 import (
 	"fmt"
+	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/timelib"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
@@ -188,7 +189,7 @@ func TestEval(t *testing.T) {
 					t.Errorf("%v", r)
 				}
 			}()
-			r, err := Eval(tt.expr, tt.ctx)
+			r, err := yae.Eval(tt.expr, tt.ctx)
 			if err != nil {
 				t.Errorf("[%s] expect %s but error %s", tt.expr, tt.expected, err)
 			} else {

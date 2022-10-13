@@ -2,17 +2,17 @@ package types
 
 import (
 	"github.com/goghcrow/yae/util"
-	"unsafe"
 )
 
 // Env for typeChecker
 type Env struct {
 	parent *Env
 	ctx    map[string]*Kind
+	fnTbl  map[string]interface{} // *FunKind | []*FunKind
 }
 
 func NewEnv() *Env {
-	return &Env{nil, map[string]*Kind{}}
+	return &Env{nil, map[string]*Kind{}, map[string]interface{}{}}
 }
 
 func (e *Env) Inherit(parent *Env) *Env {
@@ -22,7 +22,7 @@ func (e *Env) Inherit(parent *Env) *Env {
 }
 
 func (e *Env) Derive() *Env {
-	return &Env{e, map[string]*Kind{}}
+	return &Env{e, map[string]*Kind{}, map[string]interface{}{}}
 }
 
 func (e *Env) Get(name string) (*Kind, bool) {
@@ -34,7 +34,7 @@ func (e *Env) Get(name string) (*Kind, bool) {
 }
 
 func (e *Env) Put(name string, val *Kind) {
-	util.Assert(slotFree(val), "expect unslot")
+	util.Assert(slotFree(val), "expect mono type actual %s", val)
 	// 注意这里只修改当前环境, 不修改继承
 	// 如果是 scope 语义, 需要先 env:=findDefEnv(name) 然后 env.ctx[name]=val
 	e.ctx[name] = val
@@ -50,16 +50,36 @@ func (e *Env) RegisterFun(f *Kind) {
 	util.Assert(f.Type == TFun, "expect FunKind actual %s", f)
 	lookup, mono := f.Fun().Lookup()
 	if mono {
-		e.Put(lookup, f)
+		util.Assert(slotFree(f), "expect mono type actual %s", f)
+		e.fnTbl[lookup] = f.Fun()
 	} else {
-		hackPtr, ok := e.Get(lookup)
+		tbl, ok := e.fnTbl[lookup].([]*FunKind)
 		if !ok {
-			hackPtr = (*Kind)(unsafe.Pointer(&[]*FunKind{}))
-			// e.Put(lookup, hackPtr)
-			e.ctx[lookup] = hackPtr
+			tbl = []*FunKind{}
 		}
+		tbl = append(tbl, f.Fun())
+		e.fnTbl[lookup] = tbl
+	}
+}
 
-		fnTblPtr := (*[]*FunKind)(unsafe.Pointer(hackPtr))
-		*fnTblPtr = append(*fnTblPtr, f.Fun())
+func (e *Env) GetMonoFun(name string) (*FunKind, bool) {
+	fk, ok := e.fnTbl[name].(*FunKind)
+	if ok {
+		return fk, true
+	} else if e.parent != nil {
+		return e.parent.GetMonoFun(name)
+	} else {
+		return nil, false
+	}
+}
+
+func (e *Env) GetPolyFuns(name string) ([]*FunKind, bool) {
+	fk, ok := e.fnTbl[name].([]*FunKind)
+	if ok {
+		return fk, true
+	} else if e.parent != nil {
+		return e.parent.GetPolyFuns(name)
+	} else {
+		return nil, false
 	}
 }

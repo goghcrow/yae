@@ -63,9 +63,9 @@ func Disassemble(b *bytecode) string {
 			i += w
 			buf.WriteString(fmt.Sprintf("[%d] %s %d\n", off, op, sz))
 
-		case OP_INVOKE_STATIC:
+		case OP_CALL_BY_VALUE:
 			fallthrough
-		case OP_INVOKE_STATIC_LAZY:
+		case OP_CALL_BY_NEED:
 			off := i - 1
 			f, w := b.readConst(i)
 			i += w
@@ -73,7 +73,7 @@ func Disassemble(b *bytecode) string {
 			i += 1
 			buf.WriteString(fmt.Sprintf("[%d] %s %s, %d\n", off, op, f, argc))
 
-		case OP_INVOKE_DYNAMIC:
+		case OP_DYNAMIC_CALL:
 			off := i - 1
 			argc := b.readUint8(i)
 			i += 1
