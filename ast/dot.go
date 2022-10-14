@@ -61,10 +61,10 @@ func (v *visualizer) dot(e *Expr) label {
 		l := e.List()
 		n := v.node("<list>")
 		v.connect(n, v.node(token.LEFT_BRACKET))
-		isFst := true
+		fst := true
 		for _, el := range l.Elems {
-			if isFst {
-				isFst = false
+			if fst {
+				fst = false
 			} else {
 				v.connect(n, v.node(token.COMMA))
 			}
@@ -76,10 +76,10 @@ func (v *visualizer) dot(e *Expr) label {
 		m := e.Map()
 		n := v.node("<map>")
 		v.connect(n, v.node(token.LEFT_BRACKET))
-		isFst := true
+		fst := true
 		for _, pair := range m.Pairs {
-			if isFst {
-				isFst = false
+			if fst {
+				fst = false
 			} else {
 				v.connect(n, v.node(token.COMMA))
 			}
@@ -94,10 +94,10 @@ func (v *visualizer) dot(e *Expr) label {
 		o := e.Obj()
 		n := v.node("<obj>")
 		v.connect(n, v.node(token.LEFT_BRACE))
-		isFst := true
+		fst := true
 		for _, f := range o.Fields {
-			if isFst {
-				isFst = false
+			if fst {
+				fst = false
 			} else {
 				v.connect(n, v.node(token.COMMA))
 			}
@@ -137,10 +137,10 @@ func (v *visualizer) dot(e *Expr) label {
 		n := v.node("<call>")
 		v.connect(n, v.dot(c.Callee))
 		v.connect(n, v.node(token.LEFT_PAREN))
-		isFst := true
+		fst := true
 		for _, arg := range c.Args {
-			if isFst {
-				isFst = false
+			if fst {
+				fst = false
 			} else {
 				v.connect(n, v.node(token.COMMA))
 			}

@@ -8,6 +8,9 @@ func Equals(x, y *Kind) bool {
 }
 
 func equals(x, y *Kind, lv int) bool {
+	if x == y {
+		return true
+	}
 	if lv > 42 {
 		// 可以用 set 精确检查 recursive, 这里简化处理
 		return true

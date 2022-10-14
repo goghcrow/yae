@@ -52,10 +52,10 @@ func stringifyList(l *ListVal, lv int) string {
 	}
 	buf := &strings.Builder{}
 	buf.WriteString("[")
-	isFst := true
+	fst := true
 	for _, v := range l.V {
-		if isFst {
-			isFst = false
+		if fst {
+			fst = false
 		} else {
 			buf.WriteString(", ")
 		}
@@ -71,10 +71,10 @@ func stringifyMap(m *MapVal, lv int) string {
 	}
 	buf := &strings.Builder{}
 	buf.WriteString("[")
-	isFst := true
+	fst := true
 	for k, v := range m.V {
-		if isFst {
-			isFst = false
+		if fst {
+			fst = false
 		} else {
 			buf.WriteString(", ")
 		}
@@ -92,11 +92,11 @@ func stringifyObj(o *ObjVal, lv int) string {
 	}
 	buf := &strings.Builder{}
 	buf.WriteString("{")
-	isFst := true
+	fst := true
 	fs := o.Kind.Obj().Fields
 	for i, val := range o.V {
-		if isFst {
-			isFst = false
+		if fst {
+			fst = false
 		} else {
 			buf.WriteString(", ")
 		}

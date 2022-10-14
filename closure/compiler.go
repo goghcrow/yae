@@ -198,12 +198,10 @@ func Compile(expr *ast.Expr, env1 *val.Env) compiler.Closure {
 func staticDispatch(env1 *val.Env, call *ast.CallExpr) compiler.Closure {
 	var fun *val.FunVal
 	if call.Index < 0 {
-		fun, _ = env1.GetMonoFun(call.Resolved)
+		fun = env1.MustGetMonoFun(call.Resolved)
 	} else {
-		fnTbl, _ := env1.GetPolyFuns(call.Resolved)
-		fun = fnTbl[call.Index]
+		fun = env1.MustGetPolyFuns(call.Resolved)[call.Index]
 	}
-
 	argc, cs := compileArgs(env1, call)
 	return makeCallClosure(fun, argc, cs)
 }

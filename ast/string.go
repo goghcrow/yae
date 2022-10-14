@@ -58,10 +58,10 @@ func stringifyMap(m *MapExpr) string {
 	}
 	buf := &strings.Builder{}
 	buf.WriteString("[")
-	isFst := true
+	fst := true
 	for _, p := range pairs {
-		if isFst {
-			isFst = false
+		if fst {
+			fst = false
 		} else {
 			buf.WriteString(", ")
 		}
@@ -80,10 +80,10 @@ func stringifyObj(m *ObjExpr) string {
 	}
 	buf := &strings.Builder{}
 	buf.WriteString("{")
-	isFst := true
+	fst := true
 	for _, f := range fs {
-		if isFst {
-			isFst = false
+		if fst {
+			fst = false
 		} else {
 			buf.WriteString(", ")
 		}
@@ -97,11 +97,11 @@ func stringifyObj(m *ObjExpr) string {
 
 func stringifyExprs(exprs []*Expr) string {
 	buf := &strings.Builder{}
-	isFst := true
+	fst := true
 	for _, elem := range exprs {
-		if isFst {
+		if fst {
 			buf.WriteString(elem.String())
-			isFst = false
+			fst = false
 		} else {
 			buf.WriteString(", ")
 			buf.WriteString(elem.String())

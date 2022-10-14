@@ -6,6 +6,9 @@ import (
 )
 
 func Equals(x, y *Val) bool {
+	if x == y {
+		return true
+	}
 	if x == nil || y == nil {
 		return false
 	}

@@ -29,10 +29,10 @@ func stringify(k *Kind, lv int) string {
 		val := k.Tuple().Val
 		buf := &strings.Builder{}
 		buf.WriteString("(")
-		isFst := true
+		fst := true
 		for _, kind := range val {
-			if isFst {
-				isFst = false
+			if fst {
+				fst = false
 			} else {
 				buf.WriteString(", ")
 			}
@@ -50,10 +50,10 @@ func stringify(k *Kind, lv int) string {
 		fs := k.Obj().Fields
 		buf := &strings.Builder{}
 		buf.WriteString("{")
-		isFst := true
+		fst := true
 		for _, f := range fs {
-			if isFst {
-				isFst = false
+			if fst {
+				fst = false
 			} else {
 				buf.WriteString(", ")
 			}
@@ -69,10 +69,10 @@ func stringify(k *Kind, lv int) string {
 		buf.WriteString("func ")
 		buf.WriteString(f.Name)
 		buf.WriteString("(")
-		isFst := true
+		fst := true
 		for _, param := range f.Param {
-			if isFst {
-				isFst = false
+			if fst {
+				fst = false
 			} else {
 				buf.WriteString(", ")
 			}

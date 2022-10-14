@@ -20,7 +20,7 @@ Type Safe Expression for Terminated Computing
 - regex based lexer
 - top down operator precedence parser
 - type checking and inferring by abstract interpretation and unify
-- compile to closure
+- optional compile to bytecode or closure
 
 ## Syntax
 

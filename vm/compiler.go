@@ -138,10 +138,9 @@ func (b *bytecode) compile(c *Compiler, expr *ast.Expr, env *val.Env) {
 func (b *bytecode) compileInvokeStatic(c *Compiler, call *ast.CallExpr, env *val.Env) {
 	var fun *val.FunVal
 	if call.Index < 0 {
-		fun, _ = env.GetMonoFun(call.Resolved)
+		fun = env.MustGetMonoFun(call.Resolved)
 	} else {
-		fnTbl, _ := env.GetPolyFuns(call.Resolved)
-		fun = fnTbl[call.Index]
+		fun = env.MustGetPolyFuns(call.Resolved)[call.Index]
 	}
 	f := fun.Vl()
 

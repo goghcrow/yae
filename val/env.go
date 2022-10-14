@@ -1,6 +1,7 @@
 package val
 
 import (
+	"fmt"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 )
@@ -66,6 +67,14 @@ func (e *Env) GetMonoFun(name string) (*FunVal, bool) {
 	}
 }
 
+func (e *Env) MustGetMonoFun(name string) *FunVal {
+	fv, ok := e.GetMonoFun(name)
+	if !ok {
+		panic(fmt.Errorf("%s not defined", name))
+	}
+	return fv
+}
+
 func (e *Env) GetPolyFuns(name string) ([]*FunVal, bool) {
 	fk, ok := e.fnTbl[name].([]*FunVal)
 	if ok {
@@ -75,4 +84,12 @@ func (e *Env) GetPolyFuns(name string) ([]*FunVal, bool) {
 	} else {
 		return nil, false
 	}
+}
+
+func (e *Env) MustGetPolyFuns(name string) []*FunVal {
+	fv, ok := e.GetPolyFuns(name)
+	if !ok {
+		panic(fmt.Errorf("%s not defined", name))
+	}
+	return fv
 }
