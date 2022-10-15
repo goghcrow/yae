@@ -8,13 +8,14 @@ import (
 )
 
 func (v *Val) String() string {
-	return stringify(v, 0)
+	return stringify(v, util.PtrSet{})
 }
 
-func stringify(v *Val, lv int) string {
-	if lv > 42 {
-		// 可以用 set 精确检查, 这里简单处理
-		return "*recursive?*"
+func stringify(v *Val, inProcess util.PtrSet) string {
+	if inProcess.Contains(v) {
+		return fmt.Sprintf("recursive-val %s@%p", v.Kind, v)
+	} else {
+		inProcess.Add(v)
 	}
 
 	switch v.Kind.Type {
@@ -35,27 +36,27 @@ func stringify(v *Val, lv int) string {
 		l := v.List()
 		xs := make([]string, len(l.V))
 		for i, v2 := range l.V {
-			xs[i] = stringify(v2, lv+1)
+			xs[i] = stringify(v2, inProcess)
 		}
-		return util.JoinStr(xs, ", ", "[", "]")
+		return util.JoinStrEx(xs, ", ", "[", "]")
 	case types.TMap:
 		m := v.Map()
 		if len(m.V) == 0 {
 			return "[:]"
 		}
 		xs := make([]string, 0, len(m.V))
-		for k, v := range m.V {
-			xs = append(xs, fmt.Sprintf("%s: %s", k, stringify(v, lv+1)))
+		for k, x := range m.V {
+			xs = append(xs, fmt.Sprintf("%s: %s", k, stringify(x, inProcess)))
 		}
-		return util.JoinStr(xs, ", ", "[", "]")
+		return util.JoinStrEx(xs, ", ", "[", "]")
 	case types.TObj:
 		o := v.Obj()
 		fs := o.Kind.Obj().Fields
 		xs := make([]string, len(o.V))
-		for i, v2 := range o.V {
-			xs[i] = fmt.Sprintf("%s: %s", fs[i].Name, stringify(v2, lv+1))
+		for i, x := range o.V {
+			xs[i] = fmt.Sprintf("%s: %s", fs[i].Name, stringify(x, inProcess))
 		}
-		return util.JoinStr(xs, ", ", "{", "}")
+		return util.JoinStrEx(xs, ", ", "{", "}")
 	case types.TFun:
 		return v.Fun().Kind.String()
 	default:

@@ -29,7 +29,7 @@ func stringify(v *val.Val) string {
 		for i, v2 := range l.V {
 			xs[i] = stringify(v2)
 		}
-		return util.JoinStr(xs, ", ", "[", "]")
+		return util.JoinStrEx(xs, ", ", "[", "]")
 	case types.TMap:
 		m := v.Map()
 		if len(m.V) == 0 {
@@ -39,7 +39,7 @@ func stringify(v *val.Val) string {
 		for k, v := range m.V {
 			xs = append(xs, fmt.Sprintf("%s: %s", k, stringify(v)))
 		}
-		return util.JoinStr(xs, ", ", "[", "]")
+		return util.JoinStrEx(xs, ", ", "[", "]")
 	case types.TObj:
 		o := v.Obj()
 		fs := o.Kind.Obj().Fields
@@ -47,7 +47,7 @@ func stringify(v *val.Val) string {
 		for i, v2 := range o.V {
 			xs[i] = fmt.Sprintf("%s: %s", fs[i].Name, stringify(v2))
 		}
-		return util.JoinStr(xs, ", ", "{", "}")
+		return util.JoinStrEx(xs, ", ", "{", "}")
 	case types.TFun:
 		return "#fun"
 	default:

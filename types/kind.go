@@ -6,6 +6,7 @@ import (
 
 // bottom 只在空列表和空 map 使用, top 没有使用
 // 做成 subtype 的复杂度对于表达式没必要
+// 不支持递归类型
 
 //goland:noinspection GoUnusedGlobalVariable
 var (

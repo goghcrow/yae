@@ -1,20 +1,27 @@
 package types
 
+import (
+	"github.com/goghcrow/yae/util"
+)
+
 // IsSubtype k1 <: k2
 //func Subtype(k1, k2 *Kind) bool {}
 
 func Equals(x, y *Kind) bool {
-	return equals(x, y, 0)
+	return equals(x, y, util.PtrPtrSet{})
 }
 
-func equals(x, y *Kind, lv int) bool {
+func equals(x, y *Kind, inProcess util.PtrPtrSet) bool {
 	if x == y {
 		return true
 	}
-	if lv > 42 {
-		// 可以用 set 精确检查 recursive, 这里简化处理
+
+	if inProcess.Contains(x, y) {
 		return true
+	} else {
+		inProcess.Add(x, y)
 	}
+
 	if x == nil || y == nil {
 		return false
 	}
@@ -30,65 +37,65 @@ func equals(x, y *Kind, lv int) bool {
 	if x.Type == TMap {
 		m1 := x.Map()
 		m2 := y.Map()
-		return equals(m1.Key, m2.Key, lv+1) && equals(m1.Val, m2.Val, lv+1)
+		return equals(m1.Key, m2.Key, inProcess) && equals(m1.Val, m2.Val, inProcess)
 	}
 
 	if x.Type == TTuple {
-		return equalsTuple(x.Tuple(), y.Tuple(), lv)
+		return equalsTuple(x.Tuple(), y.Tuple(), inProcess)
 	}
 
 	if x.Type == TList {
-		return equals(x.List().El, y.List().El, lv+1)
+		return equals(x.List().El, y.List().El, inProcess)
 	}
 
 	// structural type (without sequence of fields)
 	if x.Type == TObj {
-		return equalsObj(x.Obj(), y.Obj(), lv)
+		return equalsObj(x.Obj(), y.Obj(), inProcess)
 	}
 
 	if x.Type == TFun {
-		return equalsFun(x.Fun(), y.Fun(), lv)
+		return equalsFun(x.Fun(), y.Fun(), inProcess)
 	}
 
 	return true
 }
 
-func equalsObj(x *ObjKind, y *ObjKind, lv int) bool {
+func equalsObj(x *ObjKind, y *ObjKind, inProcess util.PtrPtrSet) bool {
 	if len(x.Fields) != len(y.Fields) {
 		return false
 	}
 
 	for _, xf := range x.Fields {
 		yf, ok := y.GetField(xf.Name)
-		if !ok || !equals(xf.Val, yf.Val, lv+1) {
+		if !ok || !equals(xf.Val, yf.Val, inProcess) {
 			return false
 		}
 	}
 	return true
 }
 
-func equalsTuple(x, y *TupleKind, lv int) bool {
+func equalsTuple(x, y *TupleKind, inProcess util.PtrPtrSet) bool {
 	xt := x.Tuple()
 	yt := y.Tuple()
 	if len(xt.Val) != len(yt.Val) {
 		return false
 	}
 	for i := range xt.Val {
-		if !equals(xt.Val[i], yt.Val[i], lv+1) {
+		if !equals(xt.Val[i], yt.Val[i], inProcess) {
 			return false
 		}
 	}
 	return true
 }
 
-func equalsFun(x, y *FunKind, lv int) bool {
+func equalsFun(x, y *FunKind, inProcess util.PtrPtrSet) bool {
 	if len(x.Param) != len(y.Param) {
 		return false
 	}
 	for i := range x.Param {
-		if !equals(x.Param[i], y.Param[i], lv+1) {
+		if !equals(x.Param[i], y.Param[i], inProcess) {
 			return false
 		}
 	}
-	return equals(x.Return, y.Return, lv+1)
+	return equals(x.Return, y.Return, inProcess)
 }

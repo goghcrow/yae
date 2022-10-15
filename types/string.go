@@ -6,13 +6,14 @@ import (
 )
 
 func (k *Kind) String() string {
-	return stringify(k, 0)
+	return stringify(k, util.PtrSet{})
 }
 
-func stringify(k *Kind, lv int) string {
-	if lv > 42 {
-		// 可以用 set 精确检查, 这里简单处理
-		return "*recursive?*"
+func stringify(k *Kind, inProcess util.PtrSet) string {
+	if inProcess.Contains(k) {
+		return fmt.Sprintf("recursive-kind %s@%p", k.Type, k)
+	} else {
+		inProcess.Add(k)
 	}
 
 	switch k.Type {
@@ -28,31 +29,31 @@ func stringify(k *Kind, lv int) string {
 		val := k.Tuple().Val
 		xs := make([]string, len(val))
 		for i, kind := range val {
-			xs[i] = stringify(kind, lv+1)
+			xs[i] = stringify(kind, inProcess)
 		}
-		return util.JoinStr(xs, ", ", "(", ")")
+		return util.JoinStrEx(xs, ", ", "(", ")")
 	case TList:
 		l := k.List()
-		return fmt.Sprintf("list[%s]", stringify(l.El, lv+1))
+		return fmt.Sprintf("list[%s]", stringify(l.El, inProcess))
 	case TMap:
 		m := k.Map()
-		return fmt.Sprintf("map[%s, %s]", stringify(m.Key, lv+1), stringify(m.Val, lv+1))
+		return fmt.Sprintf("map[%s, %s]", stringify(m.Key, inProcess), stringify(m.Val, inProcess))
 	case TObj:
 		fs := k.Obj().Fields
 		xs := make([]string, len(fs))
 		for i, f := range fs {
-			xs[i] = fmt.Sprintf("%s: %s", f.Name, stringify(f.Val, lv+1))
+			xs[i] = fmt.Sprintf("%s: %s", f.Name, stringify(f.Val, inProcess))
 		}
-		return util.JoinStr(xs, ", ", "{", "}")
+		return util.JoinStrEx(xs, ", ", "{", "}")
 	case TFun:
 		f := k.Fun()
 		xs := make([]string, len(f.Param))
 		for i, p := range f.Param {
-			xs[i] = stringify(p, lv+1)
+			xs[i] = stringify(p, inProcess)
 		}
 		pre := "func " + f.Name + "("
-		post := ") " + stringify(f.Return, lv+1)
-		return util.JoinStr(xs, ", ", pre, post)
+		post := ") " + stringify(f.Return, inProcess)
+		return util.JoinStrEx(xs, ", ", pre, post)
 	case TSlot:
 		return k.Slot().Name
 	case TTop:

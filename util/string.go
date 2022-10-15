@@ -2,12 +2,12 @@ package util
 
 import "strings"
 
-func JoinStr0(xs []string, sep string) string {
+func JoinStr(xs []string, sep string) string {
 	return strings.Join(xs, sep)
 }
 
-// JoinStr Strings.Join 带前后缀版本
-func JoinStr(xs []string, sep, start, end string) string {
+// JoinStrEx Strings.Join 带前后缀版本
+func JoinStrEx(xs []string, sep, start, end string) string {
 	switch len(xs) {
 	case 0:
 		return start + end

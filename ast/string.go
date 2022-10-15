@@ -17,7 +17,7 @@ func (e *Expr) String() string {
 		for i, el := range l.Elems {
 			xs[i] = el.String()
 		}
-		return util.JoinStr(xs, ", ", "[", "]")
+		return util.JoinStrEx(xs, ", ", "[", "]")
 	case MAP:
 		m := e.Map()
 		pairs := m.Map().Pairs
@@ -28,14 +28,14 @@ func (e *Expr) String() string {
 		for i, x := range pairs {
 			xs[i] = fmt.Sprintf("%s: %s", x.Key, x.Val)
 		}
-		return util.JoinStr(xs, ", ", "[", "]")
+		return util.JoinStrEx(xs, ", ", "[", "]")
 	case OBJ:
 		fs := e.Obj().Fields
 		xs := make([]string, len(fs))
 		for i, f := range fs {
 			xs[i] = fmt.Sprintf("%s: %s", f.Name, f.Val)
 		}
-		return util.JoinStr(xs, ", ", "{", "}")
+		return util.JoinStrEx(xs, ", ", "{", "}")
 	case UNARY:
 		u := e.Unary()
 		if u.Prefix {
@@ -55,7 +55,7 @@ func (e *Expr) String() string {
 		for i, a := range c.Args {
 			xs[i] = a.String()
 		}
-		return util.JoinStr(xs, ", ", c.Callee.String()+"(", ")")
+		return util.JoinStrEx(xs, ", ", c.Callee.String()+"(", ")")
 	case SUBSCRIPT:
 		s := e.Subscript()
 		return fmt.Sprintf("%s[%s]", s.Var, s.Idx)

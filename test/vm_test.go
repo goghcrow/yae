@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestX(t *testing.T) {
+func TestVM(t *testing.T) {
 	//input := `{id:42,name:"晓", map:["lst":[1,2]]}.map["lst"][1] + 100`
 	//input := `if(false,1,{id:42,name:"晓", map:["lst":[1,2]]}.map["lst"][1] + 100)`
 	//input := "1 + 1 > 1 && 1 < 1 || !false"

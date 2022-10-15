@@ -13,21 +13,23 @@ import (
 // 对于其他一切情况, a 和 b 不能合一.
 // m 即 substitution, type variable -> type
 func Unify(s, t *Kind, m map[string]*Kind) *Kind {
-	return unify(s, t, m, 0)
+	return unify(s, t, m, util.PtrPtrSet{})
 }
 
-func unify(x, y *Kind, m map[string]*Kind, lv int) *Kind {
-	if lv > 42 {
-		// 可以用 set 精确检查 recursive, 这里简化处理
+func unify(x, y *Kind, m map[string]*Kind, inProcess util.PtrPtrSet) *Kind {
+	if x.IsComposite() && y.IsComposite() && inProcess.Contains(x, y) {
 		return nil
+	} else {
+		inProcess.Add(x, y)
 	}
+
 	switch {
 	case x.Type == TSlot && y.Type == TSlot && Equals(applySubst(x, m), applySubst(y, m)):
 		return x
 	case x.IsPrimitive() && y.IsPrimitive() && x.Type == y.Type:
 		return x
 	case x.IsComposite() && y.IsComposite() && x.Type == y.Type:
-		return unifyComposite(x, y, m, lv)
+		return unifyComposite(x, y, m, inProcess)
 	case x.Type == TSlot:
 		y1 := applySubst(y, m)
 		// x 是 type var, 且 x 没有出现在 y 中
@@ -66,20 +68,20 @@ func unify(x, y *Kind, m map[string]*Kind, lv int) *Kind {
 	}
 }
 
-func unifyComposite(x, y *Kind, m map[string]*Kind, lv int) *Kind {
+func unifyComposite(x, y *Kind, m map[string]*Kind, inProcess util.PtrPtrSet) *Kind {
 	switch x.Type {
 	case TList:
-		el := unify(x.List().El, y.List().El, m, lv+1)
+		el := unify(x.List().El, y.List().El, m, inProcess)
 		if el == nil {
 			return nil
 		}
 		return List(el)
 	case TMap:
-		k := unify(x.Map().Key, y.Map().Key, m, lv+1)
+		k := unify(x.Map().Key, y.Map().Key, m, inProcess)
 		if k == nil {
 			return nil
 		}
-		v := unify(x.Map().Val, y.Map().Val, m, lv+1)
+		v := unify(x.Map().Val, y.Map().Val, m, inProcess)
 		if v == nil {
 			return nil
 		}
@@ -93,7 +95,7 @@ func unifyComposite(x, y *Kind, m map[string]*Kind, lv int) *Kind {
 		ks := make([]*Kind, len(xtv))
 		for i, xk := range xtv {
 			yk := ytv[i]
-			u := unify(xk, yk, m, lv+1)
+			u := unify(xk, yk, m, inProcess)
 			if u == nil {
 				return nil
 			}
@@ -113,7 +115,7 @@ func unifyComposite(x, y *Kind, m map[string]*Kind, lv int) *Kind {
 			if !ok {
 				return nil
 			}
-			u := unify(xf.Val, yf.Val, m, lv+1)
+			u := unify(xf.Val, yf.Val, m, inProcess)
 			if u == nil {
 				return nil
 			}
@@ -130,12 +132,12 @@ func unifyComposite(x, y *Kind, m map[string]*Kind, lv int) *Kind {
 		for i := range xf.Param {
 			xp := applySubst(xf.Param[i], m)
 			yp := applySubst(yf.Param[i], m)
-			params[i] = unify(xp, yp, m, lv+1)
+			params[i] = unify(xp, yp, m, inProcess)
 			if params[i] == nil {
 				return nil
 			}
 		}
-		ret := unify(xf.Return, yf.Return, m, lv+1)
+		ret := unify(xf.Return, yf.Return, m, inProcess)
 		if ret == nil {
 			return nil
 		}
