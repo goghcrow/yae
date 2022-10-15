@@ -3,7 +3,6 @@ package ast
 import (
 	"fmt"
 	"github.com/goghcrow/yae/util"
-	"strings"
 )
 
 func (e *Expr) String() string {
@@ -13,11 +12,30 @@ func (e *Expr) String() string {
 	case IDENT:
 		return e.Ident().Name
 	case LIST:
-		return fmt.Sprintf("[%s]", stringifyExprs(e.List().Elems))
+		l := e.List()
+		xs := make([]string, len(l.Elems))
+		for i, el := range l.Elems {
+			xs[i] = el.String()
+		}
+		return util.JoinStr(xs, ", ", "[", "]")
 	case MAP:
-		return stringifyMap(e.Map())
+		m := e.Map()
+		pairs := m.Map().Pairs
+		if len(pairs) == 0 {
+			return "[:]"
+		}
+		xs := make([]string, len(pairs))
+		for i, x := range pairs {
+			xs[i] = fmt.Sprintf("%s: %s", x.Key, x.Val)
+		}
+		return util.JoinStr(xs, ", ", "[", "]")
 	case OBJ:
-		return stringifyObj(e.Obj())
+		fs := e.Obj().Fields
+		xs := make([]string, len(fs))
+		for i, f := range fs {
+			xs[i] = fmt.Sprintf("%s: %s", f.Name, f.Val)
+		}
+		return util.JoinStr(xs, ", ", "{", "}")
 	case UNARY:
 		u := e.Unary()
 		if u.Prefix {
@@ -33,7 +51,11 @@ func (e *Expr) String() string {
 		return fmt.Sprintf("%s %s %s %s", t.Left, t.Name, t.Mid, t.Right)
 	case CALL:
 		c := e.Call()
-		return fmt.Sprintf("%s(%s)", c.Callee, stringifyExprs(c.Args))
+		xs := make([]string, len(c.Args))
+		for i, a := range c.Args {
+			xs[i] = a.String()
+		}
+		return util.JoinStr(xs, ", ", c.Callee.String()+"(", ")")
 	case SUBSCRIPT:
 		s := e.Subscript()
 		return fmt.Sprintf("%s[%s]", s.Var, s.Idx)
@@ -49,63 +71,4 @@ func (e *Expr) String() string {
 		util.Unreachable()
 		return ""
 	}
-}
-
-func stringifyMap(m *MapExpr) string {
-	pairs := m.Map().Pairs
-	if len(pairs) == 0 {
-		return "[:]"
-	}
-	buf := &strings.Builder{}
-	buf.WriteString("[")
-	fst := true
-	for _, p := range pairs {
-		if fst {
-			fst = false
-		} else {
-			buf.WriteString(", ")
-		}
-		buf.WriteString(p.Key.String())
-		buf.WriteString(": ")
-		buf.WriteString(p.Val.String())
-	}
-	buf.WriteString("]")
-	return buf.String()
-}
-
-func stringifyObj(m *ObjExpr) string {
-	fs := m.Obj().Fields
-	if len(fs) == 0 {
-		return "{}"
-	}
-	buf := &strings.Builder{}
-	buf.WriteString("{")
-	fst := true
-	for _, f := range fs {
-		if fst {
-			fst = false
-		} else {
-			buf.WriteString(", ")
-		}
-		buf.WriteString(f.Name)
-		buf.WriteString(": ")
-		buf.WriteString(f.Val.String())
-	}
-	buf.WriteString("}")
-	return buf.String()
-}
-
-func stringifyExprs(exprs []*Expr) string {
-	buf := &strings.Builder{}
-	fst := true
-	for _, elem := range exprs {
-		if fst {
-			buf.WriteString(elem.String())
-			fst = false
-		} else {
-			buf.WriteString(", ")
-			buf.WriteString(elem.String())
-		}
-	}
-	return buf.String()
 }

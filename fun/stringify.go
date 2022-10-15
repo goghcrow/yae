@@ -6,7 +6,6 @@ import (
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"strconv"
-	"strings"
 )
 
 func stringify(v *val.Val) string {
@@ -25,80 +24,34 @@ func stringify(v *val.Val) string {
 	case types.TTime:
 		return v.Time().V.String()
 	case types.TList:
-		return stringifyList(v.List())
+		l := v.List()
+		xs := make([]string, len(l.V))
+		for i, v2 := range l.V {
+			xs[i] = stringify(v2)
+		}
+		return util.JoinStr(xs, ", ", "[", "]")
 	case types.TMap:
-		return stringifyMap(v.Map())
+		m := v.Map()
+		if len(m.V) == 0 {
+			return "[:]"
+		}
+		xs := make([]string, 0, len(m.V))
+		for k, v := range m.V {
+			xs = append(xs, fmt.Sprintf("%s: %s", k, stringify(v)))
+		}
+		return util.JoinStr(xs, ", ", "[", "]")
 	case types.TObj:
-		return stringifyObj(v.Obj())
+		o := v.Obj()
+		fs := o.Kind.Obj().Fields
+		xs := make([]string, len(o.V))
+		for i, v2 := range o.V {
+			xs[i] = fmt.Sprintf("%s: %s", fs[i].Name, stringify(v2))
+		}
+		return util.JoinStr(xs, ", ", "{", "}")
 	case types.TFun:
 		return "#fun"
 	default:
 		util.Unreachable()
 		return ""
 	}
-}
-
-func stringifyList(l *val.ListVal) string {
-	if len(l.V) == 0 {
-		return "[]"
-	}
-
-	buf := &strings.Builder{}
-	buf.WriteString("[")
-	fst := true
-	for _, v := range l.V {
-		if fst {
-			fst = false
-		} else {
-			buf.WriteString(", ")
-		}
-		buf.WriteString(stringify(v))
-	}
-	buf.WriteString("]")
-	return buf.String()
-}
-
-func stringifyMap(m *val.MapVal) string {
-	if len(m.V) == 0 {
-		return "[:]"
-	}
-
-	buf := &strings.Builder{}
-	buf.WriteString("[")
-	fst := true
-	for k, v := range m.V {
-		if fst {
-			fst = false
-		} else {
-			buf.WriteString(", ")
-		}
-		buf.WriteString(k.String())
-		buf.WriteString(": ")
-		buf.WriteString(stringify(v))
-	}
-	buf.WriteString("]")
-	return buf.String()
-}
-
-func stringifyObj(v *val.ObjVal) string {
-	if len(v.V) == 0 {
-		return "{}"
-	}
-
-	buf := &strings.Builder{}
-	buf.WriteString("{")
-	fst := true
-	fs := v.Kind.Obj().Fields
-	for i, vl := range v.V {
-		if fst {
-			fst = false
-		} else {
-			buf.WriteString(", ")
-		}
-		buf.WriteString(fs[i].Name)
-		buf.WriteString(": ")
-		buf.WriteString(stringify(vl))
-	}
-	buf.WriteString("}")
-	return buf.String()
 }

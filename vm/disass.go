@@ -14,7 +14,7 @@ func (b *bytecode) String() string {
 }
 
 func Disassemble(b *bytecode) string {
-	buf := &strings.Builder{}
+	var buf strings.Builder
 	i := 0
 	for {
 		if i >= len(b.code) {

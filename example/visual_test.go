@@ -29,20 +29,20 @@ func TestVisual(t *testing.T) {
 	desugarExpr := trans.Desugar(expr)
 	desugarDot := "sub" + ast.Dot(desugarExpr, "cluster2")
 
-	buf := &strings.Builder{}
-	buf.WriteString("graph \"\" {\n")
-	buf.WriteString(fmt.Sprintf("label=%q\n", input))
-	buf.WriteString(dot)
-	buf.WriteString("\n")
-	buf.WriteString(desugarDot)
-	buf.WriteString("\n")
-	buf.WriteString("}")
+	var b strings.Builder
+	b.WriteString("graph \"\" {\n")
+	b.WriteString(fmt.Sprintf("label=%q\n", input))
+	b.WriteString(dot)
+	b.WriteString("\n")
+	b.WriteString(desugarDot)
+	b.WriteString("\n")
+	b.WriteString("}")
 
-	s := buf.String()
+	s := b.String()
 	t.Log(s)
 
-	if false {
-		cmd := exec.Command("open", "https://dreampuf.github.io/GraphvizOnline/#"+url.PathEscape(s))
-		_, _ = cmd.Output()
-	}
+	//if false {
+	cmd := exec.Command("open", "https://dreampuf.github.io/GraphvizOnline/#"+url.PathEscape(s))
+	_, _ = cmd.Output()
+	//}
 }
