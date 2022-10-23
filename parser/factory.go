@@ -185,8 +185,9 @@ func parseDot(p *parser, bp oper.BP, obj *ast.Expr, t *token.Token) *ast.Expr {
 	lp := p.tryEat(token.LEFT_PAREN)
 	if lp == nil {
 		return expr
+	} else {
+		return parseCall(p, bp, expr, lp)
 	}
-	return parseCall(p, bp, expr, t)
 }
 
 func parseSubscript(p *parser, bp oper.BP, list *ast.Expr, t *token.Token) *ast.Expr {

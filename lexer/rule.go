@@ -52,9 +52,9 @@ func reg(t token.Type, pattern string) rule {
 	}}
 }
 
-// primOp . ? 内置操作符的优先级高于自定义操作符, 且不是匹配最长, 需要特殊处理
+// primOper . ? 内置操作符的优先级高于自定义操作符, 且不是匹配最长, 需要特殊处理
 // e.g 比如自定义操作符 .^. 不能匹配成 [`.`, `^.`]
-func primOp(t token.Type) rule {
+func primOper(t token.Type) rule {
 	sz := len(string(t))
 	return rule{t, func(s string) int {
 		if !strings.HasPrefix(s, string(t)) {

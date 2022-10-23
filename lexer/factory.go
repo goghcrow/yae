@@ -13,7 +13,7 @@ var keywords = []token.Type{
 	token.END,
 }
 
-var buildInOPs = []token.Type{
+var buildInOpers = []token.Type{
 	token.DOT,      //.
 	token.QUESTION, //?:
 }
@@ -36,8 +36,8 @@ func newLexicon(ops []oper.Operator) lexicon {
 	}
 
 	// 内置的操作符优先级高于自定义操作符
-	for _, op := range buildInOPs {
-		l.addRule(primOp(op))
+	for _, op := range buildInOpers {
+		l.addRule(primOper(op))
 	}
 
 	// 自定义操作符
