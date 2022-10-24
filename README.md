@@ -38,9 +38,10 @@ type-mapping
 | str      | string           |
 | num      | float64          |
 | time     | time.Time        |
-| list[T]  | []*val           |
-| map[K V] | map[string]*val  |
-| object   | map[string]*val  |
+| list[T]  | []*Val           |
+| map[K V] | map[string]*Val  |
+| object   | map[string]*Val  |
+| maybe[T] | *Val             |
 
 `type key = bool | str | num | time`
 
