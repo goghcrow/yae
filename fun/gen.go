@@ -12,6 +12,7 @@ var funs = []*val.Val{
 	ADD_NUM_NUM,
 	ADD_STR_STR,
 	CEIL_NUM,
+	DIFF_LIST_LIST,
 	DIV_NUM_NUM,
 	EQ_BOOL_BOOL,
 	EQ_LIST_LIST,
@@ -23,11 +24,13 @@ var funs = []*val.Val{
 	FLOOR_NUM,
 	GET_LIST_NUM_ANY,
 	GET_MAP_ANY_ANY,
+	GET_MAYBE,
 	GE_NUM_NUM,
 	GE_TIME_TIME,
 	GT_NUM_NUM,
 	GT_TIME_TIME,
 	IF_BOOL_ANY_ANY,
+	INTERSECT_LIST_LIST,
 	ISSET_MAP_ANY,
 	LEN_LIST,
 	LEN_MAP,
@@ -59,6 +62,7 @@ var funs = []*val.Val{
 	SUB_NUM,
 	SUB_NUM_NUM,
 	SUB_TIME_TIME,
+	UNION_LIST_LIST,
 }
 
 func BuildIn() []*val.Val {

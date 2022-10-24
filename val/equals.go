@@ -34,6 +34,8 @@ func Equals(x, y *Val) bool {
 	case types.TFun:
 		// panic("fun is not comparable")
 		return x == y
+	case types.TMaybe:
+		return equalsMaybe(x.Maybe(), y.Maybe())
 	default:
 		util.Unreachable()
 		return false
@@ -79,4 +81,17 @@ func equalsObj(x, y *ObjVal) bool {
 		}
 	}
 	return true
+}
+
+func equalsMaybe(x, y *MaybeVal) bool {
+	if !types.Equals(x.Kind.Maybe().Elem, y.Kind.Maybe().Elem) {
+		return false
+	}
+	if x.V == nil && y.V == nil {
+		return true
+	}
+	if x.V == nil || y.V == nil {
+		return false
+	}
+	return Equals(x.V, y.V)
 }

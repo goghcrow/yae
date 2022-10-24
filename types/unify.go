@@ -142,6 +142,12 @@ func unifyComposite(x, y *Kind, m map[string]*Kind, inProcess util.PtrPtrSet) *K
 			return nil
 		}
 		return Fun(xf.Name /**/, params, ret)
+	case TMaybe:
+		elm := unify(x.Maybe().Elem, y.Maybe().Elem, m, inProcess)
+		if elm == nil {
+			return nil
+		}
+		return Maybe(elm)
 	default:
 		util.Unreachable()
 		return nil
@@ -191,6 +197,8 @@ func applySubst(k *Kind, m map[string]*Kind) *Kind {
 			params[i] = applySubst(param, m)
 		}
 		return Fun(f.Name, params, applySubst(f.Return, m))
+	case TMaybe:
+		return Maybe(applySubst(k.Maybe().Elem, m))
 	case TTop:
 		return k
 	case TBottom:
@@ -224,6 +232,8 @@ func freeFrom(k *Kind, s *SlotKind) bool {
 			}
 		}
 		return freeFrom(k.Fun().Return, s)
+	case TMaybe:
+		return freeFrom(k.Maybe().Elem, s)
 	case TSlot:
 		return k.Slot().Name != s.Name
 	default:

@@ -57,6 +57,10 @@ func equals(x, y *Kind, inProcess util.PtrPtrSet) bool {
 		return equalsFun(x.Fun(), y.Fun(), inProcess)
 	}
 
+	if x.Type == TMaybe {
+		return equals(x.Maybe().Elem, y.Maybe().Elem, inProcess)
+	}
+
 	return true
 }
 

@@ -134,10 +134,15 @@ string :: forall a. (a -> str)
 
 isset :: forall k v. (map[k, v] -> k -> bool)
 
-get :: forall a. (list[a] -> num -> a -> a)
-get :: forall a. (map[k,v] -> k -> v -> v)
+get :: forall a. (maybe[a] -> a -> a) // get or default, use for nullable
+get :: forall a. (list[a] -> num -> a -> a) // get or default
+get :: forall a. (map[k,v] -> k -> v -> v) // get or default
 
 strtotime :: str -> time
+
+intersect :: forall a. (list[a] -> list[a] -> list[a])
+union :: forall a. (list[a] -> list[a] -> list[a])
+diff :: forall a. (list[a] -> list[a] -> list[a])
 
 print :: forall a. (a -> a)
 ```

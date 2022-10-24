@@ -33,7 +33,11 @@ func (v *Val) Key() Key {
 	case types.TBool:
 		return Key{v.Kind.Type, strconv.FormatBool(v.Bool().V)}
 	case types.TNum:
-		return Key{v.Kind.Type, fmt.Sprintf("%f", v.Num().V)}
+		if v.Num().IsInt() {
+			return Key{v.Kind.Type, fmt.Sprintf("%.0f", v.Num().V)}
+		} else {
+			return Key{v.Kind.Type, fmt.Sprintf("%f", v.Num().V)}
+		}
 	case types.TStr:
 		return Key{v.Kind.Type, fmt.Sprintf("%q", v.Str().V)}
 	case types.TTime:

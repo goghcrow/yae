@@ -48,3 +48,8 @@ func Fun(name string, param []*Kind, ret *Kind) *Kind {
 	t := FunKind{Kind{TFun}, name, param, ret}
 	return &t.Kind
 }
+
+func Maybe(elem *Kind) *Kind {
+	t := MaybeKind{Kind{TMaybe}, elem}
+	return &t.Kind
+}

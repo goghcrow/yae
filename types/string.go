@@ -54,6 +54,8 @@ func stringify(k *Kind, inProcess util.PtrSet) string {
 		pre := "func " + f.Name + "("
 		post := ") " + stringify(f.Return, inProcess)
 		return util.JoinStrEx(xs, ", ", pre, post)
+	case TMaybe:
+		return fmt.Sprintf("maybe[%s]", stringify(k.Maybe().Elem, inProcess))
 	case TSlot:
 		return k.Slot().Name
 	case TTop:

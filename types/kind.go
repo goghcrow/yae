@@ -70,6 +70,10 @@ type (
 		Param  []*Kind
 		Return *Kind
 	}
+	MaybeKind struct {
+		Kind
+		Elem *Kind
+	}
 )
 
 func (k *Kind) Slot() *SlotKind   { return (*SlotKind)(unsafe.Pointer(k)) }
@@ -82,6 +86,7 @@ func (k *Kind) List() *ListKind   { return (*ListKind)(unsafe.Pointer(k)) }
 func (k *Kind) Map() *MapKind     { return (*MapKind)(unsafe.Pointer(k)) }
 func (k *Kind) Obj() *ObjKind     { return (*ObjKind)(unsafe.Pointer(k)) }
 func (k *Kind) Fun() *FunKind     { return (*FunKind)(unsafe.Pointer(k)) }
+func (k *Kind) Maybe() *MaybeKind { return (*MaybeKind)(unsafe.Pointer(k)) }
 
 func (k *BoolKind) Kd() *Kind  { return &k.Kind }
 func (k *NumKind) Kd() *Kind   { return &k.Kind }
@@ -92,3 +97,4 @@ func (k *ListKind) Kd() *Kind  { return &k.Kind }
 func (k *MapKind) Kd() *Kind   { return &k.Kind }
 func (k *ObjKind) Kd() *Kind   { return &k.Kind }
 func (k *FunKind) Kd() *Kind   { return &k.Kind }
+func (k *MaybeKind) Kd() *Kind { return &k.Kind }

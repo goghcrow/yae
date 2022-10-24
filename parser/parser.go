@@ -89,10 +89,10 @@ func (p *parser) expr(rbp oper.BP) *ast.Expr {
 	// tok 必须有 prefix 解析器, 否则一定语法错误
 	pre := p.mustPrefix(t)
 	left := pre.nud(p, pre.BP, t)
-	return p.parserInfix(left, rbp)
+	return p.parseInfix(left, rbp)
 }
 
-func (p *parser) parserInfix(left *ast.Expr, rbp oper.BP) *ast.Expr {
+func (p *parser) parseInfix(left *ast.Expr, rbp oper.BP) *ast.Expr {
 	// 判断下一个 tok 是否要绑定 left ( 优先级 > left)
 	for p.infixLbp(p.peek()) > rbp {
 		t := p.eat()

@@ -293,6 +293,8 @@ func slotFree(k *Kind) bool {
 			}
 		}
 		return slotFree(k.Fun().Return)
+	case TMaybe:
+		return slotFree(k.Maybe().Elem)
 	default:
 		util.Unreachable()
 		return false

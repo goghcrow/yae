@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
+	"sort"
 	"strconv"
 )
 
@@ -44,21 +45,39 @@ func stringify(v *Val, inProcess util.PtrSet) string {
 		if len(m.V) == 0 {
 			return "[:]"
 		}
+		ord := make([]Key, 0, len(m.V))
+		for k, _ := range m.V {
+			ord = append(ord, k)
+		}
+		sort.SliceStable(ord, func(i, j int) bool { return ord[i].val < ord[j].val })
 		xs := make([]string, 0, len(m.V))
-		for k, x := range m.V {
-			xs = append(xs, fmt.Sprintf("%s: %s", k, stringify(x, inProcess)))
+		for _, k := range ord {
+			xs = append(xs, fmt.Sprintf("%s: %s", k, stringify(m.V[k], inProcess)))
 		}
 		return util.JoinStrEx(xs, ", ", "[", "]")
 	case types.TObj:
 		o := v.Obj()
 		fs := o.Kind.Obj().Fields
+		ord := make([]int, len(o.V))
+		for i, _ := range o.V {
+			ord[i] = i
+		}
+		sort.SliceStable(ord, func(i, j int) bool { return fs[i].Name < fs[j].Name })
 		xs := make([]string, len(o.V))
-		for i, x := range o.V {
-			xs[i] = fmt.Sprintf("%s: %s", fs[i].Name, stringify(x, inProcess))
+		for j, i := range ord {
+			xs[j] = fmt.Sprintf("%s: %s", fs[i].Name, stringify(o.V[i], inProcess))
 		}
 		return util.JoinStrEx(xs, ", ", "{", "}")
 	case types.TFun:
-		return v.Fun().Kind.String()
+		return fmt.Sprintf("%s#%p", v.Fun().Kind.String(), v)
+	case types.TMaybe:
+		mb := v.Maybe()
+		ks := mb.Kind.Maybe().Elem.String()
+		if mb.V == nil {
+			return fmt.Sprintf("Nothing#%s()", ks)
+		} else {
+			return fmt.Sprintf("Just#%s(%s)", ks, stringify(v.Maybe().V, inProcess))
+		}
 	default:
 		util.Unreachable()
 		return ""

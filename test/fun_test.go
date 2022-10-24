@@ -14,6 +14,77 @@ import (
 	"testing"
 )
 
+func TestMaybe(t *testing.T) {
+
+	// 把允许为空值或者为 nil 的变量或者字段声明称 maybe 类型, 通过 get + 默认值 获取值
+
+	makeEnv := func() (typedEnv *types.Env, compileEvalEnv *val.Env) {
+		maybeInt := types.Maybe(types.Num).Maybe()
+		nothing := val.Maybe(maybeInt, nil)
+		just := val.Maybe(maybeInt, val.Num(42))
+
+		objWithMaybeField := types.Obj([]types.Field{
+			{"nothing", maybeInt.Kd()},
+			{"just", maybeInt.Kd()},
+		}).Obj()
+
+		tyEnv := types.NewEnv()
+		vlEnv := val.NewEnv()
+		tyEnv.Put("nothing", maybeInt.Kd())
+		tyEnv.Put("just", maybeInt.Kd())
+		tyEnv.Put("obj", objWithMaybeField.Kd())
+
+		vlEnv.Put("nothing", nothing)
+		vlEnv.Put("just", just)
+
+		obj := val.Obj(objWithMaybeField).Obj()
+		obj.Put("nothing", nothing)
+		obj.Put("just", just)
+		vlEnv.Put("obj", obj.Vl())
+
+		return tyEnv, vlEnv
+	}
+
+	tests := []struct {
+		expr     string
+		expected *val.Val
+	}{
+		{"get(nothing, 100)", val.Num(100)},
+		{"get(just, 100)", val.Num(42)},
+		{"get(obj.nothing, 100)", val.Num(100)},
+		{"get(obj.just, 100)", val.Num(42)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.expr, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
+			tyEnv, vlEnv := makeEnv()
+			actual := eval(tt.expr, closure.Compile, tyEnv, vlEnv)
+			expected := tt.expected
+			if !val.Equals(expected, actual) {
+				t.Errorf("expect `%s` actual `%s`", expected, actual)
+			}
+		})
+
+		t.Run(tt.expr, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("%v", r)
+				}
+			}()
+			tyEnv, vlEnv := makeEnv()
+			actual := eval(tt.expr, vm.Compile, tyEnv, vlEnv)
+			expected := tt.expected
+			if !val.Equals(expected, actual) {
+				t.Errorf("expect `%s` actual `%s`", expected, actual)
+			}
+		})
+	}
+}
+
 func TestIf(t *testing.T) {
 	tests := []struct {
 		expr     string
@@ -238,6 +309,13 @@ func TestFun(t *testing.T) {
 		{`["id":1,"nil":n].get("id", 42) == 1`, val.True},
 		{`["id":1,"nil":n].get("nil", 42) == 42`, val.True},
 		{`["id":1,"nil":n].get("not_exist", 42) == 42`, val.True},
+
+		{`union([1,2,3], [2,3,4]) == [1,2,3,4]`, val.True},
+		{`union([1,2,2,3], [2,3,3,4]) == [1,2,3,4]`, val.True},
+		{`intersect([1,2,3], [2,3,4]) == [2,3] `, val.True},
+		{`intersect([1,2,2,3], [2,3,3,4]) == [2,3]`, val.True},
+		{`diff([1,2,3], [2,3,4]) == [1]`, val.True},
+		{`diff([1,2,2,3], [2,3,3,4]) == [1]`, val.True},
 	}
 
 	for _, tt := range tests {

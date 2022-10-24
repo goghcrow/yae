@@ -1,6 +1,7 @@
 package fun
 
 import (
+	"fmt"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 )
@@ -39,6 +40,98 @@ var (
 			},
 		)
 	}()
-
-	// todo 集合运算
+	// UNION_LIST_LIST union :: forall a. (list[a] -> list[a] -> list[a])
+	UNION_LIST_LIST = func() *val.Val {
+		T := types.Slot("a")
+		listT := types.List(T)
+		return val.Fun(
+			types.Fun(UNION, []*types.Kind{listT, listT}, listT),
+			func(args ...*val.Val) *val.Val {
+				lhs := valSetOf(args[0].List().V)
+				rhs := valSetOf(args[1].List().V)
+				res := val.List(args[0].List().Kind.List(), 0).List()
+				res.V = union(lhs, rhs)
+				fmt.Println(res)
+				return res.Vl()
+			},
+		)
+	}()
+	// INTERSECT_LIST_LIST intersect :: forall a. (list[a] -> list[a] -> list[a])
+	INTERSECT_LIST_LIST = func() *val.Val {
+		T := types.Slot("a")
+		listT := types.List(T)
+		return val.Fun(
+			types.Fun(INTERSECT, []*types.Kind{listT, listT}, listT),
+			func(args ...*val.Val) *val.Val {
+				lhs := valSetOf(args[0].List().V)
+				rhs := valSetOf(args[1].List().V)
+				res := val.List(args[0].List().Kind.List(), 0).List()
+				res.V = intersect(lhs, rhs)
+				return res.Vl()
+			},
+		)
+	}()
+	// DIFF_LIST_LIST diff :: forall a. (list[a] -> list[a] -> list[a])
+	DIFF_LIST_LIST = func() *val.Val {
+		T := types.Slot("a")
+		listT := types.List(T)
+		return val.Fun(
+			types.Fun(DIFF, []*types.Kind{listT, listT}, listT),
+			func(args ...*val.Val) *val.Val {
+				lhs := valSetOf(args[0].List().V)
+				rhs := valSetOf(args[1].List().V)
+				res := val.List(args[0].List().Kind.List(), 0).List()
+				res.V = diff(lhs, rhs)
+				return res.Vl()
+			},
+		)
+	}()
 )
+
+type valSet struct {
+	m    map[string]*val.Val
+	link []string
+}
+
+func valSetOf(xs []*val.Val) *valSet {
+	m := map[string]*val.Val{}
+	l := make([]string, 0, len(xs))
+	for _, v := range xs {
+		hash := v.String()
+		if _, ok := m[hash]; !ok {
+			m[hash] = v
+			l = append(l, hash)
+		}
+	}
+	return &valSet{m, l}
+}
+func union(x, y *valSet) []*val.Val {
+	res := make([]*val.Val, 0)
+	for _, k := range x.link {
+		res = append(res, x.m[k])
+	}
+	for _, k := range y.link {
+		if _, ok := x.m[k]; !ok {
+			res = append(res, y.m[k])
+		}
+	}
+	return res
+}
+func intersect(x, y *valSet) []*val.Val {
+	res := make([]*val.Val, 0)
+	for _, k := range x.link {
+		if v, ok := y.m[k]; ok {
+			res = append(res, v)
+		}
+	}
+	return res
+}
+func diff(x, y *valSet) []*val.Val {
+	res := make([]*val.Val, 0)
+	for _, k := range x.link {
+		if _, ok := y.m[k]; !ok {
+			res = append(res, x.m[k])
+		}
+	}
+	return res
+}

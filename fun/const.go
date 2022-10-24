@@ -22,4 +22,8 @@ const (
 
 	ISSET = "isset"
 	GET   = "get"
+
+	UNION     = "union"
+	INTERSECT = "intersect"
+	DIFF      = "diff"
 )

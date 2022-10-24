@@ -55,3 +55,9 @@ func LazyFun(kind *types.Kind, f IFun) *Val {
 	fv := FunVal{Val{kind}, f, true}
 	return &fv.Val
 }
+
+// Maybe v is nilable
+func Maybe(kind *types.MaybeKind, v *Val) *Val {
+	mb := MaybeVal{Val{kind.Kd()}, v}
+	return &mb.Val
+}
