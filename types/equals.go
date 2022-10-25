@@ -16,15 +16,18 @@ func equals(x, y *Kind, inProcess util.PtrPtrSet) bool {
 		return true
 	}
 
-	if inProcess.Contains(x, y) {
-		return true
-	} else {
-		inProcess.Add(x, y)
-	}
-
 	if x == nil || y == nil {
 		return false
 	}
+
+	if x.IsComposite() && y.IsComposite() {
+		if inProcess.Contains(x, y) {
+			return true
+		} else {
+			inProcess.Add(x, y)
+		}
+	}
+
 	if x.Type != y.Type {
 		return false
 	}

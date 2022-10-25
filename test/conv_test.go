@@ -1,7 +1,6 @@
 package test
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/types"
@@ -11,14 +10,6 @@ import (
 	"time"
 	"unsafe"
 )
-
-func setObj(obj *val.ObjVal, m map[string]*val.Val) {
-	for n, v := range m {
-		if !obj.Put(n, v) {
-			panic(fmt.Errorf("field %s not found in %s", n, obj.Kind))
-		}
-	}
-}
 
 func TestConv(t *testing.T) {
 	tests := []struct {
@@ -252,11 +243,47 @@ func TestConv(t *testing.T) {
 				}
 			}(),
 			expectedType: types.Obj([]types.Field{
-				{"Nested", types.Obj([]types.Field{
+				{"Nested", types.Maybe(types.Obj([]types.Field{
 					{"A", types.Num},
-				})},
+				}))},
 			}),
-			expectedVal: nil,
+			expectedVal: func() *val.Val {
+				nestedT := types.Obj([]types.Field{
+					{"A", types.Num},
+				})
+				obj := val.Obj(types.Obj([]types.Field{
+					{"Nested", types.Maybe(nestedT)},
+				}).Obj()).Obj()
+				obj.Put("Nested", val.Nothing(nestedT))
+				return obj.Vl()
+			}(),
+		},
+		{
+			name: "struct/nested/nil",
+			v: func() interface{} {
+				return &struct {
+					Nested *struct {
+						A int
+					} `yae:",Maybe"`
+				}{
+					Nested: nil,
+				}
+			}(),
+			expectedType: types.Obj([]types.Field{
+				{"Nested", types.Maybe(types.Obj([]types.Field{
+					{"A", types.Num},
+				}))},
+			}),
+			expectedVal: func() *val.Val {
+				nestedT := types.Obj([]types.Field{
+					{"A", types.Num},
+				})
+				obj := val.Obj(types.Obj([]types.Field{
+					{"Nested", types.Maybe(nestedT)},
+				}).Obj()).Obj()
+				obj.Put("Nested", val.Nothing(nestedT))
+				return obj.Vl()
+			}(),
 		},
 		{
 			name: "struct",
@@ -421,7 +448,7 @@ func TestConvValOf(t *testing.T) {
 		{
 			name: "struct",
 			v: struct {
-				Id   int64  `yae:"id"`
+				Id   int64  `yae:"id,omitempty"`
 				Name string `yae:"name"`
 			}{42, "晓"},
 			expected: func() *val.Val {
@@ -603,13 +630,10 @@ func TestReflectInterfaceElem(t *testing.T) {
 	})
 }
 
-func pretty(v interface{}) string {
-	s, _ := json.Marshal(v)
-	return string(s)
-}
-
-func assert(cond bool) {
-	if !cond {
-		panic(nil)
+func setObj(obj *val.ObjVal, m map[string]*val.Val) {
+	for n, v := range m {
+		if !obj.Put(n, v) {
+			panic(fmt.Errorf("field %s not found in %s", n, obj.Kind))
+		}
 	}
 }

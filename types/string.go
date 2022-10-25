@@ -10,10 +10,12 @@ func (k *Kind) String() string {
 }
 
 func stringify(k *Kind, inProcess util.PtrSet) string {
-	if inProcess.Contains(k) {
-		return fmt.Sprintf("recursive-kind %s@%p", k.Type, k)
-	} else {
-		inProcess.Add(k)
+	if k.Type.IsComposite() {
+		if inProcess.Contains(k) {
+			return fmt.Sprintf("recursive-kind %s@%p", k.Type, k)
+		} else {
+			inProcess.Add(k)
+		}
 	}
 
 	switch k.Type {

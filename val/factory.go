@@ -56,8 +56,13 @@ func LazyFun(kind *types.Kind, f IFun) *Val {
 	return &fv.Val
 }
 
-// Maybe v is nilable
-func Maybe(kind *types.MaybeKind, v *Val) *Val {
-	mb := MaybeVal{Val{kind.Kd()}, v}
+func Nothing(elem *types.Kind) *Val {
+	mb := MaybeVal{Val{types.Maybe(elem)}, nil}
+	return &mb.Val
+}
+
+func Just(elem *types.Kind, v *Val) *Val {
+	util.Assert(types.Equals(elem, v.Kind), "expect %s actual %s", elem, v.Kind)
+	mb := MaybeVal{Val{types.Maybe(elem)}, v}
 	return &mb.Val
 }

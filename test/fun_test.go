@@ -2,88 +2,11 @@ package test
 
 import (
 	"github.com/goghcrow/yae/closure"
-	"github.com/goghcrow/yae/compiler"
-	"github.com/goghcrow/yae/fun"
-	"github.com/goghcrow/yae/lexer"
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/parser"
-	"github.com/goghcrow/yae/trans"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"github.com/goghcrow/yae/vm"
 	"testing"
 )
-
-func TestMaybe(t *testing.T) {
-
-	// 把允许为空值或者为 nil 的变量或者字段声明称 maybe 类型, 通过 get + 默认值 获取值
-
-	makeEnv := func() (typedEnv *types.Env, compileEvalEnv *val.Env) {
-		maybeInt := types.Maybe(types.Num).Maybe()
-		nothing := val.Maybe(maybeInt, nil)
-		just := val.Maybe(maybeInt, val.Num(42))
-
-		objWithMaybeField := types.Obj([]types.Field{
-			{"nothing", maybeInt.Kd()},
-			{"just", maybeInt.Kd()},
-		}).Obj()
-
-		tyEnv := types.NewEnv()
-		vlEnv := val.NewEnv()
-		tyEnv.Put("nothing", maybeInt.Kd())
-		tyEnv.Put("just", maybeInt.Kd())
-		tyEnv.Put("obj", objWithMaybeField.Kd())
-
-		vlEnv.Put("nothing", nothing)
-		vlEnv.Put("just", just)
-
-		obj := val.Obj(objWithMaybeField).Obj()
-		obj.Put("nothing", nothing)
-		obj.Put("just", just)
-		vlEnv.Put("obj", obj.Vl())
-
-		return tyEnv, vlEnv
-	}
-
-	tests := []struct {
-		expr     string
-		expected *val.Val
-	}{
-		{"get(nothing, 100)", val.Num(100)},
-		{"get(just, 100)", val.Num(42)},
-		{"get(obj.nothing, 100)", val.Num(100)},
-		{"get(obj.just, 100)", val.Num(42)},
-	}
-	for _, tt := range tests {
-		t.Run(tt.expr, func(t *testing.T) {
-			defer func() {
-				if r := recover(); r != nil {
-					t.Errorf("%v", r)
-				}
-			}()
-			tyEnv, vlEnv := makeEnv()
-			actual := eval(tt.expr, closure.Compile, tyEnv, vlEnv)
-			expected := tt.expected
-			if !val.Equals(expected, actual) {
-				t.Errorf("expect `%s` actual `%s`", expected, actual)
-			}
-		})
-
-		t.Run(tt.expr, func(t *testing.T) {
-			defer func() {
-				if r := recover(); r != nil {
-					t.Errorf("%v", r)
-				}
-			}()
-			tyEnv, vlEnv := makeEnv()
-			actual := eval(tt.expr, vm.Compile, tyEnv, vlEnv)
-			expected := tt.expected
-			if !val.Equals(expected, actual) {
-				t.Errorf("expect `%s` actual `%s`", expected, actual)
-			}
-		})
-	}
-}
 
 func TestIf(t *testing.T) {
 	tests := []struct {
@@ -378,39 +301,4 @@ func typeError(s string, t *testing.T) (k *types.Kind) {
 	}()
 
 	return infer(s)
-}
-
-var typecheckEnv = types.NewEnv()
-var compileEnv = val.NewEnv()
-
-func init() {
-	initEnv(typecheckEnv, compileEnv)
-}
-
-func eval(s string, compile compiler.Compiler, typedEnv *types.Env, compileEvalEnv *val.Env) *val.Val {
-	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
-	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
-	ast = trans.Desugar(ast)
-
-	_ = types.Check(ast, typedEnv.Inherit(typecheckEnv))
-	valuedEnv := compileEvalEnv.Inherit(compileEnv)
-	compiled := compile(ast, valuedEnv)
-
-	runtimeEnv := val.NewEnv()
-	runtimeEnv = runtimeEnv.Inherit(valuedEnv)
-	return compiled(runtimeEnv)
-}
-
-func infer(s string) *types.Kind {
-	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
-	ast := parser.NewParser(oper.BuildIn()).Parse(toks)
-	ast = trans.Desugar(ast)
-	return types.Check(ast, typecheckEnv)
-}
-
-func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {
-	for _, f := range fun.BuildIn() {
-		typecheckEnv.RegisterFun(f.Kind)
-		compileEnv.RegisterFun(f)
-	}
 }

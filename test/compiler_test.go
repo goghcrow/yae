@@ -20,7 +20,9 @@ func TestCompile(t *testing.T) {
 		Str  string `yae:"var_str"`
 		Num  int    `yae:"var_num"`
 		List []int  `yae:"var_list_num"`
-	}{}).Inherit(typecheckEnv)
+	}{
+		List: []int{},
+	}).Inherit(typecheckEnv)
 
 	valEnv := conv.MustValEnvOf(map[string]interface{}{
 		"var_str":      "Hello",

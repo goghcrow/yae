@@ -22,7 +22,10 @@ func TestStructEnv(t *testing.T) {
 		Obj *Entity   `yae:"对象"`
 	}
 
-	typeEnv := conv.MustTypeEnvOf(Ctx{})
+	typeEnv := conv.MustTypeEnvOf(Ctx{
+		Lst: []*Entity{},
+		Obj: &Entity{},
+	})
 	expr := yae.NewExpr().EnableDebug(os.Stderr)
 	closure, err := expr.Compile("if(布尔, 列表[0].姓名.len() + 数字, 0)", typeEnv)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -13,6 +14,7 @@ const maxLevel = 100
 var typeOfTime = reflect.TypeOf(time.Time{})
 
 var tagName = "yae"
+var tagMaybe = "maybe"
 
 func MustTypeOf(v interface{}) *types.Kind {
 	k, err := TypeOf(v)
@@ -70,13 +72,13 @@ func typeOf(rt reflect.Type, lv int) *types.Kind {
 	case reflect.Struct:
 		fs := make([]types.Field, 0)
 		for i := 0; i < rt.NumField(); i++ {
-			f := rt.Field(i)
-			if f.IsExported() {
-				name := f.Tag.Get(tagName)
-				if name == "" {
-					name = f.Name
+			ft := rt.Field(i)
+			if ft.IsExported() {
+				name, maybe := parseTag(ft)
+				fk := typeOf(ft.Type, lv+1)
+				if maybe {
+					fk = types.Maybe(fk)
 				}
-				fk := typeOf(f.Type, lv+1)
 				fs = append(fs, types.Field{Name: name, Val: fk})
 			}
 		}
@@ -84,4 +86,19 @@ func typeOf(rt reflect.Type, lv int) *types.Kind {
 	default:
 		panic(fmt.Errorf("val: TypeOf(nil %v)", rt))
 	}
+}
+
+func parseTag(r reflect.StructField) (name string, maybe bool) {
+	name = r.Name
+	xs := strings.Split(r.Tag.Get(tagName), ",")
+	if len(xs) > 0 {
+		fst := strings.TrimSpace(xs[0])
+		if fst != "" {
+			name = fst
+		}
+	}
+	if len(xs) > 1 {
+		maybe = strings.ToLower(strings.TrimSpace(xs[1])) == tagMaybe
+	}
+	return
 }

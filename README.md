@@ -8,7 +8,7 @@ Type Safe Expression for Terminated Computing
 
 ## Feature
 
-- Statically Strongly Type
+- Statically Strongly Type and NullSafe
 - Parametric Polymorphism for Functions
 - Ad hoc Polymorphism: Function Overloading and Operator Overloading
 - User Defined Operator with Precedence and Fixity 

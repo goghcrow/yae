@@ -13,10 +13,12 @@ func stringify(v *val.Val) string {
 }
 
 func stringify0(v *val.Val, inProcess util.PtrSet) string {
-	if inProcess.Contains(v) {
-		return fmt.Sprintf("recursive-val %s@%p", v.Kind, v)
-	} else {
-		inProcess.Add(v)
+	if v.Kind.Type.IsComposite() {
+		if inProcess.Contains(v) {
+			return fmt.Sprintf("recursive-val %s@%p", v.Kind, v)
+		} else {
+			inProcess.Add(v)
+		}
 	}
 
 	switch v.Kind.Type {

@@ -1,24 +1,10 @@
 package test
 
 import (
-	"github.com/goghcrow/yae/ast"
-	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/token"
-	"github.com/goghcrow/yae/trans"
 	"testing"
 )
-
-func parse0(s string, ops ...oper.Operator) *ast.Expr {
-	ops = append(oper.BuildIn(), ops...)
-	toks := lexer.NewLexer(ops).Lex(s)
-	return parser.NewParser(ops).Parse(toks)
-}
-
-func parse(s string, ops ...oper.Operator) *ast.Expr {
-	return trans.Desugar(parse0(s, ops...))
-}
 
 func TestParser(t *testing.T) {
 	tests := []struct {
@@ -131,10 +117,10 @@ func TestSyntaxError(t *testing.T) {
 	}
 }
 
-func syntaxError(s string) (r string) {
+func syntaxError(s string) (res string) {
 	defer func() {
 		if r := recover(); r != nil {
-			r = ""
+			res = ""
 		}
 	}()
 	return parse(s).String()
