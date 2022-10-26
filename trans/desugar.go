@@ -26,7 +26,7 @@ func Desugar(expr *ast.Expr) *ast.Expr {
 		for i, el := range els {
 			lst[i] = Desugar(el)
 		}
-		return ast.List(els)
+		return ast.List(lst)
 	case ast.MAP:
 		pairs := expr.Map().Pairs
 		m := make([]ast.Pair, len(pairs))

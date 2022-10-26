@@ -59,7 +59,7 @@ func stringify(k *Kind, inProcess util.PtrSet) string {
 	case TMaybe:
 		return fmt.Sprintf("maybe[%s]", stringify(k.Maybe().Elem, inProcess))
 	case TSlot:
-		return k.Slot().Name
+		return "'" + k.Slot().Name
 	case TTop:
 		return "⊤"
 	case TBottom:
