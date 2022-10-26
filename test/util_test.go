@@ -13,13 +13,13 @@ import (
 	"github.com/goghcrow/yae/val"
 )
 
-func parse0(s string, ops ...oper.Operator) *ast.Expr {
+func parse0(s string, ops ...oper.Operator) ast.Expr {
 	ops = append(oper.BuildIn(), ops...)
 	toks := lexer.NewLexer(ops).Lex(s)
 	return parser.NewParser(ops).Parse(toks)
 }
 
-func parse(s string, ops ...oper.Operator) *ast.Expr {
+func parse(s string, ops ...oper.Operator) ast.Expr {
 	return trans.Desugar(parse0(s, ops...))
 }
 
@@ -44,7 +44,7 @@ func eval(s string, compile compiler.Compiler, typedEnv *types.Env, compileEvalE
 	return compiled(runtimeEnv)
 }
 
-func infer(s string) *types.Kind {
+func infer(s string) *types.Type {
 	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
 	term := parser.NewParser(oper.BuildIn()).Parse(toks)
 	term = trans.Desugar(term)
@@ -53,7 +53,7 @@ func infer(s string) *types.Kind {
 
 func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {
 	for _, f := range fun.BuildIn() {
-		typecheckEnv.RegisterFun(f.Kind)
+		typecheckEnv.RegisterFun(f.Type)
 		compileEnv.RegisterFun(f)
 	}
 }

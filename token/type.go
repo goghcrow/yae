@@ -10,17 +10,17 @@ type Type string
 const (
 	QUESTION = "?"
 
-	IF   = "if"
-	THEN = "then"
-	ELSE = "else"
-	END  = "end"
+	// if 是普通函数, 这里不需要
+	//IF = "if"
+	//THEN = "then"
+	//ELSE = "else"
+	//END  = "end"
 
 	NAME = "'name"
 	NUM  = "'num"
 	STR  = "'str"
 	TIME = "'time"
 
-	NULL  = "null"
 	TRUE  = "true"
 	FALSE = "false"
 

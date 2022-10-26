@@ -16,29 +16,29 @@ var typeOfTime = reflect.TypeOf(time.Time{})
 var tagName = "yae"
 var tagMaybe = "maybe"
 
-func MustTypeOf(v interface{}) *types.Kind {
-	k, err := TypeOf(v)
+func MustTypeOf(v interface{}) *types.Type {
+	ty, err := TypeOf(v)
 	if err != nil {
 		panic(err)
 	}
-	return k
+	return ty
 }
 
-func TypeOf(v interface{}) (k *types.Kind, err error) {
+func TypeOf(v interface{}) (ty *types.Type, err error) {
 	return typeOfRV(reflect.ValueOf(v))
 }
 
-func typeOfRV(rv reflect.Value) (k *types.Kind, err error) {
+func typeOfRV(rv reflect.Value) (ty *types.Type, err error) {
 	vl, err := valOfRV(rv)
 	if err == nil {
-		return vl.Kind, nil
+		return vl.Type, nil
 	}
 	err = nil
 	defer util.Recover(&err)
 	return typeOf(rv.Type(), 0), err
 }
 
-func typeOf(rt reflect.Type, lv int) *types.Kind {
+func typeOf(rt reflect.Type, lv int) *types.Type {
 	if lv > maxLevel {
 		panic("max nested depth exceeded")
 	}

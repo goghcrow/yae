@@ -29,12 +29,12 @@ func ValEnvOf(v interface{}) (*val.Env, error) {
 	if err != nil {
 		return nil, err
 	}
-	if vl.Kind.Type != types.TObj {
+	if vl.Type.Kind != types.KObj {
 		return nil, fmt.Errorf("expect struct type actual %s", reflect.TypeOf(v))
 	}
 	env := val.NewEnv()
 
-	fs := vl.Obj().Kind.Obj().Fields
+	fs := vl.Obj().Type.Obj().Fields
 	for i, ov := range vl.Obj().V {
 		env.Put(fs[i].Name, ov)
 	}

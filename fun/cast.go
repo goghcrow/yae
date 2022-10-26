@@ -9,9 +9,9 @@ import (
 var (
 	// STRING_ANY string :: forall a. (a -> str)
 	STRING_ANY = func() *val.Val {
-		a := types.Slot("a")
+		a := types.TyVar("a")
 		return val.Fun(
-			types.Fun(STRING, []*types.Kind{a}, types.Str),
+			types.Fun(STRING, []*types.Type{a}, types.Str),
 			func(args ...*val.Val) *val.Val {
 				return val.Str(stringify(args[0]))
 			},

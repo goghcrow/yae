@@ -7,12 +7,12 @@ import (
 // Env for typeChecker
 type Env struct {
 	parent *Env
-	ctx    map[string]*Kind
-	fnTbl  map[string]interface{} // *FunKind | []*FunKind
+	ctx    map[string]*Type
+	fnTbl  map[string]interface{} // *FunTy | []*FunTy
 }
 
 func NewEnv() *Env {
-	return &Env{nil, map[string]*Kind{}, map[string]interface{}{}}
+	return &Env{nil, map[string]*Type{}, map[string]interface{}{}}
 }
 
 func (e *Env) Inherit(parent *Env) *Env {
@@ -22,10 +22,10 @@ func (e *Env) Inherit(parent *Env) *Env {
 }
 
 func (e *Env) Derive() *Env {
-	return &Env{e, map[string]*Kind{}, map[string]interface{}{}}
+	return &Env{e, map[string]*Type{}, map[string]interface{}{}}
 }
 
-func (e *Env) Get(name string) (*Kind, bool) {
+func (e *Env) Get(name string) (*Type, bool) {
 	v, ok := e.ctx[name]
 	if !ok && e.parent != nil {
 		return e.parent.Get(name)
@@ -33,37 +33,37 @@ func (e *Env) Get(name string) (*Kind, bool) {
 	return v, ok
 }
 
-func (e *Env) Put(name string, val *Kind) {
+func (e *Env) Put(name string, val *Type) {
 	util.Assert(slotFree(val), "expect mono type actual %s", val)
 	// 注意这里只修改当前环境, 不修改继承
 	// 如果是 scope 语义, 需要先 env:=findDefEnv(name) 然后 env.ctx[name]=val
 	e.ctx[name] = val
 }
 
-func (e *Env) ForEach(f func(string, *Kind)) {
+func (e *Env) ForEach(f func(string, *Type)) {
 	for k, v := range e.ctx {
 		f(k, v)
 	}
 }
 
-func (e *Env) RegisterFun(f *Kind) {
-	util.Assert(f.Type == TFun, "expect FunKind actual %s", f)
+func (e *Env) RegisterFun(f *Type) {
+	util.Assert(f.Kind == KFun, "expect FunTy actual %s", f)
 	lookup, mono := f.Fun().Lookup()
 	if mono {
 		util.Assert(slotFree(f), "expect mono type actual %s", f)
 		e.fnTbl[lookup] = f.Fun()
 	} else {
-		tbl, ok := e.fnTbl[lookup].([]*FunKind)
+		tbl, ok := e.fnTbl[lookup].([]*FunTy)
 		if !ok {
-			tbl = []*FunKind{}
+			tbl = []*FunTy{}
 		}
 		tbl = append(tbl, f.Fun())
 		e.fnTbl[lookup] = tbl
 	}
 }
 
-func (e *Env) GetMonoFun(name string) (*FunKind, bool) {
-	fk, ok := e.fnTbl[name].(*FunKind)
+func (e *Env) GetMonoFun(name string) (*FunTy, bool) {
+	fk, ok := e.fnTbl[name].(*FunTy)
 	if ok {
 		return fk, true
 	} else if e.parent != nil {
@@ -73,8 +73,8 @@ func (e *Env) GetMonoFun(name string) (*FunKind, bool) {
 	}
 }
 
-func (e *Env) GetPolyFuns(name string) ([]*FunKind, bool) {
-	fk, ok := e.fnTbl[name].([]*FunKind)
+func (e *Env) GetPolyFuns(name string) ([]*FunTy, bool) {
+	fk, ok := e.fnTbl[name].([]*FunTy)
 	if ok {
 		return fk, true
 	} else if e.parent != nil {

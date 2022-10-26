@@ -5,8 +5,8 @@ import (
 )
 
 // Lookup 根据参数重命名实现函数重载
-func (f *FunKind) Lookup() (key string, isMono bool) {
-	if slotFree(f.Kd()) {
+func (f *FunTy) Lookup() (key string, isMono bool) {
+	if slotFree(f.Ty()) {
 		// 单态函数直接根据去除返回值的签名来查找
 		return fmt.Sprintf("λ<%s %s>", f.Name, f.Param), true
 	} else {

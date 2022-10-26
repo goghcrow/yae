@@ -69,13 +69,13 @@ func valOfSlice(rv reflect.Value, lv int) *val.Val {
 	rt := rv.Type()
 	l := rv.Len()
 	if l == 0 {
-		kd := typeOf(rt, lv)
-		return val.List(kd.List(), l)
+		ty := typeOf(rt, lv)
+		return val.List(ty.List(), l)
 	}
 
 	vl := valOf(rv.Index(0), lv+1)
-	kd := types.List(vl.Kind).List()
-	lst := val.List(kd, l).List()
+	ty := types.List(vl.Type).List()
+	lst := val.List(ty, l).List()
 	lst.Set(0, vl)
 
 	for i := 1; i < l; i++ {
@@ -90,14 +90,14 @@ func valOfMap(rv reflect.Value, lv int) *val.Val {
 	rt := rv.Type()
 	keys := rv.MapKeys()
 	if len(keys) == 0 {
-		kd := typeOf(rt, lv)
-		return val.Map(kd.Map()).Map().Vl()
+		ty := typeOf(rt, lv)
+		return val.Map(ty.Map()).Map().Vl()
 	}
 
 	kVal := valOf(keys[0], lv+1)
 	vVal := valOf(rv.MapIndex(keys[0]), lv+1)
-	kd := types.Map(kVal.Kind, vVal.Kind)
-	m := val.Map(kd.Map()).Map()
+	ty := types.Map(kVal.Type, vVal.Type)
+	m := val.Map(ty.Map()).Map()
 	m.Put(kVal, vVal)
 
 	for i := 1; i < len(keys); i++ {
@@ -113,8 +113,8 @@ func valOfMap(rv reflect.Value, lv int) *val.Val {
 func valOfStruct(rv reflect.Value, lv int) *val.Val {
 	rt := rv.Type()
 	if rt.NumField() == 0 {
-		kd := typeOf(rt, lv)
-		return val.Obj(kd.Obj()).Obj().Vl()
+		ty := typeOf(rt, lv)
+		return val.Obj(ty.Obj()).Obj().Vl()
 	}
 
 	vs := make([]*val.Val, 0)
@@ -130,17 +130,17 @@ func valOfStruct(rv reflect.Value, lv int) *val.Val {
 			} else {
 				vl = valOf(v, lv+1)
 				if maybe {
-					vl = val.Just(vl.Kind, vl)
+					vl = val.Just(vl.Type, vl)
 				}
 			}
 
 			vs = append(vs, vl)
-			ks = append(ks, types.Field{Name: name, Val: vl.Kind})
+			ks = append(ks, types.Field{Name: name, Val: vl.Type})
 		}
 	}
 
-	kd := types.Obj(ks).Obj()
-	obj := val.Obj(kd).Obj()
+	ty := types.Obj(ks).Obj()
+	obj := val.Obj(ty).Obj()
 	obj.V = vs
 	return obj.Vl()
 }
@@ -159,7 +159,7 @@ func isNil(v reflect.Value) bool {
 }
 
 func assertTypeEquals(expected, actual *val.Val) {
-	if !types.Equals(expected.Kind, actual.Kind) {
-		panic(fmt.Errorf("expect %s (%s) actual %s (%s)", expected.Kind, expected, actual.Kind, actual))
+	if !types.Equals(expected.Type, actual.Type) {
+		panic(fmt.Errorf("expect %s (%s) actual %s (%s)", expected.Type, expected, actual.Type, actual))
 	}
 }

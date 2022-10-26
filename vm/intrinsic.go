@@ -6,7 +6,7 @@ import (
 	"github.com/goghcrow/yae/val"
 )
 
-type intrinsicCallByNeed func(*Compiler, *bytecode, []*ast.Expr, *val.Env)
+type intrinsicCallByNeed func(*Compiler, *bytecode, []ast.Expr, *val.Env)
 
 var intrinsicsCallByNeed = map[*val.Val]intrinsicCallByNeed{}
 var intrinsicsCallByValue = map[*val.Val]opcode{}
@@ -65,24 +65,24 @@ func init() {
 }
 
 func init() {
-	intrinsicsCallByNeed[fun.IF_BOOL_ANY_ANY] = func(c *Compiler, b *bytecode, args []*ast.Expr, env *val.Env) {
+	intrinsicsCallByNeed[fun.IF_BOOL_ANY_ANY] = func(c *Compiler, b *bytecode, args []ast.Expr, env *val.Env) {
 		b.emitCond(c, args[0], args[1], args[2], env)
 	}
 	// a && b ~> if (a) b else false
-	intrinsicsCallByNeed[fun.LOGIC_AND_BOOL_BOOL] = func(c *Compiler, b *bytecode, args []*ast.Expr, env *val.Env) {
-		b.emitCond(c, args[0], args[1], ast.LitFalse(), env)
+	intrinsicsCallByNeed[fun.LOGIC_AND_BOOL_BOOL] = func(c *Compiler, b *bytecode, args []ast.Expr, env *val.Env) {
+		b.emitCond(c, args[0], args[1], ast.False(), env)
 	}
 	// a || b ~> if a true else b
-	intrinsicsCallByNeed[fun.LOGIC_OR_BOOL_BOOL] = func(c *Compiler, b *bytecode, args []*ast.Expr, env *val.Env) {
-		b.emitCond(c, args[0], ast.LitTrue(), args[1], env)
+	intrinsicsCallByNeed[fun.LOGIC_OR_BOOL_BOOL] = func(c *Compiler, b *bytecode, args []ast.Expr, env *val.Env) {
+		b.emitCond(c, args[0], ast.True(), args[1], env)
 	}
-	intrinsicsCallByNeed[fun.LOGIC_NOT_BOOL] = func(c *Compiler, b *bytecode, args []*ast.Expr, env *val.Env) {
+	intrinsicsCallByNeed[fun.LOGIC_NOT_BOOL] = func(c *Compiler, b *bytecode, args []ast.Expr, env *val.Env) {
 		b.compile(c, args[0], env)
 		b.emitOP(OP_LOGICAL_NOT)
 	}
 }
 
-func (b *bytecode) emitCond(c *Compiler, cond, then, els *ast.Expr, env *val.Env) {
+func (b *bytecode) emitCond(c *Compiler, cond, then, els ast.Expr, env *val.Env) {
 	b.compile(c, cond, env)
 	b.emitOP(OP_IF_TRUE)
 	emitBranchFalse := b.placeholderForMediumInt()

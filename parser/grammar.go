@@ -7,8 +7,8 @@ import (
 	"github.com/goghcrow/yae/util"
 )
 
-type nud func(*parser, oper.BP, *token.Token) *ast.Expr
-type led func(*parser, oper.BP, *ast.Expr, *token.Token) *ast.Expr
+type nud func(*parser, oper.BP, *token.Token) ast.Expr
+type led func(*parser, oper.BP, ast.Expr, *token.Token) ast.Expr
 
 // 处理字面量、变量、前缀操作符
 type prefix struct {

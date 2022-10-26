@@ -26,7 +26,7 @@ var ops = []oper.Operator{
 var (
 	//AND_BOOL_BOOL and :: bool -> bool -> bool
 	AND_BOOL_BOOL = val.LazyFun(
-		types.Fun(AND, []*types.Kind{types.Bool, types.Bool}, types.Bool),
+		types.Fun(AND, []*types.Type{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			thunk1 := args[0].Fun()
 			if thunk1.Call().Bool().V {
@@ -39,7 +39,7 @@ var (
 	)
 	//OR_BOOL_BOOL or :: bool -> bool -> bool
 	OR_BOOL_BOOL = val.LazyFun(
-		types.Fun(OR, []*types.Kind{types.Bool, types.Bool}, types.Bool),
+		types.Fun(OR, []*types.Type{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			thunk1 := args[0].Fun()
 			if thunk1.Call().Bool().V {
@@ -52,7 +52,7 @@ var (
 	)
 	// NOT_BOOL not :: bool -> bool
 	NOT_BOOL = val.Fun(
-		types.Fun(NOT, []*types.Kind{types.Bool}, types.Bool),
+		types.Fun(NOT, []*types.Type{types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			return val.Bool(!args[0].Bool().V)
 		},

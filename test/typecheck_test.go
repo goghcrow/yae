@@ -10,42 +10,42 @@ func TestInfer(t *testing.T) {
 	env := NewEnv()
 
 	// id :: forall a. (a -> a)
-	env.RegisterFun(func() *Kind {
-		a := Slot("a")
-		return Fun("id", []*Kind{a}, a)
+	env.RegisterFun(func() *Type {
+		a := TyVar("a")
+		return Fun("id", []*Type{a}, a)
 	}())
 
 	// list :: forall a. (a -> list[a])
-	env.RegisterFun(func() *Kind {
-		a := Slot("a")
-		return Fun("list", []*Kind{a}, List(a))
+	env.RegisterFun(func() *Type {
+		a := TyVar("a")
+		return Fun("list", []*Type{a}, List(a))
 	}())
 
 	// if :: forall a. (bool -> α -> α -> α)
-	env.RegisterFun(func() *Kind {
-		a := Slot("a")
-		return Fun("if", []*Kind{Bool, a, a}, a)
+	env.RegisterFun(func() *Type {
+		a := TyVar("a")
+		return Fun("if", []*Type{Bool, a, a}, a)
 	}())
 
 	// has :: forall k v. (map[k, v] -> k -> bool)
-	env.RegisterFun(func() *Kind {
-		k := Slot("k")
-		v := Slot("v")
-		return Fun("has", []*Kind{Map(k, v), k}, Bool)
+	env.RegisterFun(func() *Type {
+		k := TyVar("k")
+		v := TyVar("v")
+		return Fun("has", []*Type{Map(k, v), k}, Bool)
 	}())
 
 	// get :: forall k v. (map[k, v] -> k -> v)
-	env.RegisterFun(func() *Kind {
-		k := Slot("k")
-		v := Slot("v")
-		return Fun("get", []*Kind{Map(k, v), k}, v)
+	env.RegisterFun(func() *Type {
+		k := TyVar("k")
+		v := TyVar("v")
+		return Fun("get", []*Type{Map(k, v), k}, v)
 	}())
 
-	env.RegisterFun(fun.STRTOTIME_STR.Fun().Kind)
+	env.RegisterFun(fun.STRTOTIME_STR.Fun().Type)
 
 	tests := []struct {
 		s   string
-		t   *Kind
+		t   *Type
 		err bool
 	}{
 		{"id(1)", Num, false},

@@ -21,9 +21,9 @@ func TestRegisterContains(t *testing.T) {
 		Fixity: oper.INFIX_N,
 	})
 	expr.RegisterFun(func() *val.Val {
-		a := types.Slot("a")
+		a := types.TyVar("a")
 		return val.Fun(
-			types.Fun("contains", []*types.Kind{types.List(a), a}, types.Bool),
+			types.Fun("contains", []*types.Type{types.List(a), a}, types.Bool),
 			func(v ...*val.Val) *val.Val {
 				for _, el := range v[0].List().V {
 					if val.Equals(el, v[1]) {

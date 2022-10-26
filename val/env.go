@@ -42,8 +42,8 @@ func (e *Env) Put(name string, val *Val) {
 }
 
 func (e *Env) RegisterFun(f *Val) {
-	util.Assert(f.Kind.Type == types.TFun, "expect FunVal actual %s", f)
-	lookup, mono := f.Kind.Fun().Lookup()
+	util.Assert(f.Type.Kind == types.KFun, "expect FunVal actual %s", f)
+	lookup, mono := f.Type.Fun().Lookup()
 	if mono {
 		e.fnTbl[lookup] = f.Fun()
 	} else {

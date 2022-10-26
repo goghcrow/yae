@@ -5,7 +5,7 @@ import (
 	"github.com/goghcrow/yae/val"
 )
 
-type Compiler func(*ast.Expr, *val.Env) Closure
+type Compiler func(ast.Expr, *val.Env) Closure
 
 type Closure func(env *val.Env) *val.Val
 

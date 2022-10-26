@@ -221,23 +221,23 @@ func switchThreading(v *VM) *val.Val {
 
 		// -----------------------------------------------
 		case OP_NEW_LIST:
-			kd, w := v.readConst(v.pc)
+			ty, w := v.readConst(v.pc)
 			v.pc += w
 			sz, w := v.readMediumInt(v.pc)
 			v.pc += w
-			lst := val.List(kd.(*types.Kind).List(), sz).List()
+			lst := val.List(ty.(*types.Type).List(), sz).List()
 			for i := 0; i < sz; i++ {
 				lst.V[sz-i-1] = v.Pop()
 			}
 			v.Push(lst.Vl())
 
 		case OP_NEW_MAP:
-			kd, w := v.readConst(v.pc)
+			ty, w := v.readConst(v.pc)
 			v.pc += w
 			sz, w := v.readMediumInt(v.pc)
 			v.pc += w
 
-			m := val.Map(kd.(*types.Kind).Map()).Map()
+			m := val.Map(ty.(*types.Type).Map()).Map()
 			for i := 0; i < sz; i++ {
 				vl := v.Pop()
 				key := v.Pop()
@@ -246,10 +246,10 @@ func switchThreading(v *VM) *val.Val {
 			v.Push(m.Vl())
 
 		case OP_NEW_OBJ:
-			kd, w := v.readConst(v.pc)
+			ty, w := v.readConst(v.pc)
 			v.pc += w
 
-			objK := kd.(*types.Kind).Obj()
+			objK := ty.(*types.Type).Obj()
 			sz := len(objK.Fields)
 			o := val.Obj(objK).Obj()
 			for i := 0; i < sz; i++ {
@@ -313,7 +313,7 @@ func switchThreading(v *VM) *val.Val {
 			v.pc += 1
 
 			f := fv.(*val.Val).Fun()
-			params := f.Kind.Fun().Param
+			params := f.Type.Fun().Param
 			args := make([]*val.Val, argc)
 
 			// 对于表达式而言, 没有局部作用域, 这里可以完全简化为递归执行字节码, 不需要常规的 call 调用
@@ -322,7 +322,7 @@ func switchThreading(v *VM) *val.Val {
 				thunkPtr := v.Pop()
 				thunk := (*thunkVal)(unsafe.Pointer(thunkPtr))
 				body := thunk.bytecode
-				thunkK := types.Fun("thunk", []*types.Kind{}, params[argc-1-i])
+				thunkK := types.Fun("thunk", []*types.Type{}, params[argc-1-i])
 				args[argc-1-i] = val.Fun(thunkK, func(...*val.Val) *val.Val {
 					return v.call0(body, v.env)
 				})

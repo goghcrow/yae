@@ -8,7 +8,7 @@ import (
 
 func TestRecursive(t *testing.T) {
 	lt := types.List(nil).List()
-	lt.El = lt.Kd()
+	lt.El = lt.Ty()
 
 	lv := val.List(lt, 0).List()
 	lv.Add(lv.Vl())

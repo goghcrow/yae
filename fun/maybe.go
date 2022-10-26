@@ -9,10 +9,10 @@ import (
 var (
 	// GET_MAYBE get :: forall a. (maybe[a] -> a -> a)
 	GET_MAYBE = func() *val.Val {
-		T := types.Slot("a")
+		T := types.TyVar("a")
 		maybeT := types.Maybe(T)
 		return val.Fun(
-			types.Fun(GET, []*types.Kind{maybeT, T}, T),
+			types.Fun(GET, []*types.Type{maybeT, T}, T),
 			func(args ...*val.Val) *val.Val {
 				mb := args[0].Maybe()
 				if mb.V == nil {

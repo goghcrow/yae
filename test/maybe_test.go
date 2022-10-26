@@ -19,7 +19,7 @@ func TestMaybe(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		assert(ty.Type == types.TObj)
+		assert(ty.Kind == types.KObj)
 
 		assert(types.Equals(
 			// 这里别名 name 小写开头
@@ -44,7 +44,7 @@ func TestMaybe(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		assert(ty.Type == types.TObj)
+		assert(ty.Kind == types.KObj)
 		assert(types.Equals(
 			ty.Obj().MustGetField("Name").Val,
 			types.Str,
@@ -71,15 +71,15 @@ func TestMaybe(t *testing.T) {
 		just := val.Just(types.Num, val.Num(42))
 
 		objWithMaybeField := types.Obj([]types.Field{
-			{"nothing", maybeInt.Kd()},
-			{"just", maybeInt.Kd()},
+			{"nothing", maybeInt.Ty()},
+			{"just", maybeInt.Ty()},
 		}).Obj()
 
 		tyEnv := types.NewEnv()
 		vlEnv := val.NewEnv()
-		tyEnv.Put("nothing", maybeInt.Kd())
-		tyEnv.Put("just", maybeInt.Kd())
-		tyEnv.Put("obj", objWithMaybeField.Kd())
+		tyEnv.Put("nothing", maybeInt.Ty())
+		tyEnv.Put("just", maybeInt.Ty())
+		tyEnv.Put("obj", objWithMaybeField.Ty())
 
 		vlEnv.Put("nothing", nothing)
 		vlEnv.Put("just", just)

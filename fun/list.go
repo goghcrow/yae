@@ -10,10 +10,10 @@ import (
 var (
 	// LEN_LIST len :: forall a. (list[a] -> num)
 	LEN_LIST = func() *val.Val {
-		T := types.Slot("a")
+		T := types.TyVar("a")
 		listT := types.List(T)
 		return val.Fun(
-			types.Fun(LEN, []*types.Kind{listT}, types.Num),
+			types.Fun(LEN, []*types.Type{listT}, types.Num),
 			func(args ...*val.Val) *val.Val {
 				return val.Num(float64(len(args[0].List().V)))
 			},
@@ -21,10 +21,10 @@ var (
 	}()
 	// GET_LIST_NUM_ANY get :: forall a. (list[a] -> num -> a -> a)
 	GET_LIST_NUM_ANY = func() *val.Val {
-		a := types.Slot("a")
+		a := types.TyVar("a")
 		listA := types.List(a)
 		return val.Fun(
-			types.Fun(GET, []*types.Kind{listA, types.Num, a}, a),
+			types.Fun(GET, []*types.Type{listA, types.Num, a}, a),
 			func(args ...*val.Val) *val.Val {
 				lst := args[0].List().V
 				idx := int(args[1].Num().V)
@@ -42,14 +42,14 @@ var (
 	}()
 	// UNION_LIST_LIST union :: forall a. (list[a] -> list[a] -> list[a])
 	UNION_LIST_LIST = func() *val.Val {
-		T := types.Slot("a")
+		T := types.TyVar("a")
 		listT := types.List(T)
 		return val.Fun(
-			types.Fun(UNION, []*types.Kind{listT, listT}, listT),
+			types.Fun(UNION, []*types.Type{listT, listT}, listT),
 			func(args ...*val.Val) *val.Val {
 				lhs := valSetOf(args[0].List().V)
 				rhs := valSetOf(args[1].List().V)
-				res := val.List(args[0].List().Kind.List(), 0).List()
+				res := val.List(args[0].List().Type.List(), 0).List()
 				res.V = union(lhs, rhs)
 				fmt.Println(res)
 				return res.Vl()
@@ -58,14 +58,14 @@ var (
 	}()
 	// INTERSECT_LIST_LIST intersect :: forall a. (list[a] -> list[a] -> list[a])
 	INTERSECT_LIST_LIST = func() *val.Val {
-		T := types.Slot("a")
+		T := types.TyVar("a")
 		listT := types.List(T)
 		return val.Fun(
-			types.Fun(INTERSECT, []*types.Kind{listT, listT}, listT),
+			types.Fun(INTERSECT, []*types.Type{listT, listT}, listT),
 			func(args ...*val.Val) *val.Val {
 				lhs := valSetOf(args[0].List().V)
 				rhs := valSetOf(args[1].List().V)
-				res := val.List(args[0].List().Kind.List(), 0).List()
+				res := val.List(args[0].List().Type.List(), 0).List()
 				res.V = intersect(lhs, rhs)
 				return res.Vl()
 			},
@@ -73,14 +73,14 @@ var (
 	}()
 	// DIFF_LIST_LIST diff :: forall a. (list[a] -> list[a] -> list[a])
 	DIFF_LIST_LIST = func() *val.Val {
-		T := types.Slot("a")
+		T := types.TyVar("a")
 		listT := types.List(T)
 		return val.Fun(
-			types.Fun(DIFF, []*types.Kind{listT, listT}, listT),
+			types.Fun(DIFF, []*types.Type{listT, listT}, listT),
 			func(args ...*val.Val) *val.Val {
 				lhs := valSetOf(args[0].List().V)
 				rhs := valSetOf(args[1].List().V)
-				res := val.List(args[0].List().Kind.List(), 0).List()
+				res := val.List(args[0].List().Type.List(), 0).List()
 				res.V = diff(lhs, rhs)
 				return res.Vl()
 			},

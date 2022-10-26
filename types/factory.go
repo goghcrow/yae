@@ -5,51 +5,53 @@ import (
 	"strconv"
 )
 
-// Slot 新建 Type Variable
-// 📢 每次调用都生成「不相等」的 slot
-var Slot = func() func(name string) *Kind {
+// TyVar 新建 Type Variable
+// 📢 每次调用都生成全局唯一类型变量
+var TyVar = func() func(name string) *Type {
 	n := 0
-	return func(name string) *Kind {
+	return func(name string) *Type {
 		n++
-		t := SlotKind{Kind{TSlot}, name + strconv.Itoa(n)}
-		return &t.Kind
+		t := TypeVariable{Type{KTyVar}, name + strconv.Itoa(n)}
+		return &t.Type
 	}
 }()
 
-func Tuple(val []*Kind) *Kind {
-	t := TupleKind{Kind{TTuple}, val}
-	return &t.Kind
+func Tuple(val []*Type) *Type {
+	t := TupleTy{Type{kTuple}, val}
+	return &t.Type
 }
 
-func List(el *Kind) *Kind {
-	t := ListKind{Kind{TList}, el}
-	return &t.Kind
+func List(el *Type) *Type {
+	t := ListTy{Type{KList}, el}
+	return &t.Type
 }
 
-func Map(k, v *Kind) *Kind {
-	util.Assert(k.IsPrimitive() || k.Type == TSlot || k.Type == TBottom,
+func Map(k, v *Type) *Type {
+	util.Assert(keyable(k),
 		"invalid type of map's key: %s", k)
-	m := MapKind{Kind{TMap}, k, v}
-	return &m.Kind
+	m := MapTy{Type{KMap}, k, v}
+	return &m.Type
 }
 
-func Obj(fields []Field) *Kind {
-	t := ObjKind{Kind{TObj}, fields, nil}
+func keyable(ty *Type) bool { return ty.IsPrimitive() || ty.Kind == KTyVar || ty.Kind == KBot }
+
+func Obj(fields []Field) *Type {
+	t := ObjTy{Type{KObj}, fields, nil}
 	t.Index = make(map[string]int, len(fields))
 	for i, f := range fields {
 		j, ok := t.Index[f.Name]
 		util.Assert(!ok, "duplicated field %s in %d and %d", f.Name, i, j)
 		t.Index[f.Name] = i
 	}
-	return &t.Kind
+	return &t.Type
 }
 
-func Fun(name string, param []*Kind, ret *Kind) *Kind {
-	t := FunKind{Kind{TFun}, name, param, ret}
-	return &t.Kind
+func Fun(name string, param []*Type, ret *Type) *Type {
+	t := FunTy{Type{KFun}, name, param, ret}
+	return &t.Type
 }
 
-func Maybe(elem *Kind) *Kind {
-	t := MaybeKind{Kind{TMaybe}, elem}
-	return &t.Kind
+func Maybe(elem *Type) *Type {
+	t := MaybeTy{Type{KMaybe}, elem}
+	return &t.Type
 }

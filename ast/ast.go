@@ -1,122 +1,123 @@
 package ast
 
 import (
+	"fmt"
 	"github.com/goghcrow/yae/oper"
-	"unsafe"
 )
 
-type Expr struct {
-	Type NodeType
+type Expr interface {
+	fmt.Stringer
+	_exprMakeIDEHappy()
 }
 
 type (
-	LiteralExpr struct {
-		Expr
-		LitType
+	StrExpr struct {
 		Text string
 		// 👇🏻 for typecheck and compile
-		// LIT_STR: string
-		// LIT_NUM: float64
-		// LIT_TIME: int64
-		// LIT_TRUE: bool
-		// LIT_FALSE: bool
-		Val interface{} // union
+		Val string
+	}
+	NumExpr struct {
+		Text string
+		// 👇🏻 for typecheck and compile
+		Val float64
+	}
+	TimeExpr struct {
+		Text string
+		// 👇🏻 for typecheck and compile
+		Val int64
+	}
+	BoolExpr struct {
+		Text string
+		// 👇🏻 for typecheck and compile
+		Val bool
 	}
 	ListExpr struct { // lit
-		Expr
-		Elems []*Expr
+		Elems []Expr
 		// 👇🏻 for typecheck and compile
-		Kind interface{} // *types.Kind
+		Type interface{} // *types.Type
 	}
 	Pair struct {
-		Key, Val *Expr
+		Key, Val Expr
 	}
 	MapExpr struct { // lit
-		Expr
 		Pairs []Pair
 		// 👇🏻 for typecheck and compile
-		Kind interface{} // *types.Kind
+		Type interface{} // *types.Type
 	}
 	Field struct {
 		Name string
-		Val  *Expr
+		Val  Expr
 	}
 	ObjExpr struct { // lit
-		Expr
 		Fields []Field // 不用 map 是因为要保持声明顺序
 		// 👇🏻 for typecheck and compile
-		Kind interface{} // *types.Kind
+		Type interface{} // *types.Type
 	}
 	IdentExpr struct {
-		Expr
 		Name string
-	}
-	UnaryExpr struct {
-		Expr
-		Name   string
-		LHS    *Expr
-		Prefix bool
-	}
-	BinaryExpr struct {
-		Expr
-		Name string
-		oper.Fixity
-		LHS *Expr
-		RHS *Expr
-	}
-	TenaryExpr struct {
-		Expr
-		Name  string
-		Left  *Expr
-		Mid   *Expr
-		Right *Expr
-	}
-	IfExpr struct {
-		Expr
-		Cond *Expr
-		Then *Expr
-		Else *Expr
 	}
 	CallExpr struct {
-		Expr
-		Callee *Expr
-		Args   []*Expr
+		Callee Expr
+		Args   []Expr
 		// 👇🏻 for typecheck and compile
-		CalleeKind interface{} // *types.Kind
+		CalleeType interface{} // *types.Type
 		Resolved   string
 		Index      int
 	}
 	SubscriptExpr struct {
-		Expr
-		Var *Expr
-		Idx *Expr
+		Var Expr
+		Idx Expr
 		// 👇🏻 for typecheck and compile
-		VarKind interface{} // *types.Kind
+		VarType interface{} // *types.Type
 	}
 	MemberExpr struct {
-		Expr
-		Obj   *Expr
+		Obj   Expr
 		Field *IdentExpr
 		// 👇🏻 for typecheck and compile
-		ObjKind interface{} // *types.Kind
+		ObjType interface{} // *types.Type
 		Index   int
-	}
-	GroupExpr struct { // 仅仅用于 String(), Desugar 会去掉
-		Expr
-		SubExpr *Expr
 	}
 )
 
-func (e *Expr) Ident() *IdentExpr         { return (*IdentExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Literal() *LiteralExpr     { return (*LiteralExpr)(unsafe.Pointer(e)) }
-func (e *Expr) List() *ListExpr           { return (*ListExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Map() *MapExpr             { return (*MapExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Obj() *ObjExpr             { return (*ObjExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Unary() *UnaryExpr         { return (*UnaryExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Binary() *BinaryExpr       { return (*BinaryExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Tenary() *TenaryExpr       { return (*TenaryExpr)(unsafe.Pointer(e)) }
-func (e *Expr) If() *IfExpr               { return (*IfExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Call() *CallExpr           { return (*CallExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Subscript() *SubscriptExpr { return (*SubscriptExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Member() *MemberExpr       { return (*MemberExpr)(unsafe.Pointer(e)) }
-func (e *Expr) Group() *GroupExpr         { return (*GroupExpr)(unsafe.Pointer(e)) }
+// 👇🏻 会被 desugar 处理
+type (
+	UnaryExpr struct {
+		Name   string
+		LHS    Expr
+		Prefix bool
+	}
+	BinaryExpr struct {
+		Name string
+		oper.Fixity
+		LHS Expr
+		RHS Expr
+	}
+	TenaryExpr struct {
+		Name  string
+		Left  Expr
+		Mid   Expr
+		Right Expr
+	}
+	GroupExpr struct { // 仅用于 String(), 会被 Desugar 会去掉
+		SubExpr Expr
+	}
+)
+
+func (_ *StrExpr) _exprMakeIDEHappy()       {}
+func (_ *NumExpr) _exprMakeIDEHappy()       {}
+func (_ *TimeExpr) _exprMakeIDEHappy()      {}
+func (_ *BoolExpr) _exprMakeIDEHappy()      {}
+func (_ *ListExpr) _exprMakeIDEHappy()      {}
+func (_ *MapExpr) _exprMakeIDEHappy()       {}
+func (_ *ObjExpr) _exprMakeIDEHappy()       {}
+func (_ *IdentExpr) _exprMakeIDEHappy()     {}
+func (_ *UnaryExpr) _exprMakeIDEHappy()     {}
+func (_ *BinaryExpr) _exprMakeIDEHappy()    {}
+func (_ *TenaryExpr) _exprMakeIDEHappy()    {}
+func (_ *CallExpr) _exprMakeIDEHappy()      {}
+func (_ *SubscriptExpr) _exprMakeIDEHappy() {}
+func (_ *MemberExpr) _exprMakeIDEHappy()    {}
+func (_ *GroupExpr) _exprMakeIDEHappy()     {}
+
+//type IfExpr struct { Cond Expr;Then Expr;Else Expr }
+//func (_ *IfExpr) _exprMakeIDEHappy()        {}

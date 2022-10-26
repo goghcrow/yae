@@ -19,85 +19,71 @@ import (
 // 2. 繁饰 list/map/obj 类型, 简化 Compile 代码
 // 3. call.callee resolve
 // 4. 且, Compile 中不检查错误, 假设 types.Check 已经全部检查
-func Compile(expr *ast.Expr, env1 *val.Env) compiler.Closure {
-	switch expr.Type {
-	case ast.LITERAL:
-		lit := expr.Literal()
-		switch lit.LitType {
-		case ast.LIT_STR:
-			s := val.Str(lit.Val.(string))
-			return func(env *val.Env) *val.Val { return s }
-		case ast.LIT_TIME:
-			t := val.Time(time.Unix(lit.Val.(int64), 0))
-			return func(env *val.Env) *val.Val { return t }
-		case ast.LIT_NUM:
-			n := val.Num(lit.Val.(float64))
-			return func(env *val.Env) *val.Val { return n }
-		case ast.LIT_TRUE:
+func Compile(expr ast.Expr, env1 *val.Env) compiler.Closure {
+	switch e := expr.(type) {
+	case *ast.StrExpr:
+		s := val.Str(e.Val)
+		return func(env *val.Env) *val.Val { return s }
+
+	case *ast.NumExpr:
+		n := val.Num(e.Val)
+		return func(env *val.Env) *val.Val { return n }
+
+	case *ast.TimeExpr:
+		t := val.Time(time.Unix(e.Val, 0))
+		return func(env *val.Env) *val.Val { return t }
+
+	case *ast.BoolExpr:
+		if e.Val {
 			return func(env *val.Env) *val.Val { return val.True }
-		case ast.LIT_FALSE:
+		} else {
 			return func(env *val.Env) *val.Val { return val.False }
-		default:
-			util.Unreachable()
-			return nil
 		}
 
-	case ast.IDENT:
-		// 如果从性能角度考虑, 所有运行时的符号查找其实都可以从 map 换成 array
-		// 1. 需要在编译期把符号 resolve 成数组下标
-		// 2. 把运行时环境从 map 展开成数组
-		id := expr.Ident().Name
-		return func(env *val.Env) *val.Val {
-			v, _ := env.Get(id)
-			return v
-		}
-
-	case ast.LIST:
-		lst := expr.List()
-		els := lst.Elems
+	case *ast.ListExpr:
+		els := e.Elems
 		sz := len(els)
 		if sz == 0 {
 			return func(env *val.Env) *val.Val {
 				// 注意空列表类型 list[nothing]
-				kind := types.List(types.Bottom).List()
-				return val.List(kind, 0)
+				ty := types.List(types.Bottom).List()
+				return val.List(ty, 0)
 			}
 		}
 
-		kind := lst.Kind.(*types.Kind).List()
+		ty := e.Type.(*types.Type).List()
 		cs := make([]compiler.Closure, sz)
 		for i, el := range els {
 			cs[i] = Compile(el, env1)
 		}
 
 		return func(env *val.Env) *val.Val {
-			l := val.List(kind, sz).List()
+			l := val.List(ty, sz).List()
 			for i, c := range cs {
 				l.V[i] = c(env)
 			}
 			return l.Vl()
 		}
 
-	case ast.MAP:
-		m := expr.Map()
-		sz := len(m.Pairs)
+	case *ast.MapExpr:
+		sz := len(e.Pairs)
 		if sz == 0 {
 			return func(env *val.Env) *val.Val {
 				// 注意空 map 类型 map[nothing, nothing]
-				kind := types.Map(types.Bottom, types.Bottom).Map()
-				return val.Map(kind)
+				ty := types.Map(types.Bottom, types.Bottom).Map()
+				return val.Map(ty)
 			}
 		}
 
-		kind := m.Kind.(*types.Kind).Map()
+		ty := e.Type.(*types.Type).Map()
 		// 保持字面量声明的执行顺序
 		cs := make([]struct{ k, v compiler.Closure }, sz)
-		for i, pair := range m.Pairs {
+		for i, pair := range e.Pairs {
 			cs[i] = struct{ k, v compiler.Closure }{Compile(pair.Key, env1), Compile(pair.Val, env1)}
 		}
 
 		return func(env *val.Env) *val.Val {
-			m := val.Map(kind).Map()
+			m := val.Map(ty).Map()
 			for _, c := range cs {
 				k := c.k(env).Key()
 				v := c.v(env)
@@ -106,47 +92,65 @@ func Compile(expr *ast.Expr, env1 *val.Env) compiler.Closure {
 			return m.Vl()
 		}
 
-	case ast.OBJ:
-		obj := expr.Obj()
-		sz := len(obj.Fields)
+	case *ast.ObjExpr:
+		sz := len(e.Fields)
 		if sz == 0 {
 			return func(env *val.Env) *val.Val {
-				kind := types.Obj([]types.Field{}).Obj()
-				return val.Obj(kind)
+				ty := types.Obj([]types.Field{}).Obj()
+				return val.Obj(ty)
 			}
 		}
 		// 保持字面量声明的执行顺序
 		cs := make([]compiler.Closure, sz)
-		for i, f := range obj.Fields {
+		for i, f := range e.Fields {
 			cs[i] = Compile(f.Val, env1)
 		}
-		kind := obj.Kind.(*types.Kind).Obj()
+		ty := e.Type.(*types.Type).Obj()
+
 		return func(env *val.Env) *val.Val {
-			m := val.Obj(kind).Obj()
+			m := val.Obj(ty).Obj()
 			for i, c := range cs {
 				m.V[i] = c(env)
 			}
 			return m.Vl()
 		}
 
-	case ast.SUBSCRIPT:
+	case *ast.IdentExpr:
+		// 如果从性能角度考虑, 所有运行时的符号查找其实都可以从 map 换成 array
+		// 1. 需要在编译期把符号 resolve 成数组下标
+		// 2. 把运行时环境从 map 展开成数组
+		id := e.Name
+		return func(env *val.Env) *val.Val {
+			v, _ := env.Get(id)
+			return v
+		}
+
+	case *ast.CallExpr:
+		if e.Resolved == "" {
+			return dynamicDispatch(env1, e)
+		} else {
+			return staticDispatch(env1, e)
+		}
+
+	case *ast.SubscriptExpr:
 		// 也可以 desugar 成 build-in-fun
-		sub := expr.Subscript()
-		vac := Compile(sub.Var, env1)
-		idxc := Compile(sub.Idx, env1)
+		vac := Compile(e.Var, env1)
+		idxc := Compile(e.Idx, env1)
 
 		return func(env *val.Env) *val.Val {
 			x := vac(env)
-			switch x.Kind.Type {
-			case types.TList:
+			switch x.Type.Kind {
+			case types.KList:
 				idx := int(idxc(env).Num().V)
 				lst := x.List().V
 				util.Assert(idx < len(lst), "out of range %d of %s", idx, x)
 				return lst[idx]
-			case types.TMap:
+			case types.KMap:
 				k := idxc(env)
 				v, ok := x.Map().Get(k)
-				// 如果引入 null 、nil 会让类型检查复杂以及做不到安全, 可以业务逻辑里头处理 null
+				// 如果引入 null 、nil 会让类型检查复杂以及做不到 null 安全
+				// 可以加一个返回 Maybe 的 get map 函数
+				// 或者用 if(isset(m, k), m[k], default)
 				util.Assert(ok, "undefined key %s of %s", k, x)
 				return v
 			default:
@@ -154,39 +158,28 @@ func Compile(expr *ast.Expr, env1 *val.Env) compiler.Closure {
 				return nil
 			}
 		}
-
-	case ast.MEMBER:
+	case *ast.MemberExpr:
 		// 也可以 desugar 成 build-in-fun
-		mem := expr.Member()
-		obj := Compile(mem.Obj, env1)
-		idx := mem.Index
+		obj := Compile(e.Obj, env1)
+		idx := e.Index
 		return func(env *val.Env) *val.Val {
 			return obj(env).Obj().V[idx]
 		}
 
-	case ast.CALL:
-		call := expr.Call()
-		if call.Resolved == "" {
-			return dynamicDispatch(env1, call)
-		} else {
-			return staticDispatch(env1, call)
-		}
-
-	// IF 已经 desugar 成 lazyFun 了, 这里已经没用了
-	case ast.IF:
-		iff := expr.If()
-		cond := Compile(iff.Cond, env1)
-		then := Compile(iff.Then, env1)
-		els := Compile(iff.Else, env1)
-
-		// if 分支是 lazy 的 (短路)
-		return func(env *val.Env) *val.Val {
-			if cond(env).Bool().V {
-				return then(env)
-			} else {
-				return els(env)
-			}
-		}
+	//case *ast.IfExpr:
+	//	// IF 已经 desugar 成 lazyFun 了, 这里已经没用了
+	//	cond := Compile(e.Cond, env1)
+	//	then := Compile(e.Then, env1)
+	//	els := Compile(e.Else, env1)
+	//
+	//	// if 分支是 lazy 的 (短路)
+	//	return func(env *val.Env) *val.Val {
+	//		if cond(env).Bool().V {
+	//			return then(env)
+	//		} else {
+	//			return els(env)
+	//		}
+	//	}
 
 	default:
 		util.Unreachable()
@@ -228,7 +221,7 @@ func compileArgs(env1 *val.Env, call *ast.CallExpr) (int, []compiler.Closure) {
 func makeCallClosure(fun *val.FunVal, argc int, cs []compiler.Closure) func(env *val.Env) *val.Val {
 	return func(env *val.Env) *val.Val {
 		lazy := fun.Lazy
-		params := fun.Kind.Fun().Param
+		params := fun.Type.Fun().Param
 		args := make([]*val.Val, argc)
 		if lazy {
 			// 惰性求值函数参数会被包装成 thunk, 注意没有缓存
@@ -244,8 +237,8 @@ func makeCallClosure(fun *val.FunVal, argc int, cs []compiler.Closure) func(env 
 	}
 }
 
-func thunkify(c compiler.Closure, env *val.Env, retK *types.Kind) *val.Val {
-	fk := types.Fun("thunk", []*types.Kind{}, retK)
+func thunkify(c compiler.Closure, env *val.Env, retK *types.Type) *val.Val {
+	fk := types.Fun("thunk", []*types.Type{}, retK)
 	return val.Fun(fk, func(v ...*val.Val) *val.Val {
 		return c(env)
 	})

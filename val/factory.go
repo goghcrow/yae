@@ -29,40 +29,40 @@ func Time(t time.Time) *Val {
 	return &v.Val
 }
 
-func List(kind *types.ListKind, cap int) *Val {
-	v := ListVal{Val{kind.Kd()}, make([]*Val, cap)}
+func List(ty *types.ListTy, cap int) *Val {
+	v := ListVal{Val{ty.Ty()}, make([]*Val, cap)}
 	return &v.Val
 }
 
-func Map(kind *types.MapKind) *Val {
-	v := MapVal{Val{kind.Kd()}, make(map[Key]*Val)}
+func Map(ty *types.MapTy) *Val {
+	v := MapVal{Val{ty.Ty()}, make(map[Key]*Val)}
 	return &v.Val
 }
 
-func Obj(kind *types.ObjKind) *Val {
-	v := ObjVal{Val{kind.Kd()}, make([]*Val, len(kind.Fields))}
+func Obj(ty *types.ObjTy) *Val {
+	v := ObjVal{Val{ty.Ty()}, make([]*Val, len(ty.Fields))}
 	return &v.Val
 }
 
-func Fun(kind *types.Kind, f IFun) *Val {
-	util.Assert(kind.Type == types.TFun, "expect Fun actual %s", kind)
-	fv := FunVal{Val{kind}, f, false}
+func Fun(ty *types.Type, f IFun) *Val {
+	util.Assert(ty.Kind == types.KFun, "expect Fun actual %s", ty)
+	fv := FunVal{Val{ty}, f, false}
 	return &fv.Val
 }
 
-func LazyFun(kind *types.Kind, f IFun) *Val {
-	util.Assert(kind.Type == types.TFun, "expect Fun actual %s", kind)
-	fv := FunVal{Val{kind}, f, true}
+func LazyFun(ty *types.Type, f IFun) *Val {
+	util.Assert(ty.Kind == types.KFun, "expect Fun actual %s", ty)
+	fv := FunVal{Val{ty}, f, true}
 	return &fv.Val
 }
 
-func Nothing(elem *types.Kind) *Val {
+func Nothing(elem *types.Type) *Val {
 	mb := MaybeVal{Val{types.Maybe(elem)}, nil}
 	return &mb.Val
 }
 
-func Just(elem *types.Kind, v *Val) *Val {
-	util.Assert(types.Equals(elem, v.Kind), "expect %s actual %s", elem, v.Kind)
+func Just(elem *types.Type, v *Val) *Val {
+	util.Assert(types.Equals(elem, v.Type), "expect %s actual %s", elem, v.Type)
 	mb := MaybeVal{Val{types.Maybe(elem)}, v}
 	return &mb.Val
 }

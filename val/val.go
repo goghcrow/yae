@@ -15,7 +15,7 @@ var (
 )
 
 type Val struct {
-	Kind *types.Kind
+	Type *types.Type
 }
 
 type (

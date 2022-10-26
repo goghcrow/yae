@@ -13,14 +13,14 @@ func (m *MapVal) Get(k *Val) (*Val, bool) {
 }
 
 func (m *MapVal) Put(k, v *Val) {
-	util.Assert(types.Equals(m.Kind.Map().Key, k.Kind),
-		"type mismatched, expect `%s` actual `%s`", m.Kind.Map().Key, k)
+	util.Assert(types.Equals(m.Type.Map().Key, k.Type),
+		"type mismatched, expect `%s` actual `%s`", m.Type.Map().Key, k)
 	m.V[k.Key()] = v
 }
 
 // Key 只有 Primitive(bool,num,str,time) 允许作为 map 的 key
 type Key struct {
-	tag types.Type
+	tag types.Kind
 	val string
 }
 
@@ -29,20 +29,20 @@ func (k Key) String() string {
 }
 
 func (v *Val) Key() Key {
-	switch v.Kind.Type {
-	case types.TBool:
-		return Key{v.Kind.Type, strconv.FormatBool(v.Bool().V)}
-	case types.TNum:
+	switch v.Type.Kind {
+	case types.KBool:
+		return Key{v.Type.Kind, strconv.FormatBool(v.Bool().V)}
+	case types.KNum:
 		if v.Num().IsInt() {
-			return Key{v.Kind.Type, fmt.Sprintf("%.0f", v.Num().V)}
+			return Key{v.Type.Kind, fmt.Sprintf("%.0f", v.Num().V)}
 		} else {
-			return Key{v.Kind.Type, fmt.Sprintf("%f", v.Num().V)}
+			return Key{v.Type.Kind, fmt.Sprintf("%f", v.Num().V)}
 		}
-	case types.TStr:
-		return Key{v.Kind.Type, fmt.Sprintf("%q", v.Str().V)}
-	case types.TTime:
-		return Key{v.Kind.Type, fmt.Sprintf("%q", v.Time().V.String())}
+	case types.KStr:
+		return Key{v.Type.Kind, fmt.Sprintf("%q", v.Str().V)}
+	case types.KTime:
+		return Key{v.Type.Kind, fmt.Sprintf("%q", v.Time().V.String())}
 	default:
-		panic(fmt.Errorf("invalid map key type: %s", v.Kind))
+		panic(fmt.Errorf("invalid map key type: %s", v.Type))
 	}
 }

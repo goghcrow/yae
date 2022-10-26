@@ -21,9 +21,9 @@ var (
 	// IF_BOOL_ANY_ANY if :: forall a. (bool -> α -> α -> α)
 	// if 可以声明成惰性求值的泛型函数
 	IF_BOOL_ANY_ANY = func() *val.Val {
-		T := types.Slot("a")
+		T := types.TyVar("a")
 		return val.LazyFun(
-			types.Fun(IF /*token.IF.Name*/, []*types.Kind{types.Bool, T, T}, T),
+			types.Fun(IF /*token.IF.Name*/, []*types.Type{types.Bool, T, T}, T),
 			// 注意 if 是 lazyFun, 参数都是 thunk
 			func(args ...*val.Val) *val.Val {
 				if args[0].Fun().Call().Bool().V {
@@ -36,7 +36,7 @@ var (
 	}()
 	// LOGIC_AND_BOOL_BOOL and :: bool -> bool -> bool
 	LOGIC_AND_BOOL_BOOL = val.LazyFun(
-		types.Fun(oper.LOGIC_AND, []*types.Kind{types.Bool, types.Bool}, types.Bool),
+		types.Fun(oper.LOGIC_AND, []*types.Type{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			thunk1 := args[0].Fun()
 			if thunk1.Call().Bool().V {
@@ -49,7 +49,7 @@ var (
 	)
 	// LOGIC_OR_BOOL_BOOL or :: bool -> bool -> bool
 	LOGIC_OR_BOOL_BOOL = val.LazyFun(
-		types.Fun(oper.LOGIC_OR, []*types.Kind{types.Bool, types.Bool}, types.Bool),
+		types.Fun(oper.LOGIC_OR, []*types.Type{types.Bool, types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			thunk1 := args[0].Fun()
 			if thunk1.Call().Bool().V {
@@ -62,7 +62,7 @@ var (
 	)
 	// LOGIC_NOT_BOOL not :: bool -> bool
 	LOGIC_NOT_BOOL = val.Fun(
-		types.Fun(oper.LOGIC_NOT, []*types.Kind{types.Bool}, types.Bool),
+		types.Fun(oper.LOGIC_NOT, []*types.Type{types.Bool}, types.Bool),
 		func(args ...*val.Val) *val.Val {
 			return val.Bool(!args[0].Bool().V)
 		},

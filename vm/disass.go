@@ -45,17 +45,17 @@ func Disassemble(b *bytecode) string {
 			fallthrough
 		case OP_NEW_MAP:
 			off := i - 1
-			kd, w := b.readConst(i)
+			ty, w := b.readConst(i)
 			i += w
 			sz, w := b.readMediumInt(i)
 			i += w
-			buf.WriteString(fmt.Sprintf("[%d] %s %s, %d\n", off, op, kd, sz))
+			buf.WriteString(fmt.Sprintf("[%d] %s %s, %d\n", off, op, ty, sz))
 
 		case OP_NEW_OBJ:
 			off := i - 1
-			kd, w := b.readConst(i)
+			ty, w := b.readConst(i)
 			i += w
-			buf.WriteString(fmt.Sprintf("[%d] %s %s\n", off, op, kd))
+			buf.WriteString(fmt.Sprintf("[%d] %s %s\n", off, op, ty))
 
 		case OP_OBJ_LOAD:
 			off := i - 1

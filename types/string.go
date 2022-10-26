@@ -5,64 +5,64 @@ import (
 	"github.com/goghcrow/yae/util"
 )
 
-func (k *Kind) String() string {
-	return stringify(k, util.PtrSet{})
+func (t *Type) String() string {
+	return stringify(t, util.PtrSet{})
 }
 
-func stringify(k *Kind, inProcess util.PtrSet) string {
-	if k.Type.IsComposite() {
-		if inProcess.Contains(k) {
-			return fmt.Sprintf("recursive-kind %s@%p", k.Type, k)
+func stringify(ty *Type, inProcess util.PtrSet) string {
+	if ty.Kind.IsComposite() {
+		if inProcess.Contains(ty) {
+			return fmt.Sprintf("recursive-type %s@%p", ty.Kind, ty)
 		} else {
-			inProcess.Add(k)
+			inProcess.Add(ty)
 		}
 	}
 
-	switch k.Type {
-	case TNum:
+	switch ty.Kind {
+	case KNum:
 		return "num"
-	case TStr:
+	case KStr:
 		return "str"
-	case TBool:
+	case KBool:
 		return "bool"
-	case TTime:
+	case KTime:
 		return "time"
-	case TTuple:
-		val := k.Tuple().Val
+	case kTuple:
+		val := ty.Tuple().Val
 		xs := make([]string, len(val))
-		for i, kind := range val {
-			xs[i] = stringify(kind, inProcess)
+		for i, el := range val {
+			xs[i] = stringify(el, inProcess)
 		}
-		return util.JoinStrEx(xs, ", ", "(", ")")
-	case TList:
-		l := k.List()
+		return util.JoinStr(xs, ", ", "(", ")")
+	case KList:
+		l := ty.List()
 		return fmt.Sprintf("list[%s]", stringify(l.El, inProcess))
-	case TMap:
-		m := k.Map()
+	case KMap:
+		m := ty.Map()
 		return fmt.Sprintf("map[%s, %s]", stringify(m.Key, inProcess), stringify(m.Val, inProcess))
-	case TObj:
-		fs := k.Obj().Fields
+	case KObj:
+		fs := ty.Obj().Fields
 		xs := make([]string, len(fs))
 		for i, f := range fs {
 			xs[i] = fmt.Sprintf("%s: %s", f.Name, stringify(f.Val, inProcess))
 		}
-		return util.JoinStrEx(xs, ", ", "{", "}")
-	case TFun:
-		f := k.Fun()
+		return util.JoinStr(xs, ", ", "{", "}")
+	case KFun:
+		f := ty.Fun()
 		xs := make([]string, len(f.Param))
 		for i, p := range f.Param {
 			xs[i] = stringify(p, inProcess)
 		}
 		pre := "func " + f.Name + "("
 		post := ") " + stringify(f.Return, inProcess)
-		return util.JoinStrEx(xs, ", ", pre, post)
-	case TMaybe:
-		return fmt.Sprintf("maybe[%s]", stringify(k.Maybe().Elem, inProcess))
-	case TSlot:
-		return "'" + k.Slot().Name
-	case TTop:
+		return util.JoinStr(xs, ", ", pre, post)
+	case KMaybe:
+		return fmt.Sprintf("maybe[%s]", stringify(ty.Maybe().Elem, inProcess))
+	case KTyVar:
+		return "'" + ty.TyVar().Name
+	case KTop:
 		return "⊤"
-	case TBottom:
+	case KBot:
 		return "⊥"
 	default:
 		util.Unreachable()

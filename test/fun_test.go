@@ -225,6 +225,9 @@ func TestFun(t *testing.T) {
 		{`isset([1:""], 0)`, val.False},
 		{`isset([1:""], 1)`, val.True},
 
+		{`if(isset(["x":true], "x"), ["x":true]["x"], false)`, val.True},
+		{`if(isset(["x":true], "y"), ["x":true]["y"], false)`, val.False},
+
 		{`[1,2,3,n].get(2, 42) == 3`, val.True},
 		{`[1,2,3,n].get(3, 42) == 42`, val.True},
 		{`[1,2,3,n].get(4, 42) == 42`, val.True},
@@ -285,18 +288,18 @@ func TestTypeError(t *testing.T) {
 		`if(true,"1",2)`,
 		`[1]==["1"]`,
 	} {
-		k := typeError(expr, t)
-		if k != nil {
-			t.Errorf("%s  expect type error actual `%s`", expr, k)
+		ty := typeError(expr, t)
+		if ty != nil {
+			t.Errorf("%s  expect type error actual `%s`", expr, ty)
 		}
 	}
 }
 
-func typeError(s string, t *testing.T) (k *types.Kind) {
+func typeError(s string, t *testing.T) (ty *types.Type) {
 	defer func() {
 		if r := recover(); r != nil {
 			t.Logf("%s => %v", s, r)
-			k = nil
+			ty = nil
 		}
 	}()
 

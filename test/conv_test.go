@@ -15,7 +15,7 @@ func TestConv(t *testing.T) {
 	tests := []struct {
 		name         string
 		v            interface{}
-		expectedType *types.Kind
+		expectedType *types.Type
 		expectedVal  *val.Val
 	}{
 		{
@@ -223,7 +223,7 @@ func TestConv(t *testing.T) {
 					{"A", types.Num},
 				}).Obj()
 				obj := val.Obj(types.Obj([]types.Field{
-					{"Nested", nestedT.Kd()},
+					{"Nested", nestedT.Ty()},
 				}).Obj()).Obj()
 				nested := val.Obj(nestedT).Obj()
 				nested.Put("A", val.Num(42))
@@ -315,7 +315,7 @@ func TestConv(t *testing.T) {
 					return &i
 				}(),
 			},
-			expectedType: func() *types.Kind {
+			expectedType: func() *types.Type {
 				return types.Obj([]types.Field{
 					{"A", types.Num},
 					{"B", types.Num},
@@ -368,16 +368,16 @@ func TestConv(t *testing.T) {
 					t.Errorf("%v", r)
 				}
 			}()
-			k, err := conv.TypeOf(tt.v)
+			ty, err := conv.TypeOf(tt.v)
 			if err != nil {
 				if tt.expectedType != nil {
 					t.Errorf("[typeof] expect %s actual error `%s`", tt.expectedType, err)
 				}
 			} else {
 				if tt.expectedType == nil {
-					t.Errorf("[valof] expect %s actual %s", tt.expectedType, k)
-				} else if !types.Equals(tt.expectedType, k) {
-					t.Errorf("[valof] expect %s actual %s", tt.expectedType, k)
+					t.Errorf("[valof] expect %s actual %s", tt.expectedType, ty)
+				} else if !types.Equals(tt.expectedType, ty) {
+					t.Errorf("[valof] expect %s actual %s", tt.expectedType, ty)
 				}
 			}
 
@@ -388,9 +388,9 @@ func TestConv(t *testing.T) {
 				}
 			} else {
 				if tt.expectedVal == nil {
-					t.Errorf("expect %s actual %s", tt.expectedVal, k)
+					t.Errorf("expect %s actual %s", tt.expectedVal, ty)
 				} else if !val.Equals(tt.expectedVal, v) {
-					t.Errorf("expect %s actual %s", tt.expectedVal, k)
+					t.Errorf("expect %s actual %s", tt.expectedVal, ty)
 				}
 			}
 		})
@@ -484,12 +484,12 @@ func TestConvValOf(t *testing.T) {
 			expected: func() *val.Val {
 				typeProps := types.Map(types.Str, types.List(types.Str)).Map()
 				typeNested := types.Obj([]types.Field{
-					{"props", typeProps.Kd()},
+					{"props", typeProps.Ty()},
 				}).Obj()
 				typeObj := types.Obj([]types.Field{
 					{"id", types.Num},
 					{"name", types.Str},
-					{"nested", typeNested.Kd()},
+					{"nested", typeNested.Ty()},
 				})
 				// list[{id: num, name: str, nested: {props: map[str, list[str]]}}]
 				typeRes := types.List(typeObj).List()
@@ -542,45 +542,45 @@ func TestTypeOf(t *testing.T) {
 	ttptr := &tt
 	ttptrptr := &ttptr
 
-	kind, err := conv.TypeOf(tt)
+	ty, err := conv.TypeOf(tt)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	if kind != types.Time {
-		t.Errorf("expect time, actual %s", kind)
+	if ty != types.Time {
+		t.Errorf("expect time, actual %s", ty)
 	}
 
-	kind, err = conv.TypeOf(ttptr)
+	ty, err = conv.TypeOf(ttptr)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	if kind != types.Time {
-		t.Errorf("expect time actual %s", kind)
+	if ty != types.Time {
+		t.Errorf("expect time actual %s", ty)
 	}
 
-	kind, err = conv.TypeOf(ttptrptr)
+	ty, err = conv.TypeOf(ttptrptr)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	if kind != types.Time {
-		t.Errorf("expect time, actual %s", kind)
+	if ty != types.Time {
+		t.Errorf("expect time, actual %s", ty)
 	}
 
-	kind, err = conv.TypeOf(map[string]interface{}{})
-	if err == nil || kind != nil {
+	ty, err = conv.TypeOf(map[string]interface{}{})
+	if err == nil || ty != nil {
 		t.Errorf("expect err")
 	}
 }
 
 func TestPtrInterface(t *testing.T) {
 	var i interface{} = 42
-	k, err := conv.TypeOf(i)
+	ty, err := conv.TypeOf(i)
 	assert(err == nil)
-	assert(k == types.Num)
+	assert(ty == types.Num)
 
-	k, err = conv.TypeOf(&i)
+	ty, err = conv.TypeOf(&i)
 	assert(err == nil)
-	assert(k == types.Num)
+	assert(ty == types.Num)
 
 	v, err := conv.ValOf(i)
 	assert(err == nil)
@@ -633,7 +633,7 @@ func TestReflectInterfaceElem(t *testing.T) {
 func setObj(obj *val.ObjVal, m map[string]*val.Val) {
 	for n, v := range m {
 		if !obj.Put(n, v) {
-			panic(fmt.Errorf("field %s not found in %s", n, obj.Kind))
+			panic(fmt.Errorf("field %s not found in %s", n, obj.Type))
 		}
 	}
 }

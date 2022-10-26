@@ -12,29 +12,29 @@ func Equals(x, y *Val) bool {
 	if x == nil || y == nil {
 		return false
 	}
-	if !types.Equals(x.Kind, y.Kind) {
+	if !types.Equals(x.Type, y.Type) {
 		return false
 	}
 
-	switch x.Kind.Type {
-	case types.TNum:
+	switch x.Type.Kind {
+	case types.KNum:
 		return NumEQ(x.Num(), y.Num())
-	case types.TBool:
+	case types.KBool:
 		return x.Bool().V == y.Bool().V
-	case types.TStr:
+	case types.KStr:
 		return x.Str().V == y.Str().V
-	case types.TTime:
+	case types.KTime:
 		return x.Time().V.Equal(y.Time().V)
-	case types.TList:
+	case types.KList:
 		return equalsList(x.List(), y.List())
-	case types.TMap:
+	case types.KMap:
 		return equalsMap(x.Map(), y.Map())
-	case types.TObj:
+	case types.KObj:
 		return equalsObj(x.Obj(), y.Obj())
-	case types.TFun:
+	case types.KFun:
 		// panic("fun is not comparable")
 		return x == y
-	case types.TMaybe:
+	case types.KMaybe:
 		return equalsMaybe(x.Maybe(), y.Maybe())
 	default:
 		util.Unreachable()
@@ -72,7 +72,7 @@ func equalsObj(x, y *ObjVal) bool {
 		return false
 	}
 
-	xk := x.Obj().Kind.Obj()
+	xk := x.Obj().Type.Obj()
 	for i, v1 := range x.V {
 		// 前置判断过类型相等, v2 一定存在
 		v2, _ := y.Get(xk.Fields[i].Name)
@@ -84,7 +84,7 @@ func equalsObj(x, y *ObjVal) bool {
 }
 
 func equalsMaybe(x, y *MaybeVal) bool {
-	if !types.Equals(x.Kind.Maybe().Elem, y.Kind.Maybe().Elem) {
+	if !types.Equals(x.Type.Maybe().Elem, y.Type.Maybe().Elem) {
 		return false
 	}
 	if x.V == nil && y.V == nil {

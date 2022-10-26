@@ -16,18 +16,18 @@ func newGrammar(ops []oper.Operator) grammar {
 
 	g.prefix(token.NAME, oper.BP_NONE, ident)
 
-	g.prefix(token.NULL, oper.BP_NONE, literal(ast.LIT_NULL))
-	g.prefix(token.TRUE, oper.BP_NONE, literal(ast.LIT_TRUE))
-	g.prefix(token.FALSE, oper.BP_NONE, literal(ast.LIT_FALSE))
-	g.prefix(token.NUM, oper.BP_NONE, literal(ast.LIT_NUM))
-	g.prefix(token.STR, oper.BP_NONE, literal(ast.LIT_STR))
-	g.prefix(token.TIME, oper.BP_NONE, literal(ast.LIT_TIME))
+	g.prefix(token.TRUE, oper.BP_NONE, parseTrue)
+	g.prefix(token.FALSE, oper.BP_NONE, parseFalse)
+	g.prefix(token.NUM, oper.BP_NONE, parseNum)
+	g.prefix(token.STR, oper.BP_NONE, parseStr)
+	g.prefix(token.TIME, oper.BP_NONE, parseTime)
 
 	g.prefix(token.LEFT_BRACKET, oper.BP_NONE, parseListMap)
 	g.prefix(token.LEFT_BRACE, oper.BP_NONE, parseObj)
 	g.prefix(token.LEFT_PAREN, oper.BP_NONE, parseGroup)
 
-	g.prefix(token.IF, oper.BP_NONE, parseIf) // 如果 if 是普通函数, 这里可以干掉
+	// if 是普通函数
+	// g.prefix(token.IF, oper.BP_NONE, parseIf)
 
 	for _, op := range ops {
 		switch op.Fixity {
@@ -53,41 +53,35 @@ func newGrammar(ops []oper.Operator) grammar {
 	return g
 }
 
-func ident(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
+func ident(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	return ast.Ident(t.Lexeme)
 }
 
-func literal(typ ast.LitType) nud {
-	return func(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
-		return parseLit(typ, t.Lexeme)
-	}
-}
-
-func binaryL(p *parser, bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
+func binaryL(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
 	rhs := p.expr(bp)
 	return ast.Binary(t.Lexeme, oper.INFIX_L, lhs, rhs)
 }
 
-func binaryR(p *parser, bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
+func binaryR(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
 	rhs := p.expr(bp - 1)
 	return ast.Binary(t.Lexeme, oper.INFIX_R, lhs, rhs)
 }
 
-func binaryN(p *parser, bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
+func binaryN(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
 	rhs := p.expr(bp) // 这里是否-1无所谓, 之后会检查
 	return ast.Binary(t.Lexeme, oper.INFIX_N, lhs, rhs)
 }
 
-func unaryPrefix(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
+func unaryPrefix(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	expr := p.expr(bp)
 	return ast.Unary(t.Lexeme, expr, true)
 }
 
-func unaryPostfix(p *parser, bp oper.BP, lhs *ast.Expr, t *token.Token) *ast.Expr {
+func unaryPostfix(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
 	return ast.Unary(t.Lexeme, lhs, false)
 }
 
-func parseListMap(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
+func parseListMap(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	if p.tryEat(token.COLON) != nil {
 		p.mustEat(token.RIGHT_BRACKET)
 		return ast.Map([]ast.Pair{})
@@ -95,8 +89,8 @@ func parseListMap(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
 	return p.any(parseList, parseMap)
 }
 
-func parseList(p *parser) *ast.Expr {
-	elems := make([]*ast.Expr, 0)
+func parseList(p *parser) ast.Expr {
+	elems := make([]ast.Expr, 0)
 	for {
 		if p.peek().Type == token.RIGHT_BRACKET {
 			break
@@ -111,7 +105,7 @@ func parseList(p *parser) *ast.Expr {
 	return ast.List(elems)
 }
 
-func parseMap(p *parser) *ast.Expr {
+func parseMap(p *parser) ast.Expr {
 	pairs := make([]ast.Pair, 0)
 	for {
 		if p.peek().Type == token.RIGHT_BRACKET {
@@ -129,7 +123,7 @@ func parseMap(p *parser) *ast.Expr {
 	return ast.Map(pairs)
 }
 
-func parseObj(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
+func parseObj(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	fs := make([]ast.Field, 0)
 	for {
 		if p.peek().Type == token.RIGHT_BRACE {
@@ -147,21 +141,21 @@ func parseObj(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
 	return ast.Obj(fs)
 }
 
-func parseGroup(p *parser, bp oper.BP, t *token.Token) *ast.Expr {
+func parseGroup(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	expr := p.expr(0)
 	p.mustEat(token.RIGHT_PAREN)
 	return ast.Group(expr)
 }
 
-func parseQuestion(p *parser, bp oper.BP, l *ast.Expr, t *token.Token) *ast.Expr {
+func parseQuestion(p *parser, bp oper.BP, l ast.Expr, t *token.Token) ast.Expr {
 	m := p.expr(0)
 	p.mustEat(token.COLON)
 	r := p.expr(bp - 1)
 	return ast.Tenary(token.QUESTION, l, m, r)
 }
 
-func parseCall(p *parser, bp oper.BP, callee *ast.Expr, t *token.Token) *ast.Expr {
-	args := make([]*ast.Expr, 0)
+func parseCall(p *parser, bp oper.BP, callee ast.Expr, t *token.Token) ast.Expr {
+	args := make([]ast.Expr, 0)
 	rp := p.tryEat(token.RIGHT_PAREN)
 	if rp == nil {
 		for {
@@ -176,12 +170,12 @@ func parseCall(p *parser, bp oper.BP, callee *ast.Expr, t *token.Token) *ast.Exp
 	return ast.Call(callee, args)
 }
 
-func parseDot(p *parser, bp oper.BP, obj *ast.Expr, t *token.Token) *ast.Expr {
+func parseDot(p *parser, bp oper.BP, obj ast.Expr, t *token.Token) ast.Expr {
 	name := p.eat()
 	// 放开限制则可以写 1. +(1), 1可以看成对象, .和+必须有空格是因为否则会匹配自定义操作符
 	//util.Assert(name.Type == token.NAME || name.Type == token.TRUE || name.Type == token.FALSE,
 	//	"syntax error: %s", name.Lexeme)
-	expr := ast.Member(obj, ast.Ident(name.Lexeme).Ident())
+	expr := ast.Member(obj, ast.Ident(name.Lexeme))
 	lp := p.tryEat(token.LEFT_PAREN)
 	if lp == nil {
 		return expr
@@ -190,19 +184,19 @@ func parseDot(p *parser, bp oper.BP, obj *ast.Expr, t *token.Token) *ast.Expr {
 	}
 }
 
-func parseSubscript(p *parser, bp oper.BP, list *ast.Expr, t *token.Token) *ast.Expr {
+func parseSubscript(p *parser, bp oper.BP, list ast.Expr, t *token.Token) ast.Expr {
 	expr := p.expr(0)
 	p.mustEat(token.RIGHT_BRACKET)
 	return ast.Subscript(list, expr)
 }
 
 // if expr then expr else xxx [end]
-func parseIf(p *parser, bp oper.BP, iff *token.Token) *ast.Expr {
-	cond := p.expr(0)
-	p.mustEat(token.THEN)
-	then := p.expr(0)
-	p.mustEat(token.ELSE)
-	els := p.expr(0)
-	p.tryEat(token.END)
-	return ast.If(cond, then, els)
-}
+//func parseIf(p *parser, bp oper.BP, iff *token.Token) ast.Expr {
+//	cond := p.expr(0)
+//	p.mustEat(token.THEN)
+//	then := p.expr(0)
+//	p.mustEat(token.ELSE)
+//	els := p.expr(0)
+//	p.tryEat(token.END)
+//	return ast.If(cond, then, els)
+//}

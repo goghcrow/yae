@@ -3,41 +3,34 @@ package parser
 import (
 	"errors"
 	"github.com/goghcrow/yae/ast"
+	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/timelib"
+	"github.com/goghcrow/yae/token"
 	"github.com/goghcrow/yae/util"
 	"strconv"
 	"strings"
 )
 
-func parseLit(typ ast.LitType, lexeme string) *ast.Expr {
-	expr := ast.Literal(typ, lexeme)
-	lit := expr.Literal()
-	var err error
-
-	switch typ {
-	case ast.LIT_STR:
-		lit.Val, err = strconv.Unquote(lit.Text) // attach ast
-		util.Assert(err == nil, "invalid string literal: %s", lit.Text)
-	case ast.LIT_TIME:
-		// time 字面量会被 desugar 成 strtotime, 这里留着测试场景
-		lit.Val = timelib.Strtotime(lit.Text[1 : len(lit.Text)-1]) // attach ast
-		// util.Assert(ts != 0, "invalid time literal: %s", lit.Text)
-	case ast.LIT_NUM:
-		lit.Val, err = parseNum(lit.Text) // attach ast
-		util.Assert(err == nil, "invalid num literal %s", lit.Text)
-	case ast.LIT_TRUE:
-		lit.Val = true // attach ast
-	case ast.LIT_FALSE:
-		lit.Val = false // attach ast
-	default:
-		util.Unreachable()
-		return nil
-	}
-
-	return expr
+func parseTrue(p *parser, bp oper.BP, t *token.Token) ast.Expr  { return ast.True() }
+func parseFalse(p *parser, bp oper.BP, t *token.Token) ast.Expr { return ast.False() }
+func parseNum(p *parser, bp oper.BP, t *token.Token) ast.Expr {
+	f, err := parseNum0(t.Lexeme)
+	util.Assert(err == nil, "invalid num literal %s", t.Lexeme)
+	return ast.Num(t.Lexeme, f)
+}
+func parseStr(p *parser, bp oper.BP, t *token.Token) ast.Expr {
+	unquoted, err := strconv.Unquote(t.Lexeme)
+	util.Assert(err == nil, "invalid string literal: %s", t.Lexeme)
+	return ast.Str(t.Lexeme, unquoted)
+}
+func parseTime(p *parser, bp oper.BP, t *token.Token) ast.Expr {
+	// time 字面量会被 desugar 成 strtotime, 这里留着测试场景
+	ts := timelib.Strtotime(t.Lexeme[1 : len(t.Lexeme)-1]) // attach ast
+	// util.Assert(ts != 0, "invalid time literal: %s", lit.Text)
+	return ast.Time(t.Lexeme, ts)
 }
 
-func parseNum(s string) (float64, error) {
+func parseNum0(s string) (float64, error) {
 	n, err := strconv.ParseFloat(s, 64)
 	if err == nil {
 		return n, nil

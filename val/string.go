@@ -13,36 +13,36 @@ func (v *Val) String() string {
 }
 
 func stringify(v *Val, inProcess util.PtrSet) string {
-	if v.Kind.Type.IsComposite() {
+	if v.Type.Kind.IsComposite() {
 		if inProcess.Contains(v) {
-			return fmt.Sprintf("recursive-val %s@%p", v.Kind, v)
+			return fmt.Sprintf("recursive-val %s@%p", v.Type, v)
 		} else {
 			inProcess.Add(v)
 		}
 	}
 
-	switch v.Kind.Type {
-	case types.TNum:
+	switch v.Type.Kind {
+	case types.KNum:
 		n := v.Num()
 		if n.IsInt() {
 			return fmt.Sprintf("%d", n.Int())
 		} else {
 			return fmt.Sprintf("%f", n.V)
 		}
-	case types.TBool:
+	case types.KBool:
 		return strconv.FormatBool(v.Bool().V)
-	case types.TStr:
+	case types.KStr:
 		return fmt.Sprintf("%q", v.Str().V)
-	case types.TTime:
+	case types.KTime:
 		return v.Time().V.String()
-	case types.TList:
+	case types.KList:
 		l := v.List()
 		xs := make([]string, len(l.V))
 		for i, v2 := range l.V {
 			xs[i] = stringify(v2, inProcess)
 		}
-		return util.JoinStrEx(xs, ", ", "[", "]")
-	case types.TMap:
+		return util.JoinStr(xs, ", ", "[", "]")
+	case types.KMap:
 		m := v.Map()
 		if len(m.V) == 0 {
 			return "[:]"
@@ -56,10 +56,10 @@ func stringify(v *Val, inProcess util.PtrSet) string {
 		for _, k := range ord {
 			xs = append(xs, fmt.Sprintf("%s: %s", k, stringify(m.V[k], inProcess)))
 		}
-		return util.JoinStrEx(xs, ", ", "[", "]")
-	case types.TObj:
+		return util.JoinStr(xs, ", ", "[", "]")
+	case types.KObj:
 		o := v.Obj()
-		fs := o.Kind.Obj().Fields
+		fs := o.Type.Obj().Fields
 		ord := make([]int, len(o.V))
 		for i, _ := range o.V {
 			ord[i] = i
@@ -69,12 +69,12 @@ func stringify(v *Val, inProcess util.PtrSet) string {
 		for j, i := range ord {
 			xs[j] = fmt.Sprintf("%s: %s", fs[i].Name, stringify(o.V[i], inProcess))
 		}
-		return util.JoinStrEx(xs, ", ", "{", "}")
-	case types.TFun:
-		return fmt.Sprintf("%s#%p", v.Fun().Kind.String(), v)
-	case types.TMaybe:
+		return util.JoinStr(xs, ", ", "{", "}")
+	case types.KFun:
+		return fmt.Sprintf("%s#%p", v.Fun().Type.String(), v)
+	case types.KMaybe:
 		mb := v.Maybe()
-		ks := mb.Kind.Maybe().Elem.String()
+		ks := mb.Type.Maybe().Elem.String()
 		if mb.V == nil {
 			return fmt.Sprintf("Nothing#%s()", ks)
 		} else {

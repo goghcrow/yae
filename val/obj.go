@@ -1,7 +1,7 @@
 package val
 
 func (o *ObjVal) Get(field string) (*Val, bool) {
-	i, ok := o.Kind.Obj().Index[field]
+	i, ok := o.Type.Obj().Index[field]
 	if !ok {
 		return nil, false
 	}
@@ -9,7 +9,7 @@ func (o *ObjVal) Get(field string) (*Val, bool) {
 }
 
 func (o *ObjVal) Put(field string, val *Val) bool {
-	i, ok := o.Kind.Obj().Index[field]
+	i, ok := o.Type.Obj().Index[field]
 	if !ok {
 		return false
 	}

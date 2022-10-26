@@ -1,86 +1,27 @@
 package ast
 
 import (
-	"fmt"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
 )
 
-func Ident(name string) *Expr {
-	e := IdentExpr{Expr{IDENT}, name}
-	return &e.Expr
+func Ident(name string) *IdentExpr                           { return &IdentExpr{name} }
+func Str(s string, v string) *StrExpr                        { return &StrExpr{s, v} }
+func Num(s string, v float64) *NumExpr                       { return &NumExpr{s, v} }
+func Time(s string, v int64) *TimeExpr                       { return &TimeExpr{s, v} }
+func True() *BoolExpr                                        { return &BoolExpr{token.TRUE, true} }
+func False() *BoolExpr                                       { return &BoolExpr{token.FALSE, false} }
+func List(elems []Expr) *ListExpr                            { return &ListExpr{elems, nil} }
+func Map(pairs []Pair) *MapExpr                              { return &MapExpr{pairs, nil} }
+func Obj(fields []Field) *ObjExpr                            { return &ObjExpr{fields, nil} }
+func Call(callee Expr, args []Expr) *CallExpr                { return &CallExpr{callee, args, nil, "", -1} }
+func Subscript(varExpr Expr, expr Expr) *SubscriptExpr       { return &SubscriptExpr{varExpr, expr, nil} }
+func Member(obj Expr, field *IdentExpr) *MemberExpr          { return &MemberExpr{obj, field, nil, -1} } // FieldSelection
+func Group(sub Expr) *GroupExpr                              { return &GroupExpr{sub} }
+func Unary(name string, expr Expr, prefix bool) *UnaryExpr   { return &UnaryExpr{name, expr, prefix} }
+func Tenary(name string, l Expr, m Expr, r Expr) *TenaryExpr { return &TenaryExpr{name, l, m, r} }
+func Binary(name string, fixity oper.Fixity, lhs Expr, rhs Expr) *BinaryExpr {
+	return &BinaryExpr{name, fixity, lhs, rhs}
 }
 
-func Literal(typ LitType, lit string) *Expr {
-	e := LiteralExpr{Expr{LITERAL}, typ, lit, nil}
-	return &e.Expr
-}
-
-func LitTrue() *Expr  { return Literal(LIT_TRUE, token.TRUE) }
-func LitFalse() *Expr { return Literal(LIT_FALSE, token.FALSE) }
-func LitNum(f float64) *Expr {
-	lit := Literal(LIT_NUM, fmt.Sprintf("%f", f))
-	lit.Literal().Val = f
-	return lit
-}
-func LitStr(s string) *Expr {
-	lit := Literal(LIT_STR, fmt.Sprintf("%q", s))
-	lit.Literal().Val = s
-	return lit
-}
-
-func List(elems []*Expr) *Expr {
-	e := ListExpr{Expr{LIST}, elems, nil}
-	return &e.Expr
-}
-
-func Map(pairs []Pair) *Expr {
-	e := MapExpr{Expr{MAP}, pairs, nil}
-	return &e.Expr
-}
-
-func Obj(fields []Field) *Expr {
-	e := ObjExpr{Expr{OBJ}, fields, nil}
-	return &e.Expr
-}
-
-func Unary(name string, expr *Expr, prefix bool) *Expr {
-	e := UnaryExpr{Expr{UNARY}, name, expr, prefix}
-	return &e.Expr
-}
-
-func Binary(name string, fixity oper.Fixity, lhs *Expr, rhs *Expr) *Expr {
-	e := BinaryExpr{Expr{BINARY}, name, fixity, lhs, rhs}
-	return &e.Expr
-}
-
-func Tenary(name string, l *Expr, m *Expr, r *Expr) *Expr {
-	e := TenaryExpr{Expr{TENARY}, name, l, m, r}
-	return &e.Expr
-}
-
-func If(cond, then, els *Expr) *Expr {
-	e := IfExpr{Expr{IF}, cond, then, els}
-	return &e.Expr
-}
-
-func Call(callee *Expr, args []*Expr) *Expr {
-	e := CallExpr{Expr{CALL}, callee, args, nil, "", -1}
-	return &e.Expr
-}
-
-func Subscript(varExpr *Expr, expr *Expr) *Expr {
-	e := SubscriptExpr{Expr{SUBSCRIPT}, varExpr, expr, nil}
-	return &e.Expr
-}
-
-// Member FieldSelection
-func Member(obj *Expr, field *IdentExpr) *Expr {
-	e := MemberExpr{Expr{MEMBER}, obj, field, nil, -1}
-	return &e.Expr
-}
-
-func Group(sub *Expr) *Expr {
-	e := GroupExpr{Expr{GROUP}, sub}
-	return &e.Expr
-}
+//func If(cond, then, els Expr) *IfExpr { return &IfExpr{cond, then, els} }

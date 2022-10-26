@@ -96,7 +96,7 @@ func (e *Expr) RegisterTranslator(trans ...trans.Translate) {
 
 func (e *Expr) RegisterFun(vs ...*val.Val) {
 	for _, v := range vs {
-		e.typeCheck.RegisterFun(v.Kind)
+		e.typeCheck.RegisterFun(v.Type)
 		e.runtime.RegisterFun(v)
 	}
 }
@@ -175,11 +175,11 @@ func (e *Expr) makeCallable(closure compiler.Closure, env0 *types.Env) Callable 
 
 // envCheck env0 compile-env, env runtime-env
 func envCheck(env0 *types.Env, env *val.Env) {
-	env0.ForEach(func(name string, kind *types.Kind) {
+	env0.ForEach(func(name string, ty *types.Type) {
 		v, ok := env.Get(name)
 		util.Assert(ok, "undefined %s", name)
-		util.Assert(types.Equals(kind, v.Kind),
-			"type mismatched, expect `%s` actual `%s`", kind, v.Kind)
+		util.Assert(types.Equals(ty, v.Type),
+			"type mismatched, expect `%s` actual `%s`", ty, v.Type)
 	})
 }
 

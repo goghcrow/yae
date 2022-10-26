@@ -12,7 +12,7 @@ import (
 
 // 字节码的本质是 ast 后序遍历的产生的线性序列
 
-func Compile(expr *ast.Expr, env1 *val.Env) compiler.Closure {
+func Compile(expr ast.Expr, env1 *val.Env) compiler.Closure {
 	bytecode := NewCompile().Compile(expr, env1)
 	return func(env *val.Env) *val.Val {
 		return NewVM().Interp(bytecode, env)
@@ -33,7 +33,7 @@ type Compiler struct {
 	*cp
 }
 
-func (c *Compiler) Compile(expr *ast.Expr, env *val.Env) *bytecode {
+func (c *Compiler) Compile(expr ast.Expr, env *val.Env) *bytecode {
 	b := &bytecode{cp: c.cp}
 	b.compile(c, expr, env)
 	b.end()
@@ -45,90 +45,81 @@ type bytecode struct {
 	*cp
 }
 
-func (b *bytecode) compile(c *Compiler, expr *ast.Expr, env *val.Env) {
-	switch expr.Type {
+func (b *bytecode) compile(c *Compiler, expr ast.Expr, env *val.Env) {
+	switch e := expr.(type) {
+	case *ast.StrExpr:
+		b.emitOP(OP_CONST)
+		b.emitConst(val.Str(e.Val))
 
-	case ast.LITERAL:
-		lit := expr.Literal()
-		switch lit.LitType {
-		case ast.LIT_STR:
-			b.emitOP(OP_CONST)
-			b.emitConst(val.Str(lit.Val.(string)))
-		case ast.LIT_TIME:
-			b.emitOP(OP_CONST)
-			b.emitConst(val.Time(time.Unix(lit.Val.(int64), 0)))
-		case ast.LIT_NUM:
-			b.emitOP(OP_CONST)
-			b.emitConst(val.Num(lit.Val.(float64)))
-		case ast.LIT_TRUE:
-			b.emitOP(OP_CONST)
+	case *ast.NumExpr:
+		b.emitOP(OP_CONST)
+		b.emitConst(val.Num(e.Val))
+
+	case *ast.TimeExpr:
+		b.emitOP(OP_CONST)
+		b.emitConst(val.Time(time.Unix(e.Val, 0)))
+
+	case *ast.BoolExpr:
+		b.emitOP(OP_CONST)
+		if e.Val {
 			b.emitConst(val.True)
-		case ast.LIT_FALSE:
-			b.emitOP(OP_CONST)
+		} else {
 			b.emitConst(val.False)
-		default:
-			util.Unreachable()
 		}
 
-	case ast.IDENT:
-		b.emitOP(OP_LOAD)
-		b.emitConst(expr.Ident().Name)
-
-	case ast.LIST:
-		lst := expr.List()
-		els := lst.Elems
+	case *ast.ListExpr:
+		els := e.Elems
 		for _, el := range els {
 			b.compile(c, el, env)
 		}
 		b.emitOP(OP_NEW_LIST)
-		b.emitConst(lst.Kind)
+		b.emitConst(e.Type)
 		b.emitMediumInt(len(els))
 
-	case ast.MAP:
-		m := expr.Map()
-		for _, p := range m.Pairs {
+	case *ast.MapExpr:
+		for _, p := range e.Pairs {
 			b.compile(c, p.Key, env)
 			b.compile(c, p.Val, env)
 		}
 		b.emitOP(OP_NEW_MAP)
-		b.emitConst(m.Kind)
-		b.emitMediumInt(len(m.Pairs))
+		b.emitConst(e.Type)
+		b.emitMediumInt(len(e.Pairs))
 
-	case ast.OBJ:
-		o := expr.Obj()
-		for _, f := range o.Fields {
+	case *ast.ObjExpr:
+		for _, f := range e.Fields {
 			b.compile(c, f.Val, env)
 		}
 		b.emitOP(OP_NEW_OBJ)
-		b.emitConst(o.Kind)
+		b.emitConst(e.Type)
 
-	case ast.SUBSCRIPT:
-		sub := expr.Subscript()
-		b.compile(c, sub.Var, env)
-		b.compile(c, sub.Idx, env)
-		kd := sub.VarKind.(*types.Kind)
-		switch kd.Type {
-		case types.TList:
+	case *ast.IdentExpr:
+		b.emitOP(OP_LOAD)
+		b.emitConst(e.Name)
+
+	case *ast.CallExpr:
+		if e.Resolved == "" {
+			b.compileInvokeDynamic(c, e, env)
+		} else {
+			b.compileInvokeStatic(c, e, env)
+		}
+
+	case *ast.SubscriptExpr:
+		b.compile(c, e.Var, env)
+		b.compile(c, e.Idx, env)
+		ty := e.VarType.(*types.Type)
+		switch ty.Kind {
+		case types.KList:
 			b.emitOP(OP_LIST_LOAD)
-		case types.TMap:
+		case types.KMap:
 			b.emitOP(OP_MAP_LOAD)
 		default:
 			util.Unreachable()
 		}
 
-	case ast.MEMBER:
-		mem := expr.Member()
-		b.compile(c, mem.Obj, env)
+	case *ast.MemberExpr:
+		b.compile(c, e.Obj, env)
 		b.emitOP(OP_OBJ_LOAD)
-		b.emitMediumInt(mem.Index)
-
-	case ast.CALL:
-		call := expr.Call()
-		if call.Resolved == "" {
-			b.compileInvokeDynamic(c, call, env)
-		} else {
-			b.compileInvokeStatic(c, call, env)
-		}
+		b.emitMediumInt(e.Index)
 
 	default:
 		util.Unreachable()
@@ -145,7 +136,7 @@ func (b *bytecode) compileInvokeStatic(c *Compiler, call *ast.CallExpr, env *val
 	f := fun.Vl()
 
 	lazy := fun.Lazy
-	params := fun.Kind.Fun().Param
+	params := fun.Type.Fun().Param
 
 	// 性能考虑, 加入 intrinsic, 生成特化的 opcode
 	intrCBN, ok := intrinsicsCallByNeed[f]
@@ -186,9 +177,9 @@ type thunkVal struct {
 	// 不是闭包, 不需要引用 env
 }
 
-func newThunk(b *bytecode, retK *types.Kind) *val.Val {
-	fk := types.Fun("thunk", []*types.Kind{}, retK)
-	v := thunkVal{val.Val{Kind: fk}, b}
+func newThunk(b *bytecode, retK *types.Type) *val.Val {
+	fk := types.Fun("thunk", []*types.Type{}, retK)
+	v := thunkVal{val.Val{Type: fk}, b}
 	return &v.Val
 }
 

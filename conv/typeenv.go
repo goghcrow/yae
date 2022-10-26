@@ -24,15 +24,15 @@ func TypeEnvOf(v interface{}) (*types.Env, error) {
 		return typeEnvOfMap(rv)
 	}
 
-	kind, err := TypeOf(v)
+	ty, err := TypeOf(v)
 	if err != nil {
 		return nil, err
 	}
-	if kind.Type != types.TObj {
+	if ty.Kind != types.KObj {
 		return nil, fmt.Errorf("expect struct type actual %s", reflect.TypeOf(v))
 	}
 	env := types.NewEnv()
-	for _, f := range kind.Obj().Fields {
+	for _, f := range ty.Obj().Fields {
 		env.Put(f.Name, f.Val)
 	}
 	return env, nil

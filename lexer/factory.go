@@ -6,11 +6,11 @@ import (
 )
 
 var keywords = []token.Type{
-	// 注释掉该行即可支持 if(bool, x, x), 否则 if xxx then xxx else xxx end
+	// if 是普通函数不是 keyword
 	//token.IF,
-	token.THEN,
-	token.ELSE,
-	token.END,
+	//token.THEN,
+	//token.ELSE,
+	//token.END,
 }
 
 var buildInOpers = []token.Type{
@@ -45,14 +45,10 @@ func newLexicon(ops []oper.Operator) lexicon {
 		l.addOper(op.Type)
 	}
 
-	l.addRule(str(token.NULL))  // null
 	l.addRule(str(token.TRUE))  // true
 	l.addRule(str(token.FALSE)) // false
 
-	// 移除数字前的 [+-]?, lex 没有使用最长路径来匹配, +- 被优先匹配成操作符了
-	// 如果优先匹配数字的话, 1 - 1, 会被分成 1,-1, 需要修一遍 lex 的结果
-	// so,  [+-]? 被处理成一元操作符, 实际上变成没有负数字面量, 语义不变
-	// l.addRule(reg(token.NUM, "(?:0|[1-9][0-9]*)(?:[.][0-9]+)?"))
+	// 移除数字前的 [+-]?, [+-]? 被处理成一元操作符, 实际上变成没有负数字面量, 语义不变
 	l.addRule(reg(token.NUM, "(?:0|[1-9][0-9]*)(?:[.][0-9]+)+(?:[eE][-+]?[0-9]+)?")) // float
 	l.addRule(reg(token.NUM, "(?:0|[1-9][0-9]*)(?:[.][0-9]+)?(?:[eE][-+]?[0-9]+)+")) // float
 	l.addRule(reg(token.NUM, "0b(?:0|1[0-1]*)"))                                     // int
