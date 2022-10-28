@@ -57,6 +57,7 @@ func (o opcode) String() string {
 		"OP_CALL_BY_VALUE",
 		"OP_CALL_BY_NEED",
 		"OP_DYNAMIC_CALL",
+		"OP_GET_MAYBE",
 		"OP_IF_TRUE",
 		"OP_LOGICAL_NOT",
 		"OP_JUMP",

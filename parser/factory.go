@@ -53,8 +53,14 @@ func newGrammar(ops []oper.Operator) grammar {
 	return g
 }
 
+func parseTrue(p *parser, bp oper.BP, t *token.Token) ast.Expr  { return ast.True() }
+func parseFalse(p *parser, bp oper.BP, t *token.Token) ast.Expr { return ast.False() }
+func parseNum(p *parser, bp oper.BP, t *token.Token) ast.Expr   { return ast.Num(t.Lexeme) }
+func parseStr(p *parser, bp oper.BP, t *token.Token) ast.Expr   { return ast.Str(t.Lexeme) }
+func parseTime(p *parser, bp oper.BP, t *token.Token) ast.Expr  { return ast.Time(t.Lexeme) }
+
 func ident(p *parser, bp oper.BP, t *token.Token) ast.Expr {
-	return ast.Ident(t.Lexeme)
+	return ast.Var(t.Lexeme)
 }
 
 func binaryL(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
@@ -175,7 +181,7 @@ func parseDot(p *parser, bp oper.BP, obj ast.Expr, t *token.Token) ast.Expr {
 	// 放开限制则可以写 1. +(1), 1可以看成对象, .和+必须有空格是因为否则会匹配自定义操作符
 	//util.Assert(name.Type == token.NAME || name.Type == token.TRUE || name.Type == token.FALSE,
 	//	"syntax error: %s", name.Lexeme)
-	expr := ast.Member(obj, ast.Ident(name.Lexeme))
+	expr := ast.Member(obj, ast.Var(name.Lexeme))
 	lp := p.tryEat(token.LEFT_PAREN)
 	if lp == nil {
 		return expr

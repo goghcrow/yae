@@ -1,7 +1,7 @@
 package token
 
 import (
-	"fmt"
+	"strconv"
 )
 
 type Token struct {
@@ -10,5 +10,5 @@ type Token struct {
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf("%q", t.Lexeme)
+	return strconv.Quote(t.Lexeme)
 }

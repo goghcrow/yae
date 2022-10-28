@@ -25,14 +25,14 @@ func stringify(v *Val, inProcess util.PtrSet) string {
 	case types.KNum:
 		n := v.Num()
 		if n.IsInt() {
-			return fmt.Sprintf("%d", n.Int())
+			return util.FmtInt(n.Int())
 		} else {
-			return fmt.Sprintf("%f", n.V)
+			return util.FmtFloat(n.V)
 		}
 	case types.KBool:
 		return strconv.FormatBool(v.Bool().V)
 	case types.KStr:
-		return fmt.Sprintf("%q", v.Str().V)
+		return strconv.Quote(v.Str().V)
 	case types.KTime:
 		return v.Time().V.String()
 	case types.KList:

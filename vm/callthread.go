@@ -82,6 +82,7 @@ func init() {
 	instructions[OP_LEN_STR] = OP_LEN_STR_Handler
 	instructions[OP_LEN_LIST] = OP_LEN_LIST_Handler
 	instructions[OP_LEN_MAP] = OP_LEN_MAP_Handler
+	instructions[OP_GET_MAYBE] = OP_GET_MAYBE_Handler
 	instructions[OP_STRTOTIME_STR] = OP_STRTOTIME_STR_Handler
 	instructions[OP_CALL_BY_VALUE] = OP_CALL_BY_VALUE_Handler
 	instructions[OP_CALL_BY_NEED] = OP_CALL_BY_NEED_Handler
@@ -446,6 +447,13 @@ func OP_LEN_LIST_Handler(v *VM) {
 //goland:noinspection GoSnakeCaseUsage
 func OP_LEN_MAP_Handler(v *VM) {
 	v.Push(val.Num(float64(len(v.Pop().Map().V))))
+}
+
+//goland:noinspection GoSnakeCaseUsage
+func OP_GET_MAYBE_Handler(v *VM) {
+	defVal := v.Pop()
+	mb := v.Pop().Maybe()
+	v.Push(mb.GetOrDefault(defVal))
 }
 
 //goland:noinspection GoSnakeCaseUsage

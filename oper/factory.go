@@ -21,6 +21,10 @@ const (
 	LOGIC_NOT = "!"
 	LOGIC_AND = "&&"
 	LOGIC_OR  = "||"
+
+	LOGIC_NOT_KW = "not"
+	LOGIC_AND_KW = "and"
+	LOGIC_OR_KW  = "or"
 )
 
 // 内置的操作符与自定义操作符一致, 可以不使用或选择使用
@@ -47,9 +51,13 @@ var ops = []Operator{
 	{LOGIC_OR, BP_LOGIC_OR, INFIX_L},
 	{LOGIC_AND, BP_LOGIC_AND, INFIX_L},
 	{LOGIC_NOT, BP_PREFIX, PREFIX},
+
+	{LOGIC_OR_KW, BP_LOGIC_OR, INFIX_L},
+	{LOGIC_AND_KW, BP_LOGIC_AND, INFIX_L},
+	{LOGIC_NOT_KW, BP_PREFIX, PREFIX},
 }
 
-func BuildIn() []Operator {
+func BuiltIn() []Operator {
 	return ops
 }
 

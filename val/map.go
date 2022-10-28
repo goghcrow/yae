@@ -33,15 +33,16 @@ func (v *Val) Key() Key {
 	case types.KBool:
 		return Key{v.Type.Kind, strconv.FormatBool(v.Bool().V)}
 	case types.KNum:
-		if v.Num().IsInt() {
-			return Key{v.Type.Kind, fmt.Sprintf("%.0f", v.Num().V)}
+		n := v.Num()
+		if n.IsInt() {
+			return Key{v.Type.Kind, util.FmtInt(n.Int())}
 		} else {
-			return Key{v.Type.Kind, fmt.Sprintf("%f", v.Num().V)}
+			return Key{v.Type.Kind, util.FmtFloat(n.V)}
 		}
 	case types.KStr:
-		return Key{v.Type.Kind, fmt.Sprintf("%q", v.Str().V)}
+		return Key{v.Type.Kind, strconv.Quote(v.Str().V)}
 	case types.KTime:
-		return Key{v.Type.Kind, fmt.Sprintf("%q", v.Time().V.String())}
+		return Key{v.Type.Kind, strconv.Quote(v.Time().V.String())}
 	default:
 		panic(fmt.Errorf("invalid map key type: %s", v.Type))
 	}

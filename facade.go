@@ -2,6 +2,7 @@ package yae
 
 import (
 	"fmt"
+	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/compiler"
 	"github.com/goghcrow/yae/conv"
@@ -18,7 +19,7 @@ import (
 	"runtime/debug"
 )
 
-// Eval without cache compiled closure
+// Eval without cache for one-shot scene
 func Eval(input string, v interface{}) (*val.Val, error) {
 	expr := NewExpr() //.EnableDebug(os.Stderr)
 	compileTimeEnv, err := conv.TypeEnvOf(v)
@@ -43,8 +44,9 @@ type Expr struct {
 	trans      []trans.Translate
 	ops        []oper.Operator
 	compiler   compiler.Compiler
-	useBuildIn bool
+	useBuiltIn bool
 	dbg        io.Writer
+	init       bool
 }
 
 type Callable func(v interface{}) (*val.Val, error)
@@ -56,18 +58,43 @@ func NewExpr() *Expr {
 		trans:     []trans.Translate{},
 		//compiler:  closure.Compile,
 		compiler:   vm.Compile,
-		useBuildIn: true,
+		useBuiltIn: true,
 	}
-
-	e.initTrans()
-	e.initOps()
-	e.initFuns()
 
 	return &e
 }
 
+func (e *Expr) makeSureInit() {
+	if e.init {
+		return
+	}
+	e.initTrans()
+	if e.useBuiltIn {
+		e.initOps()
+		e.initFuns()
+	}
+	e.init = true
+}
+
+func (e *Expr) initTrans() {
+	e.RegisterTranslator(trans.Desugar)
+}
+
+func (e *Expr) initOps() {
+	e.ops = append(e.ops, oper.BuiltIn()...)
+}
+
+func (e *Expr) initFuns() {
+	e.RegisterFun(fun.BuiltIn()...)
+}
+
 func (e *Expr) EnableDebug(out io.Writer) *Expr {
 	e.dbg = out
+	return e
+}
+
+func (e *Expr) UseCompiler(c compiler.Compiler) *Expr {
+	e.compiler = c
 	return e
 }
 
@@ -81,24 +108,27 @@ func (e *Expr) UseClosureCompiler() *Expr {
 	return e
 }
 
-func (e *Expr) UseBuildIn(flag bool) *Expr {
-	e.useBuildIn = flag
+func (e *Expr) UseBuiltIn(flag bool) *Expr {
+	e.useBuiltIn = flag
 	return e
 }
 
-func (e *Expr) RegisterOperator(ops ...oper.Operator) {
+func (e *Expr) RegisterOperator(ops ...oper.Operator) *Expr {
 	e.ops = append(e.ops, ops...)
+	return e
 }
 
-func (e *Expr) RegisterTranslator(trans ...trans.Translate) {
+func (e *Expr) RegisterTranslator(trans ...trans.Translate) *Expr {
 	e.trans = append(e.trans, trans...)
+	return e
 }
 
-func (e *Expr) RegisterFun(vs ...*val.Val) {
+func (e *Expr) RegisterFun(vs ...*val.Val) *Expr {
 	for _, v := range vs {
 		e.typeCheck.RegisterFun(v.Type)
 		e.runtime.RegisterFun(v)
 	}
+	return e
 }
 
 func (e *Expr) Compile(expr string, v interface{}) (c Callable, err error) {
@@ -110,28 +140,14 @@ func (e *Expr) Compile(expr string, v interface{}) (c Callable, err error) {
 		}
 	}
 	defer e.backStrace("compile", &err)
-	compiled := e.steps(expr, env0)
+	parsed := e.Parse(expr)
+	compiled := e.CompileExpr(parsed, env0)
 	c = e.makeCallable(compiled, env0)
 	return
 }
 
-func (e *Expr) initTrans() {
-	e.RegisterTranslator(trans.Desugar)
-}
-
-func (e *Expr) initOps() {
-	if e.useBuildIn {
-		e.ops = oper.BuildIn()
-	}
-}
-
-func (e *Expr) initFuns() {
-	if e.useBuildIn {
-		e.RegisterFun(fun.BuildIn()...)
-	}
-}
-
-func (e *Expr) steps(expr string, env0 *types.Env) compiler.Closure {
+func (e *Expr) Parse(expr string) ast.Expr {
+	e.makeSureInit()
 	e.logf("expr: %s\n", expr)
 
 	toks := lexer.NewLexer(e.ops).Lex(expr)
@@ -139,8 +155,12 @@ func (e *Expr) steps(expr string, env0 *types.Env) compiler.Closure {
 
 	parsed := parser.NewParser(e.ops).Parse(toks)
 	e.logf("parsed: %s\n", parsed)
+	return parsed
+}
 
-	transed := parsed
+func (e *Expr) CompileExpr(terms ast.Expr, env0 *types.Env) compiler.Closure {
+	e.makeSureInit()
+	transed := terms
 	for _, t := range e.trans {
 		transed = t(transed)
 	}
@@ -179,7 +199,7 @@ func envCheck(env0 *types.Env, env *val.Env) {
 		v, ok := env.Get(name)
 		util.Assert(ok, "undefined %s", name)
 		util.Assert(types.Equals(ty, v.Type),
-			"type mismatched, expect `%s` actual `%s`", ty, v.Type)
+			"type mismatched, expect `%s` actual `%s` %s", ty, v.Type, v)
 	})
 }
 

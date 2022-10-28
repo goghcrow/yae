@@ -13,11 +13,11 @@ func Desugar(expr ast.Expr) ast.Expr {
 		return expr
 	case *ast.TimeExpr:
 		return expr
-	//	// 'time str' -> strtotime(`time str`)
-	//	s := e.Text[1 : len(e.Text)-1]
-	//	args := []ast.Expr{ast.Str(fmt.Sprintf("%q", s), s)}
-	//	callee := ast.Ident(fun.STRTOTIME)
-	//	return ast.Call(callee, args)
+		//// 'time str' -> strtotime(`time str`)
+		//s := e.Text[1 : len(e.Text)-1]
+		//args := []ast.Expr{ast.Str(strconv.Quote(s))}
+		//callee := ast.Var(fun.STRTOTIME)
+		//return ast.Call(callee, args)
 	case *ast.ListExpr:
 		l := make([]ast.Expr, len(e.Elems))
 		for i, el := range e.Elems {
@@ -39,11 +39,11 @@ func Desugar(expr ast.Expr) ast.Expr {
 	case *ast.IdentExpr:
 		return expr
 	case *ast.UnaryExpr:
-		callee := ast.Ident(e.Name)
+		callee := ast.Var(e.Name)
 		args := []ast.Expr{Desugar(e.LHS)}
 		return ast.Call(callee, args)
 	case *ast.BinaryExpr:
-		callee := ast.Ident(e.Name)
+		callee := ast.Var(e.Name)
 		args := []ast.Expr{Desugar(e.LHS), Desugar(e.RHS)}
 		return ast.Call(callee, args)
 	case *ast.TenaryExpr:
@@ -55,7 +55,7 @@ func Desugar(expr ast.Expr) ast.Expr {
 			// 如果 if 需要处理成特殊语法, 则需要 desugar 成 if-node
 			// return ast.If(l, m, r)
 			args := []ast.Expr{l, m, r}
-			callee := ast.Ident(fun.IF)
+			callee := ast.Var(fun.IF)
 			return ast.Call(callee, args)
 		}
 		util.Unreachable()
@@ -68,7 +68,7 @@ func Desugar(expr ast.Expr) ast.Expr {
 			for i, arg := range e.Args {
 				args[i+1] = Desugar(arg)
 			}
-			callee := ast.Ident(mem.Field.Name)
+			callee := ast.Var(mem.Field.Name)
 			return ast.Call(callee, args)
 		} else {
 			args := make([]ast.Expr, len(e.Args))
@@ -90,7 +90,7 @@ func Desugar(expr ast.Expr) ast.Expr {
 	//	then := Desugar(e.Then)
 	//	els := Desugar(e.Else)
 	//	// return ast.If(cond, then, els)
-	//	callee := ast.Ident(token.IF)
+	//	callee := ast.Var(token.IF)
 	//	args := []ast.Expr{cond, then, els}
 	//	return ast.Call(callee, args)
 	default:

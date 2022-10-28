@@ -68,7 +68,7 @@ Only Member `(a.b)` and Ternary `(cond ? then : else)` operator are built-in.
 It is easy to add new generic functions and operators.
 
 ```golang
-expr := expr.NewExpr() // .UseBuildIn(true|false)
+expr := expr.NewExpr() // .UseBuiltIn(true|false)
 // You can use your own defined operators and functions
 expr.RegisterOperator(...)
 expr.RegisterFun(...)

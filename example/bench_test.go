@@ -2,13 +2,15 @@ package example
 
 import (
 	"github.com/goghcrow/yae"
+	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
+	"github.com/goghcrow/yae/vm"
 	"testing"
 )
 
 func BenchmarkVM(b *testing.B) {
-	expr := yae.NewExpr().UseBytecodeCompiler()
+	expr := yae.NewExpr().UseCompiler(vm.Compile)
 
 	// typeEnv:=struct {N int `yae:"n"`}{}
 	typeEnv := types.NewEnv()
@@ -34,7 +36,7 @@ func BenchmarkVM(b *testing.B) {
 }
 
 func BenchmarkClosure(b *testing.B) {
-	expr := yae.NewExpr().UseClosureCompiler()
+	expr := yae.NewExpr().UseCompiler(closure.Compile)
 	closure, err := expr.Compile("if(false, 1, if(true, 2+3/100, 4+2))+n", struct {
 		//Lst []string `yae:"lst"`
 		N int `yae:"n"`

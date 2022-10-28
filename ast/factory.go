@@ -2,13 +2,29 @@ package ast
 
 import (
 	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/timelib"
 	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/util"
+	"strconv"
 )
 
-func Ident(name string) *IdentExpr                           { return &IdentExpr{name} }
-func Str(s string, v string) *StrExpr                        { return &StrExpr{s, v} }
-func Num(s string, v float64) *NumExpr                       { return &NumExpr{s, v} }
-func Time(s string, v int64) *TimeExpr                       { return &TimeExpr{s, v} }
+func Str(s string) *StrExpr {
+	v, err := strconv.Unquote(s)
+	util.Assert(err == nil, "invalid string literal: %s", s)
+	return &StrExpr{s, v}
+}
+func Num(s string) *NumExpr {
+	f, err := parseNum(s)
+	util.Assert(err == nil, "invalid num literal %s", s)
+	return &NumExpr{s, f}
+}
+func Time(s string) *TimeExpr {
+	ts := timelib.Strtotime(s[1 : len(s)-1]) // attach ast
+	// util.Assert(ts != 0, "invalid time literal: %s", lit.Text)
+	return &TimeExpr{s, ts}
+}
+
+func Var(name string) *IdentExpr                             { return &IdentExpr{name} }
 func True() *BoolExpr                                        { return &BoolExpr{token.TRUE, true} }
 func False() *BoolExpr                                       { return &BoolExpr{token.FALSE, false} }
 func List(elems []Expr) *ListExpr                            { return &ListExpr{elems, nil} }

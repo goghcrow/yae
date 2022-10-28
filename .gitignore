@@ -15,6 +15,5 @@
 # vendor/
 
 .idea/
-legacy.go
+legacy
 todo.md
-ext

@@ -121,22 +121,22 @@ func valOfStruct(rv reflect.Value, lv int) *val.Val {
 	ks := make([]types.Field, 0)
 	for i := 0; i < rt.NumField(); i++ {
 		ft := rt.Field(i)
-		if ft.IsExported() {
-			name, maybe := parseTag(ft)
-			v := rv.Field(i)
-			var vl *val.Val
-			if isNil(v) {
-				vl = val.Nothing(typeOf(ft.Type, 0))
-			} else {
-				vl = valOf(v, lv+1)
-				if maybe {
-					vl = val.Just(vl.Type, vl)
-				}
+		//if ft.IsExported() {
+		name, maybe := parseTag(ft)
+		v := rv.Field(i)
+		var vl *val.Val
+		if isNil(v) {
+			vl = val.Nothing(typeOf(ft.Type, 0))
+		} else {
+			vl = valOf(v, lv+1)
+			if maybe {
+				vl = val.Just(vl.Type, vl)
 			}
-
-			vs = append(vs, vl)
-			ks = append(ks, types.Field{Name: name, Val: vl.Type})
 		}
+
+		vs = append(vs, vl)
+		ks = append(ks, types.Field{Name: name, Val: vl.Type})
+		//}
 	}
 
 	ty := types.Obj(ks).Obj()

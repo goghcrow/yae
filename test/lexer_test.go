@@ -17,7 +17,7 @@ func TestLexer(t *testing.T) {
 		}
 	})
 	t.Run("", func(t *testing.T) {
-		toks := lexer.NewLexer(oper.BuildIn()).Lex("iff")
+		toks := lexer.NewLexer(oper.BuiltIn()).Lex("iff")
 		if len(toks) != 1 {
 			t.Fail()
 		}
@@ -36,7 +36,7 @@ func TestLexer(t *testing.T) {
 	})
 	t.Run("", func(t *testing.T) {
 		s := ".^."
-		toks := lexer.NewLexer(append(oper.BuildIn(), oper.Operator{
+		toks := lexer.NewLexer(append(oper.BuiltIn(), oper.Operator{
 			Type:   token.Type(s),
 			BP:     oper.BP_TERM,
 			Fixity: oper.INFIX_N,
@@ -53,6 +53,6 @@ func lexError(s string) (err error) {
 			err = fmt.Errorf("%v", r)
 		}
 	}()
-	lexer.NewLexer(oper.BuildIn()).Lex(s)
+	lexer.NewLexer(oper.BuiltIn()).Lex(s)
 	return nil
 }

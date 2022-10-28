@@ -58,6 +58,8 @@ func init() {
 	intrinsicsCallByValue[fun.LEN_LIST] = OP_LEN_LIST
 	intrinsicsCallByValue[fun.LEN_MAP] = OP_LEN_MAP
 
+	intrinsicsCallByValue[fun.GET_MAYBE] = OP_GET_MAYBE
+
 	intrinsicsCallByValue[fun.STRTOTIME_STR] = OP_STRTOTIME_STR
 
 	//intrinsicsCallByValue[fun.STRING_ANY] = OP_STRING_ANY

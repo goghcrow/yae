@@ -14,7 +14,7 @@ import (
 )
 
 func parse0(s string, ops ...oper.Operator) ast.Expr {
-	ops = append(oper.BuildIn(), ops...)
+	ops = append(oper.BuiltIn(), ops...)
 	toks := lexer.NewLexer(ops).Lex(s)
 	return parser.NewParser(ops).Parse(toks)
 }
@@ -31,8 +31,8 @@ func init() {
 }
 
 func eval(s string, compile compiler.Compiler, typedEnv *types.Env, compileEvalEnv *val.Env) *val.Val {
-	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
-	term := parser.NewParser(oper.BuildIn()).Parse(toks)
+	toks := lexer.NewLexer(oper.BuiltIn()).Lex(s)
+	term := parser.NewParser(oper.BuiltIn()).Parse(toks)
 	term = trans.Desugar(term)
 
 	_ = types.Check(term, typedEnv.Inherit(typecheckEnv))
@@ -45,14 +45,14 @@ func eval(s string, compile compiler.Compiler, typedEnv *types.Env, compileEvalE
 }
 
 func infer(s string) *types.Type {
-	toks := lexer.NewLexer(oper.BuildIn()).Lex(s)
-	term := parser.NewParser(oper.BuildIn()).Parse(toks)
+	toks := lexer.NewLexer(oper.BuiltIn()).Lex(s)
+	term := parser.NewParser(oper.BuiltIn()).Parse(toks)
 	term = trans.Desugar(term)
 	return types.Check(term, typecheckEnv)
 }
 
 func initEnv(typecheckEnv *types.Env, compileEnv *val.Env) {
-	for _, f := range fun.BuildIn() {
+	for _, f := range fun.BuiltIn() {
 		typecheckEnv.RegisterFun(f.Type)
 		compileEnv.RegisterFun(f)
 	}

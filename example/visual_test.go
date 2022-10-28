@@ -14,7 +14,7 @@ import (
 )
 
 func parse(s string, ops ...oper.Operator) ast.Expr {
-	ops = append(oper.BuildIn(), ops...)
+	ops = append(oper.BuiltIn(), ops...)
 	toks := lexer.NewLexer(ops).Lex(s)
 	return parser.NewParser(ops).Parse(toks)
 }

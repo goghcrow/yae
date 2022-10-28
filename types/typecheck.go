@@ -179,7 +179,7 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Type) *FunT
 	// 先按 `函数名+参数个数` 查找重载的函数列表(包括泛型函数)
 	polyfnTy, _ := Fun(fnName, args, TyVar("α")).Fun().Lookup()
 	fks, ok := env.GetPolyFuns(polyfnTy)
-	util.Assert(ok, "func `%s` has no overload for params`%s`", fnName, args)
+	util.Assert(ok, "func `%s` has no overload func for params`%s`", fnName, Tuple(args))
 
 	// 然后在重载函数列表中依次查找
 	// 因为不支持子类型, 所以也没有最适合的规则, 找到匹配为止
@@ -194,7 +194,7 @@ func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Type) *FunT
 		call.Index = i           // attach ast, 以及在泛型函数表的中的位置
 		return monof
 	}
-	util.Assert(false, "func `%s` has no overload for params`%s`", fnName, args)
+	util.Assert(false, "func `%s` has no overload func for params`%s`", fnName, Tuple(args))
 	return nil
 }
 

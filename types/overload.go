@@ -8,10 +8,10 @@ import (
 func (f *FunTy) Lookup() (key string, isMono bool) {
 	if slotFree(f.Ty()) {
 		// 单态函数直接根据去除返回值的签名来查找
-		return fmt.Sprintf("λ<%s %s>", f.Name, f.Param), true
+		return fmt.Sprintf("λ %s %s", f.Name, Tuple(f.Param)), true
 	} else {
 		// for 支持 universal quantification
 		// 多态函数根据名称+参数个数来查找
-		return fmt.Sprintf("∀.λ<%s %d>", f.Name, len(f.Param)), false
+		return fmt.Sprintf("∀.λ %s %d", f.Name, len(f.Param)), false
 	}
 }

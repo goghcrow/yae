@@ -14,12 +14,7 @@ var (
 		return val.Fun(
 			types.Fun(GET, []*types.Type{maybeT, T}, T),
 			func(args ...*val.Val) *val.Val {
-				mb := args[0].Maybe()
-				if mb.V == nil {
-					return args[1]
-				} else {
-					return mb.V
-				}
+				return args[0].Maybe().GetOrDefault(args[1])
 			},
 		)
 	}()

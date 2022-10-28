@@ -73,14 +73,14 @@ func typeOf(rt reflect.Type, lv int) *types.Type {
 		fs := make([]types.Field, 0)
 		for i := 0; i < rt.NumField(); i++ {
 			ft := rt.Field(i)
-			if ft.IsExported() {
-				name, maybe := parseTag(ft)
-				fk := typeOf(ft.Type, lv+1)
-				if maybe {
-					fk = types.Maybe(fk)
-				}
-				fs = append(fs, types.Field{Name: name, Val: fk})
+			//if ft.IsExported() {
+			name, maybe := parseTag(ft)
+			fk := typeOf(ft.Type, lv+1)
+			if maybe {
+				fk = types.Maybe(fk)
 			}
+			fs = append(fs, types.Field{Name: name, Val: fk})
+			//}
 		}
 		return types.Obj(fs)
 	default:

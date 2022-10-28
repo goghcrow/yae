@@ -65,7 +65,7 @@ var funs = []*val.Val{
 	UNION_LIST_LIST,
 }
 
-func BuildIn() []*val.Val {
+func BuiltIn() []*val.Val {
 	return funs
 }
 

@@ -288,6 +288,12 @@ func switchThreading(v *VM) *val.Val {
 			v.Push(val.Num(float64(len(v.Pop().Map().V))))
 
 		// -----------------------------------------------
+		case OP_GET_MAYBE:
+			defVal := v.Pop()
+			mb := v.Pop().Maybe()
+			v.Push(mb.GetOrDefault(defVal))
+
+		// -----------------------------------------------
 		case OP_STRTOTIME_STR:
 			ts := timelib.Strtotime(v.Pop().Str().V)
 			v.Push(val.Time(time.Unix(ts, 0)))

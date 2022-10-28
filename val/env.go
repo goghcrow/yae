@@ -27,6 +27,12 @@ func (e *Env) Derive() *Env {
 	return &Env{e, map[string]*Val{}, map[string]interface{}{}}
 }
 
+func (e *Env) MustGet(name string) *Val {
+	v, ok := e.Get(name)
+	util.Assert(ok, "missing `%s` in env", name)
+	return v
+}
+
 func (e *Env) Get(name string) (*Val, bool) {
 	v, ok := e.ctx[name]
 	if !ok && e.parent != nil {
@@ -39,6 +45,12 @@ func (e *Env) Put(name string, val *Val) {
 	// 注意这里只修改当前环境, 不修改继承
 	// 如果是 scope 语义, 需要先 env:=findDefEnv(name) 然后 env.ctx[name]=val
 	e.ctx[name] = val
+}
+
+func (e *Env) ForEach(f func(string, *Val)) {
+	for k, v := range e.ctx {
+		f(k, v)
+	}
 }
 
 func (e *Env) RegisterFun(f *Val) {

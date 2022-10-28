@@ -19,7 +19,7 @@ func TestVM(t *testing.T) {
 	//input := "if(false, 1, 2)"
 	//input := "(1 + 2) ^ (3 % 4) * 5 - 42 / 100"
 
-	ops := oper.BuildIn()
+	ops := oper.BuiltIn()
 	toks := lexer.NewLexer(ops).Lex(input)
 	expr := parser.NewParser(ops).Parse(toks)
 	expr = trans.Desugar(expr)

@@ -120,10 +120,7 @@ func Compile(expr ast.Expr, env1 *val.Env) compiler.Closure {
 		// 1. 需要在编译期把符号 resolve 成数组下标
 		// 2. 把运行时环境从 map 展开成数组
 		id := e.Name
-		return func(env *val.Env) *val.Val {
-			v, _ := env.Get(id)
-			return v
-		}
+		return func(env *val.Env) *val.Val { return env.MustGet(id) }
 
 	case *ast.CallExpr:
 		if e.Resolved == "" {
