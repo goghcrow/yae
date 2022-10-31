@@ -2,13 +2,14 @@ package test
 
 import (
 	"fmt"
-	"github.com/goghcrow/yae/conv"
-	"github.com/goghcrow/yae/types"
-	"github.com/goghcrow/yae/val"
 	"reflect"
 	"testing"
 	"time"
 	"unsafe"
+
+	"github.com/goghcrow/yae/conv"
+	"github.com/goghcrow/yae/types"
+	"github.com/goghcrow/yae/val"
 )
 
 func TestConv(t *testing.T) {

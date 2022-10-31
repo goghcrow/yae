@@ -2,11 +2,12 @@ package conv
 
 import (
 	"fmt"
-	"github.com/goghcrow/yae/types"
-	"github.com/goghcrow/yae/util"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/goghcrow/yae/types"
+	"github.com/goghcrow/yae/util"
 )
 
 const maxLevel = 100

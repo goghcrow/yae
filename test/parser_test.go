@@ -1,9 +1,11 @@
 package test
 
 import (
+	"fmt"
+	"testing"
+
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
-	"testing"
 )
 
 func TestParser(t *testing.T) {
@@ -105,23 +107,32 @@ func TestParser(t *testing.T) {
 }
 
 func TestSyntaxError(t *testing.T) {
-	for _, expr := range []string{
-		`"Hello" + `,
-		"a == b == c", // non-infix
-		"a b",         // multi
+	for _, tt := range []struct {
+		s      string
+		expect string
+	}{
+		{"a := 1", "syntax error in pos 4-1 line 1 col 4: nothing token matched"},
+		{"[:}", "syntax error in pos 3-4 line 1 col 3: expect `]` actual `}`"},
+		{"[1,2,3}", "syntax error in pos 2-3 line 1 col 2: expect `list or map`"},
+		{`"Hello" + `, "syntax error in pos 0-0 line 0 col 0: 'EOF"},
+		{"a == b == c", "syntax error in pos 3-5 line 1 col 3: == non-infix"},     // non-infix
+		{"a b", "syntax error in pos 3-4 line 1 col 3: expect `'EOF` actual `b`"}, // multi
 	} {
-		s := syntaxError(expr)
-		if s != "" {
-			t.Errorf("expect syntax error actual `%s`", expr)
-		}
+		t.Run(tt.s, func(t *testing.T) {
+			_, err := syntaxError(tt.s)
+			if err != tt.expect {
+				t.Errorf("expect syntax error `%s` actual `%s`", tt.expect, err)
+			}
+		})
 	}
 }
 
-func syntaxError(s string) (res string) {
+func syntaxError(s string) (res, err string) {
 	defer func() {
 		if r := recover(); r != nil {
-			res = ""
+			err = fmt.Sprintf("%v", r)
 		}
 	}()
-	return parse(s).String()
+	res = parse(s).String()
+	return
 }

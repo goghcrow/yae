@@ -3,6 +3,7 @@ package vm
 import (
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/fun"
+	"github.com/goghcrow/yae/loc"
 	"github.com/goghcrow/yae/val"
 )
 
@@ -72,11 +73,11 @@ func init() {
 	}
 	// a && b ~> if (a) b else false
 	intrinsicsCallByNeed[fun.LOGIC_AND_BOOL_BOOL] = func(c *Compiler, b *bytecode, args []ast.Expr, env *val.Env) {
-		b.emitCond(c, args[0], args[1], ast.False(), env)
+		b.emitCond(c, args[0], args[1], ast.False(loc.Unknown), env)
 	}
 	// a || b ~> if a true else b
 	intrinsicsCallByNeed[fun.LOGIC_OR_BOOL_BOOL] = func(c *Compiler, b *bytecode, args []ast.Expr, env *val.Env) {
-		b.emitCond(c, args[0], ast.True(), args[1], env)
+		b.emitCond(c, args[0], ast.True(loc.Unknown), args[1], env)
 	}
 	intrinsicsCallByNeed[fun.LOGIC_NOT_BOOL] = func(c *Compiler, b *bytecode, args []ast.Expr, env *val.Env) {
 		b.compile(c, args[0], env)

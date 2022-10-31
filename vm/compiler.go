@@ -1,13 +1,14 @@
 package vm
 
 import (
+	"math"
+	"time"
+
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/compiler"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
-	"math"
-	"time"
 )
 
 // 字节码的本质是 ast 后序遍历的产生的线性序列

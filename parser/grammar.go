@@ -67,12 +67,12 @@ func (p *grammar) infixLbp(t *token.Token) oper.BP {
 
 func (g *grammar) mustPrefix(t *token.Token) prefix {
 	p, ok := g.prefixs[t.Type]
-	util.Assert(ok, "syntax error: %s", t)
+	util.Assert(ok, "syntax error in %s: %s", t.Loc, t)
 	return p
 }
 
 func (g *grammar) mustInfix(t *token.Token) infix {
 	i, ok := g.infixs[t.Type]
-	util.Assert(ok, "syntax error: %s", t)
+	util.Assert(ok, "syntax error in %s: %s", t.Loc, t)
 	return i
 }

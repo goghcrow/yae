@@ -2,12 +2,13 @@ package test
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/timelib"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"testing"
-	"time"
 )
 
 func TestEval(t *testing.T) {

@@ -1,12 +1,13 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"github.com/goghcrow/yae/vm"
-	"testing"
 )
 
 func TestMaybe(t *testing.T) {

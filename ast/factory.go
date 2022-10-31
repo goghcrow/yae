@@ -1,43 +1,54 @@
 package ast
 
 import (
+	"strconv"
+
+	"github.com/goghcrow/yae/loc"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/timelib"
 	"github.com/goghcrow/yae/token"
 	"github.com/goghcrow/yae/util"
-	"strconv"
 )
 
-func Str(s string) *StrExpr {
+func Str(s string, loc loc.Loc) *StrExpr {
 	v, err := strconv.Unquote(s)
 	util.Assert(err == nil, "invalid string literal: %s", s)
-	return &StrExpr{s, v}
+	return &StrExpr{loc, s, v}
 }
-func Num(s string) *NumExpr {
+func Num(s string, loc loc.Loc) *NumExpr {
 	f, err := parseNum(s)
 	util.Assert(err == nil, "invalid num literal %s", s)
-	return &NumExpr{s, f}
+	return &NumExpr{loc, s, f}
 }
-func Time(s string) *TimeExpr {
+func Time(s string, loc loc.Loc) *TimeExpr {
 	ts := timelib.Strtotime(s[1 : len(s)-1]) // attach ast
 	// util.Assert(ts != 0, "invalid time literal: %s", lit.Text)
-	return &TimeExpr{s, ts}
+	return &TimeExpr{loc, s, ts}
+}
+func Var(name string, loc loc.Loc) *IdentExpr  { return &IdentExpr{loc, name} }
+func True(loc loc.Loc) *BoolExpr               { return &BoolExpr{loc, token.TRUE, true} }
+func False(loc loc.Loc) *BoolExpr              { return &BoolExpr{loc, token.FALSE, false} }
+func List(elems []Expr, loc loc.Loc) *ListExpr { return &ListExpr{loc, elems, nil} }
+func Map(pairs []Pair, loc loc.Loc) *MapExpr   { return &MapExpr{loc, pairs, nil} }
+func Obj(fields []Field, loc loc.Loc) *ObjExpr { return &ObjExpr{loc, fields, nil} }
+func Group(sub Expr, loc loc.Loc) *GroupExpr   { return &GroupExpr{loc, sub} }
+func Call(callee Expr, args []Expr, col loc.DbgCol, loc loc.Loc) *CallExpr {
+	return &CallExpr{Loc: loc, DbgCol: col, Callee: callee, Args: args, Index: -1}
+}
+func Subscript(varExpr Expr, expr Expr, col loc.DbgCol, loc loc.Loc) *SubscriptExpr {
+	return &SubscriptExpr{Loc: loc, DbgCol: col, Var: varExpr, Idx: expr}
+}
+func Member(obj Expr, field *IdentExpr, col loc.DbgCol, loc loc.Loc) *MemberExpr {
+	return &MemberExpr{Loc: loc, DbgCol: col, Obj: obj, Field: field, Index: -1}
+}
+func Unary(name *IdentExpr, expr Expr, prefix bool, loc loc.Loc) *UnaryExpr {
+	return &UnaryExpr{Loc: loc, IdentExpr: name, LHS: expr, Prefix: prefix}
+}
+func Tenary(name *IdentExpr, l Expr, m Expr, r Expr, loc loc.Loc) *TenaryExpr {
+	return &TenaryExpr{Loc: loc, IdentExpr: name, Left: l, Mid: m, Right: r}
+}
+func Binary(name *IdentExpr, fixity oper.Fixity, lhs Expr, rhs Expr, loc loc.Loc) *BinaryExpr {
+	return &BinaryExpr{Loc: loc, IdentExpr: name, Fixity: fixity, LHS: lhs, RHS: rhs}
 }
 
-func Var(name string) *IdentExpr                             { return &IdentExpr{name} }
-func True() *BoolExpr                                        { return &BoolExpr{token.TRUE, true} }
-func False() *BoolExpr                                       { return &BoolExpr{token.FALSE, false} }
-func List(elems []Expr) *ListExpr                            { return &ListExpr{elems, nil} }
-func Map(pairs []Pair) *MapExpr                              { return &MapExpr{pairs, nil} }
-func Obj(fields []Field) *ObjExpr                            { return &ObjExpr{fields, nil} }
-func Call(callee Expr, args []Expr) *CallExpr                { return &CallExpr{callee, args, nil, "", -1} }
-func Subscript(varExpr Expr, expr Expr) *SubscriptExpr       { return &SubscriptExpr{varExpr, expr, nil} }
-func Member(obj Expr, field *IdentExpr) *MemberExpr          { return &MemberExpr{obj, field, nil, -1} } // FieldSelection
-func Group(sub Expr) *GroupExpr                              { return &GroupExpr{sub} }
-func Unary(name string, expr Expr, prefix bool) *UnaryExpr   { return &UnaryExpr{name, expr, prefix} }
-func Tenary(name string, l Expr, m Expr, r Expr) *TenaryExpr { return &TenaryExpr{name, l, m, r} }
-func Binary(name string, fixity oper.Fixity, lhs Expr, rhs Expr) *BinaryExpr {
-	return &BinaryExpr{name, fixity, lhs, rhs}
-}
-
-//func If(cond, then, els Expr) *IfExpr { return &IfExpr{cond, then, els} }
+//func If(cond, then, els Expr, loc loc.Loc) *IfExpr { return &IfExpr{loc, cond, then, els} }

@@ -1,10 +1,11 @@
 package fun
 
 import (
+	"math"
+
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"math"
 )
 
 // 数学计算可以先转换成 big.Int/big.Float 进行计算再转回来

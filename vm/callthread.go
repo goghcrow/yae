@@ -3,14 +3,15 @@
 package vm
 
 import (
-	"github.com/goghcrow/yae/timelib"
-	"github.com/goghcrow/yae/types"
-	"github.com/goghcrow/yae/util"
-	"github.com/goghcrow/yae/val"
 	"math"
 	"time"
 	"unicode/utf8"
 	"unsafe"
+
+	"github.com/goghcrow/yae/timelib"
+	"github.com/goghcrow/yae/types"
+	"github.com/goghcrow/yae/util"
+	"github.com/goghcrow/yae/val"
 )
 
 type OpcodeHandler func(vm *VM)

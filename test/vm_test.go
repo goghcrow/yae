@@ -1,6 +1,8 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
@@ -8,7 +10,6 @@ import (
 	"github.com/goghcrow/yae/trans"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/vm"
-	"testing"
 )
 
 func TestVM(t *testing.T) {

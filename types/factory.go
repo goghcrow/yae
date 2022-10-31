@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/goghcrow/yae/util"
 	"strconv"
+
+	"github.com/goghcrow/yae/util"
 )
 
 // TyVar 新建 Type Variable

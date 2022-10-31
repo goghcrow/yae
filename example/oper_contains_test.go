@@ -1,12 +1,13 @@
 package example
 
 import (
+	"os"
+	"testing"
+
 	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"os"
-	"testing"
 )
 
 func TestRegisterContains(t *testing.T) {

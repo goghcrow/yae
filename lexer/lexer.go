@@ -1,6 +1,11 @@
 package lexer
 
 import (
+	"fmt"
+	"unicode"
+	"unicode/utf8"
+
+	"github.com/goghcrow/yae/loc"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
 )
@@ -13,12 +18,12 @@ func NewLexer(ops []oper.Operator) *lexer {
 
 // Lex 表达式通常都很短, 这里没有要做成语法制导按需lex, e.g. chan *token.Token
 func (l *lexer) Lex(input string) []*token.Token {
-	l.input = input
-	l.idx = 0
+	l.input = []rune(input)
+	l.Loc = loc.Loc{}
 	var toks []*token.Token
 	for {
 		t := l.next()
-		if t == EOF {
+		if t.Type == token.EOF {
 			break
 		}
 		toks = append(toks, t)
@@ -26,42 +31,50 @@ func (l *lexer) Lex(input string) []*token.Token {
 	return toks
 }
 
-var EOF = &token.Token{Type: token.EOF}
+var EOF = &token.Token{
+	Type:   token.EOF,
+	Loc:    loc.Unknown,
+	Lexeme: "'EOF",
+}
 
 type lexer struct {
 	lexicon
-	input string
-	idx   int
-}
-
-func isSpace(c byte) bool {
-	return c == ' ' || c == '\t' || c == '\r' || c == '\n'
+	loc.Loc
+	input []rune
 }
 
 func (l *lexer) skipSpace() {
-	for l.idx < len(l.input) {
-		if !isSpace(l.input[l.idx]) {
+	for l.Pos < len(l.input) {
+		r := l.input[l.Pos]
+		if !isSpace(r) {
 			break
 		}
-		l.idx++
+		l.Move(r)
 	}
 }
 
 func (l *lexer) next() *token.Token {
 	l.skipSpace()
-
-	if l.idx >= len(l.input) {
+	if l.Pos >= len(l.input) {
 		return EOF
 	}
 
-	sub := l.input[l.idx:]
-	for _, r := range l.lexicon.rules {
-		offset := r.match(sub)
+	loc := l.Loc
+	sub := string(l.input[l.Pos:])
+	for _, rl := range l.lexicon.rules {
+		offset := rl.match(sub)
 		if offset >= 0 {
-			matched := l.input[l.idx : l.idx+offset]
-			l.idx += offset
-			return &token.Token{Type: r.Type, Lexeme: matched}
+			matched := l.input[l.Pos : l.Pos+offset]
+			for _, r := range matched {
+				l.Move(r)
+			}
+			loc.PosEnd = l.Loc.Pos
+			return &token.Token{Type: rl.Type, Lexeme: string(matched), Loc: loc}
 		}
 	}
-	panic("syntax error: " + sub)
+	panic(fmt.Errorf("syntax error in %s: nothing token matched", l.Loc))
 }
+
+func isSpace(r rune) bool { return unicode.IsSpace(r) }
+
+func runeCount(s string) int { return utf8.RuneCountInString(s) }

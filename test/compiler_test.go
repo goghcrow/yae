@@ -1,13 +1,14 @@
 package test
 
 import (
+	"strconv"
+	"testing"
+
 	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"github.com/goghcrow/yae/vm"
-	"strconv"
-	"testing"
 )
 
 func TestCompile(t *testing.T) {

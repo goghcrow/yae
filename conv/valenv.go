@@ -2,9 +2,10 @@ package conv
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"reflect"
 )
 
 func MustValEnvOf(v interface{}) *val.Env {

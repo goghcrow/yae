@@ -1,26 +1,27 @@
 package lexer
 
 import (
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/token"
 	"regexp"
 	"strings"
+
+	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/token"
 )
 
-// match 返回匹配 endIdx, 失败返回-1
-type match func(string) int
+const NotMatched = -1
 
 type rule struct {
 	token.Type
-	match
+	match func(string) int // 匹配返回 EndRuneCount , 失败返回 NotMatched
 }
 
 func str(t token.Type) rule {
+	tok := string(t)
 	return rule{t, func(s string) int {
-		if strings.HasPrefix(s, string(t)) {
-			return len(string(t))
+		if strings.HasPrefix(s, tok) {
+			return runeCount(tok)
 		} else {
-			return -1
+			return NotMatched
 		}
 	}}
 }
@@ -28,14 +29,14 @@ func str(t token.Type) rule {
 var keywordPostfix = regexp.MustCompile(`^[a-zA-Z\d\p{L}_]+`)
 
 func keyword(t token.Type) rule {
+	kw := string(t)
 	return rule{t, func(s string) int {
-		k := string(t)
-		completedWord := strings.HasPrefix(s, k) &&
-			!keywordPostfix.MatchString(s[len(k):])
+		completedWord := strings.HasPrefix(s, kw) &&
+			!keywordPostfix.MatchString(s[len(kw):])
 		if completedWord {
-			return len(k)
+			return runeCount(kw)
 		} else {
-			return -1
+			return NotMatched
 		}
 	}}
 }
@@ -45,9 +46,9 @@ func reg(t token.Type, pattern string) rule {
 	return rule{t, func(s string) int {
 		found := startWith.FindString(s)
 		if found == "" {
-			return -1
+			return NotMatched
 		} else {
-			return len(found)
+			return runeCount(found)
 		}
 	}}
 }
@@ -55,16 +56,16 @@ func reg(t token.Type, pattern string) rule {
 // primOper . ? 内置操作符的优先级高于自定义操作符, 且不是匹配最长, 需要特殊处理
 // e.g 比如自定义操作符 .^. 不能匹配成 [`.`, `^.`]
 func primOper(t token.Type) rule {
-	sz := len(string(t))
+	op := string(t)
 	return rule{t, func(s string) int {
-		if !strings.HasPrefix(s, string(t)) {
-			return -1
+		if !strings.HasPrefix(s, op) {
+			return NotMatched
 		}
-		completedOper := len(s) == sz || !oper.HasPrefix(s[sz:])
+		completedOper := len(s) == len(op) || !oper.HasPrefix(s[len(op):])
 		if completedOper {
-			return sz
+			return runeCount(op)
 		} else {
-			return -1
+			return NotMatched
 		}
 	}}
 }

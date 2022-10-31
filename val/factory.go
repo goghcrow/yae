@@ -1,9 +1,10 @@
 package val
 
 import (
+	"time"
+
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
-	"time"
 )
 
 func Bool(b bool) *Val {

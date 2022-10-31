@@ -1,9 +1,10 @@
 package fun
 
 import (
+	"math"
+
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"math"
 )
 
 //goland:noinspection GoSnakeCaseUsage

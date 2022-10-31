@@ -1,9 +1,10 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/goghcrow/yae/fun"
 	. "github.com/goghcrow/yae/types"
-	"testing"
 )
 
 func TestInfer(t *testing.T) {

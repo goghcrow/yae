@@ -1,12 +1,13 @@
 package example
 
 import (
-	"github.com/goghcrow/yae"
-	"github.com/goghcrow/yae/conv"
-	"github.com/goghcrow/yae/val"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/goghcrow/yae"
+	"github.com/goghcrow/yae/conv"
+	"github.com/goghcrow/yae/val"
 )
 
 func TestStructEnv(t *testing.T) {

@@ -2,10 +2,11 @@ package val
 
 import (
 	"fmt"
-	"github.com/goghcrow/yae/types"
-	"github.com/goghcrow/yae/util"
 	"sort"
 	"strconv"
+
+	"github.com/goghcrow/yae/types"
+	"github.com/goghcrow/yae/util"
 )
 
 func (v *Val) String() string {

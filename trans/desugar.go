@@ -3,6 +3,7 @@ package trans
 import (
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/fun"
+	"github.com/goghcrow/yae/loc"
 	"github.com/goghcrow/yae/token"
 	"github.com/goghcrow/yae/util"
 )
@@ -23,29 +24,31 @@ func Desugar(expr ast.Expr) ast.Expr {
 		for i, el := range e.Elems {
 			l[i] = Desugar(el)
 		}
-		return ast.List(l)
+		return ast.List(l, e.Loc)
 	case *ast.MapExpr:
 		m := make([]ast.Pair, len(e.Pairs))
 		for i, p := range e.Pairs {
 			m[i] = ast.Pair{Key: Desugar(p.Key), Val: Desugar(p.Val)}
 		}
-		return ast.Map(m)
+		return ast.Map(m, e.Loc)
 	case *ast.ObjExpr:
 		o := make([]ast.Field, len(e.Fields))
 		for i, f := range e.Fields {
 			o[i] = ast.Field{Name: f.Name, Val: Desugar(f.Val)}
 		}
-		return ast.Obj(o)
+		return ast.Obj(o, e.Loc)
 	case *ast.IdentExpr:
 		return expr
 	case *ast.UnaryExpr:
-		callee := ast.Var(e.Name)
+		callee := ast.Var(e.Name, e.IdentExpr.Loc)
 		args := []ast.Expr{Desugar(e.LHS)}
-		return ast.Call(callee, args)
+		dbgCol := loc.DbgCol(e.IdentExpr.Col)
+		return ast.Call(callee, args, dbgCol, e.Loc)
 	case *ast.BinaryExpr:
-		callee := ast.Var(e.Name)
+		callee := ast.Var(e.Name, e.IdentExpr.Loc)
 		args := []ast.Expr{Desugar(e.LHS), Desugar(e.RHS)}
-		return ast.Call(callee, args)
+		dbgCol := loc.DbgCol(e.IdentExpr.Col)
+		return ast.Call(callee, args, dbgCol, e.Loc)
 	case *ast.TenaryExpr:
 		if e.Name == token.QUESTION {
 			// cond ? then : else ~~> if(cond, then, else)
@@ -55,8 +58,9 @@ func Desugar(expr ast.Expr) ast.Expr {
 			// 如果 if 需要处理成特殊语法, 则需要 desugar 成 if-node
 			// return ast.If(l, m, r)
 			args := []ast.Expr{l, m, r}
-			callee := ast.Var(fun.IF)
-			return ast.Call(callee, args)
+			callee := ast.Var(fun.IF, e.IdentExpr.Loc)
+			dbgCol := loc.DbgCol(e.IdentExpr.Col)
+			return ast.Call(callee, args, dbgCol, e.Loc)
 		}
 		util.Unreachable()
 		return nil
@@ -68,20 +72,20 @@ func Desugar(expr ast.Expr) ast.Expr {
 			for i, arg := range e.Args {
 				args[i+1] = Desugar(arg)
 			}
-			callee := ast.Var(mem.Field.Name)
-			return ast.Call(callee, args)
+			callee := ast.Var(mem.Field.Name, mem.Field.Loc)
+			return ast.Call(callee, args, e.DbgCol, e.Loc)
 		} else {
 			args := make([]ast.Expr, len(e.Args))
 			for i, arg := range e.Args {
 				args[i] = Desugar(arg)
 			}
 			callee := Desugar(e.Callee)
-			return ast.Call(callee, args)
+			return ast.Call(callee, args, e.DbgCol, e.Loc)
 		}
 	case *ast.SubscriptExpr:
-		return ast.Subscript(Desugar(e.Var), Desugar(e.Idx))
+		return ast.Subscript(Desugar(e.Var), Desugar(e.Idx), e.DbgCol, e.Loc)
 	case *ast.MemberExpr:
-		return ast.Member(Desugar(e.Obj), e.Field)
+		return ast.Member(Desugar(e.Obj), e.Field, e.DbgCol, e.Loc)
 	case *ast.GroupExpr:
 		return Desugar(e.SubExpr)
 	//case *ast.IfExpr:

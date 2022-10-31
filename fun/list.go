@@ -2,6 +2,7 @@ package fun
 
 import (
 	"fmt"
+
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 )

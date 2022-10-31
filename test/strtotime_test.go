@@ -1,9 +1,10 @@
 package test
 
 import (
-	. "github.com/goghcrow/yae/timelib"
 	"testing"
 	"time"
+
+	. "github.com/goghcrow/yae/timelib"
 )
 
 func Test_Strtotime_Example(t *testing.T) {

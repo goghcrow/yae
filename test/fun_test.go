@@ -1,11 +1,12 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"github.com/goghcrow/yae/vm"
-	"testing"
 )
 
 func TestIf(t *testing.T) {

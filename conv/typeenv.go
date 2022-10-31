@@ -2,8 +2,9 @@ package conv
 
 import (
 	"fmt"
-	"github.com/goghcrow/yae/types"
 	"reflect"
+
+	"github.com/goghcrow/yae/types"
 )
 
 func MustTypeEnvOf(v interface{}) *types.Env {

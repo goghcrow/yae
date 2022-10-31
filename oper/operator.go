@@ -1,9 +1,10 @@
 package oper
 
 import (
-	"github.com/goghcrow/yae/token"
 	"regexp"
 	"strings"
+
+	"github.com/goghcrow/yae/token"
 )
 
 type Operator struct {

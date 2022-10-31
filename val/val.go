@@ -1,10 +1,11 @@
 package val
 
 import (
-	"github.com/goghcrow/yae/types"
 	"math"
 	"time"
 	"unsafe"
+
+	"github.com/goghcrow/yae/types"
 )
 
 var (

@@ -1,12 +1,13 @@
 package example
 
 import (
-	"github.com/goghcrow/yae"
-	"github.com/goghcrow/yae/types"
-	"github.com/goghcrow/yae/val"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/goghcrow/yae"
+	"github.com/goghcrow/yae/types"
+	"github.com/goghcrow/yae/val"
 )
 
 func TestRawEnv(t *testing.T) {

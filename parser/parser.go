@@ -3,6 +3,7 @@ package parser
 import (
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/lexer"
+	"github.com/goghcrow/yae/loc"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/token"
 	"github.com/goghcrow/yae/util"
@@ -49,7 +50,7 @@ func (p *parser) eat() *token.Token {
 
 func (p *parser) mustEat(typ token.Type) *token.Token {
 	t := p.eat()
-	p.syntaxAssert(t.Type == typ, "expect %s actual %s", typ, t)
+	p.syntaxAssert(t.Loc, t.Type == typ, "expect `%s` actual `%s`", typ, t)
 	return t
 }
 
@@ -72,14 +73,14 @@ func (p *parser) tryParse(f func(p *parser) ast.Expr) (expr ast.Expr) {
 	return f(p)
 }
 
-func (p *parser) any(fs ...func(p *parser) ast.Expr) (expr ast.Expr) {
+func (p *parser) any(expect string, fs ...func(p *parser) ast.Expr) (expr ast.Expr) {
 	for _, f := range fs {
 		n := p.tryParse(f)
 		if n != nil {
 			return n
 		}
 	}
-	util.Assert(false, "try parse fail")
+	p.syntaxAssert(p.peek().Loc, false, "expect `%s`", expect)
 	return nil
 }
 
@@ -107,16 +108,16 @@ func (p *parser) infixNCheck(expr ast.Expr) ast.Expr {
 		opName := bin.Name
 		if bin.Fixity == oper.INFIX_N {
 			if lhs, ok := bin.LHS.(*ast.BinaryExpr); ok {
-				p.syntaxAssert(lhs.Name != opName, "%s non-infix", opName)
+				p.syntaxAssert(lhs.IdentExpr.Loc, lhs.Name != opName, "%s non-infix", opName)
 			}
 			if rhs, ok := bin.RHS.(*ast.BinaryExpr); ok {
-				p.syntaxAssert(rhs.Name != opName, "%s non-infix", opName)
+				p.syntaxAssert(rhs.IdentExpr.Loc, rhs.Name != opName, "%s non-infix", opName)
 			}
 		}
 	}
 	return expr
 }
 
-func (p *parser) syntaxAssert(cond bool, format string, a ...interface{}) {
-	util.Assert(cond, "syntax error: "+format, a...)
+func (p *parser) syntaxAssert(loc loc.Loc, cond bool, format string, a ...interface{}) {
+	util.Assert(cond, "syntax error in "+loc.String()+": "+format, a...)
 }

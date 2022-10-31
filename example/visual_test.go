@@ -2,15 +2,16 @@ package example
 
 import (
 	"fmt"
+	"net/url"
+	"os/exec"
+	"strings"
+	"testing"
+
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/lexer"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/trans"
-	"net/url"
-	"os/exec"
-	"strings"
-	"testing"
 )
 
 func parse(s string, ops ...oper.Operator) ast.Expr {

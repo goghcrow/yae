@@ -1,11 +1,12 @@
 package example
 
 import (
+	"testing"
+
 	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"testing"
 )
 
 // 添加自定义操作符, 同时添加对应的函数

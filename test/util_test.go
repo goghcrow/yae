@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/compiler"
 	"github.com/goghcrow/yae/fun"

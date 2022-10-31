@@ -1,8 +1,9 @@
 package test
 
 import (
-	"github.com/goghcrow/yae/oper"
 	"testing"
+
+	"github.com/goghcrow/yae/oper"
 )
 
 func Test_IsOp(t *testing.T) {

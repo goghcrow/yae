@@ -2,10 +2,11 @@ package ast
 
 import (
 	"fmt"
-	"github.com/goghcrow/yae/token"
-	"github.com/goghcrow/yae/util"
 	"strconv"
 	"strings"
+
+	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/util"
 )
 
 func Dot(e Expr, graphName string) string {

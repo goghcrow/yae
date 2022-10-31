@@ -1,10 +1,11 @@
 package fun
 
 import (
+	"time"
+
 	"github.com/goghcrow/yae/timelib"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"time"
 )
 
 //goland:noinspection GoSnakeCaseUsage

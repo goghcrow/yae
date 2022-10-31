@@ -1,17 +1,19 @@
 package ext
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/ext/sql"
 	"github.com/goghcrow/yae/lexer"
+	"github.com/goghcrow/yae/loc"
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/trans"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
-	"strings"
-	"testing"
 )
 
 func TestVar(t *testing.T) {
@@ -55,7 +57,7 @@ func TestSimple(t *testing.T) {
 				Field:    "biz_type",
 				Operator: sql.EQ,
 				Operands: []ast.Expr{
-					ast.Str(`"'xxx"`),
+					ast.Str(`"'xxx"`, loc.Unknown),
 				},
 			},
 			Cond{
@@ -63,10 +65,10 @@ func TestSimple(t *testing.T) {
 				Operator: sql.IN,
 				Operands: []ast.Expr{
 					ast.List([]ast.Expr{
-						ast.Num("1"),
-						ast.Num("2"),
-						ast.Num("3"),
-					}),
+						ast.Num("1", loc.Unknown),
+						ast.Num("2", loc.Unknown),
+						ast.Num("3", loc.Unknown),
+					}, loc.Unknown),
 				},
 			},
 		},

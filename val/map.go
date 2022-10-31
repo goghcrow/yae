@@ -2,9 +2,10 @@ package val
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
-	"strconv"
 )
 
 func (m *MapVal) Get(k *Val) (*Val, bool) {

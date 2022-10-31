@@ -1,9 +1,10 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"testing"
 )
 
 func TestRecursive(t *testing.T) {

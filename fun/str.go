@@ -1,11 +1,12 @@
 package fun
 
 import (
+	"regexp"
+	"unicode/utf8"
+
 	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
-	"regexp"
-	"unicode/utf8"
 )
 
 //goland:noinspection GoSnakeCaseUsage

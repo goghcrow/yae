@@ -2,6 +2,11 @@ package yae
 
 import (
 	"fmt"
+	"github.com/goghcrow/yae/debug"
+	"io"
+	rtdbg "runtime/debug"
+	"strings"
+
 	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/compiler"
@@ -15,8 +20,6 @@ import (
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 	"github.com/goghcrow/yae/vm"
-	"io"
-	"runtime/debug"
 )
 
 // Eval without cache for one-shot scene
@@ -38,6 +41,30 @@ func Eval(input string, v interface{}) (*val.Val, error) {
 	return compiled(runtimeEnv)
 }
 
+func Debug(input string, v interface{}) (*val.Val, string, error) {
+	if strings.Contains(input, "\n") {
+		return nil, "", fmt.Errorf("debug mode can not contains line-break")
+	}
+	rcd := debug.NewRecord()
+	expr := NewExpr()
+	expr.UseCompiler(closure.DebugCompile(rcd))
+	compileTimeEnv, err := conv.TypeEnvOf(v)
+	if err != nil {
+		return nil, "", err
+	}
+	compiled, err := expr.Compile(input, compileTimeEnv)
+	if err != nil {
+		return nil, "", err
+	}
+	runtimeEnv, err := conv.ValEnvOf(v)
+	if err != nil {
+		return nil, "", err
+	}
+	res, err := compiled(runtimeEnv)
+	powerDebug := rcd.Render(input)
+	return res, powerDebug, err
+}
+
 type Expr struct {
 	typeCheck  *types.Env //类型检查环境
 	runtime    *val.Env   //编译期运行时环境
@@ -56,7 +83,7 @@ func NewExpr() *Expr {
 		typeCheck: types.NewEnv(),
 		runtime:   val.NewEnv(),
 		trans:     []trans.Translate{},
-		//compiler:  closure.Compile,
+		//compiler:  closure.compile,
 		compiler:   vm.Compile,
 		useBuiltIn: true,
 	}
@@ -129,6 +156,14 @@ func (e *Expr) RegisterFun(vs ...*val.Val) *Expr {
 		e.runtime.RegisterFun(v)
 	}
 	return e
+}
+
+func (e *Expr) MustCompile(expr string, v interface{}) Callable {
+	compiled, err := e.Compile(expr, v)
+	if err != nil {
+		panic(err)
+	}
+	return compiled
 }
 
 func (e *Expr) Compile(expr string, v interface{}) (c Callable, err error) {
@@ -207,7 +242,7 @@ func (e *Expr) backStrace(scene string, err *error) {
 	if r := recover(); r != nil {
 		if e.dbg != nil {
 			e.logf("%s error:\n", scene)
-			_, _ = e.dbg.Write(debug.Stack())
+			_, _ = e.dbg.Write(rtdbg.Stack())
 		}
 		*err = fmt.Errorf("%v", r)
 	}

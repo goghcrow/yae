@@ -2,10 +2,11 @@ package fun
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
-	"strconv"
 )
 
 func stringify(v *val.Val) string {

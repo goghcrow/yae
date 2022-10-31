@@ -1,12 +1,13 @@
 package example
 
 import (
+	"testing"
+
 	"github.com/goghcrow/yae"
 	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 	"github.com/goghcrow/yae/vm"
-	"testing"
 )
 
 func BenchmarkVM(b *testing.B) {
@@ -16,7 +17,7 @@ func BenchmarkVM(b *testing.B) {
 	typeEnv := types.NewEnv()
 	typeEnv.Put("n", types.Num)
 
-	closure, err := expr.Compile("if(false, 1, if(true, 2+3/100, 4+2))+n", typeEnv)
+	cl, err := expr.Compile("if(false, 1, if(true, 2+3/100, 4+2))+n", typeEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +29,7 @@ func BenchmarkVM(b *testing.B) {
 		valEnv := val.NewEnv()
 		valEnv.Put("n", val.Num(1))
 
-		_, err = closure(valEnv)
+		_, err = cl(valEnv)
 		if err != nil {
 			panic(err)
 		}
@@ -37,7 +38,7 @@ func BenchmarkVM(b *testing.B) {
 
 func BenchmarkClosure(b *testing.B) {
 	expr := yae.NewExpr().UseCompiler(closure.Compile)
-	closure, err := expr.Compile("if(false, 1, if(true, 2+3/100, 4+2))+n", struct {
+	cl, err := expr.Compile("if(false, 1, if(true, 2+3/100, 4+2))+n", struct {
 		//Lst []string `yae:"lst"`
 		N int `yae:"n"`
 	}{})
@@ -47,7 +48,7 @@ func BenchmarkClosure(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err = closure(map[string]interface{}{
+		_, err = cl(map[string]interface{}{
 			//"lst": []string{"hello", "world"},
 			"n": 1,
 		})
