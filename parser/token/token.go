@@ -1,6 +1,6 @@
 package token
 
-import "github.com/goghcrow/yae/loc"
+import "github.com/goghcrow/yae/parser/loc"
 
 type Token struct {
 	Type

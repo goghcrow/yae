@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/goghcrow/yae/lexer"
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/parser/lexer"
+	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/token"
 )
 
 func TestLoc(t *testing.T) {

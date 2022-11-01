@@ -7,14 +7,14 @@ import (
 	rtdbg "runtime/debug"
 	"strings"
 
-	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/compiler"
 	"github.com/goghcrow/yae/conv"
 	"github.com/goghcrow/yae/fun"
-	"github.com/goghcrow/yae/lexer"
-	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
+	"github.com/goghcrow/yae/parser/ast"
+	"github.com/goghcrow/yae/parser/lexer"
+	"github.com/goghcrow/yae/parser/oper"
 	"github.com/goghcrow/yae/trans"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
@@ -45,9 +45,8 @@ func Debug(input string, v interface{}) (*val.Val, string, error) {
 	if strings.Contains(input, "\n") {
 		return nil, "", fmt.Errorf("debug mode can not contains line-break")
 	}
-	rcd := debug.NewRecord()
 	expr := NewExpr()
-	expr.UseCompiler(closure.DebugCompile(rcd))
+	expr.UseCompiler(closure.DebugCompile)
 	compileTimeEnv, err := conv.TypeEnvOf(v)
 	if err != nil {
 		return nil, "", err
@@ -60,6 +59,8 @@ func Debug(input string, v interface{}) (*val.Val, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	rcd := debug.NewRecord()
+	runtimeEnv.Dgb = rcd
 	res, err := compiled(runtimeEnv)
 	powerDebug := rcd.Render(input)
 	return res, powerDebug, err

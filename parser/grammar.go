@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"github.com/goghcrow/yae/ast"
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/parser/ast"
+	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/token"
 	"github.com/goghcrow/yae/util"
 )
 

@@ -36,5 +36,5 @@ const (
 
 	COLON = ":"
 
-	EOF = "'EOF"
+	EOF = "<END-OF-FILE>"
 )

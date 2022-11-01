@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/parser/oper"
 )
 
 func Test_IsOp(t *testing.T) {

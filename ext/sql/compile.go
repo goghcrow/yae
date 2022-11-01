@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/compiler"
-	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/parser/ast"
+	"github.com/goghcrow/yae/parser/oper"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"

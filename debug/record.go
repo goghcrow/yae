@@ -24,14 +24,14 @@ func (r *Record) Clear() {
 	r.vs = []Val{}
 }
 
-func (r *Record) Rec(v *val.Val, col int) *val.Val {
+func (r *Record) Rec(v *val.Val, col int) {
 	for _, it := range r.vs {
 		if it.col == col {
-			return r.Rec(v, col+1)
+			r.Rec(v, col+1)
+			return
 		}
 	}
 	r.vs = append(r.vs, Val{v, col})
-	return v
 }
 
 func (r *Record) String() string {

@@ -4,8 +4,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/token"
 )
 
 const NotMatched = -1

@@ -3,8 +3,8 @@ package ast
 import (
 	"fmt"
 
-	"github.com/goghcrow/yae/loc"
-	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/parser/loc"
+	"github.com/goghcrow/yae/parser/oper"
 )
 
 type Expr interface {

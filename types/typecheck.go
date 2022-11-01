@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/goghcrow/yae/ast"
-	"github.com/goghcrow/yae/lexer"
+	"github.com/goghcrow/yae/parser/ast"
+	"github.com/goghcrow/yae/parser/lexer"
 	"github.com/goghcrow/yae/util"
 )
 

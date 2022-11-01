@@ -1,50 +1,47 @@
 package closure
 
 import (
+	"github.com/goghcrow/yae/debug"
 	"time"
 
-	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/compiler"
-	"github.com/goghcrow/yae/debug"
-	"github.com/goghcrow/yae/loc"
+	"github.com/goghcrow/yae/parser/ast"
+	"github.com/goghcrow/yae/parser/loc"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
 )
 
 func Compile(expr ast.Expr, env *val.Env) compiler.Closure {
-	return compile(expr, env, nil)
+	return compile(expr, env, false)
 }
 
-// todo
-// rcd 的生命周期有问题,不是编译期是 runtime
-// 编译期的职责是通过 native 闭包把 col 与 compiler.Closure 绑定在一起
-// 执行器 利用 col 填充 rcd
-// 把 Closure 加入 context, 通过 context 获取 rcd!!!
-
-// DebugCompile 📢 调试模式的编译结果共享了 rcd, 只能单实例执行!!!
-func DebugCompile(rcd *debug.Record) compiler.Compiler {
-	return func(expr ast.Expr, env1 *val.Env) compiler.Closure {
-		closure := compile(expr, env1, rcd)
-		return func(env *val.Env) *val.Val {
-			rcd.Clear()
-			return closure(env)
-		}
+// DebugCompile 📢 调试模式
+func DebugCompile(expr ast.Expr, env1 *val.Env) compiler.Closure {
+	closure := compile(expr, env1, true)
+	return func(env *val.Env) *val.Val {
+		env.Dgb.(*debug.Record).Clear()
+		return closure(env)
 	}
 }
 
-func compile(expr ast.Expr, env1 *val.Env, rcd *debug.Record) compiler.Closure {
-	closure := compile0(expr, env1, rcd)
-	if rcd == nil {
-		return closure
+func compile(expr ast.Expr, env1 *val.Env, dbg bool) compiler.Closure {
+	closure := compile0(expr, env1, dbg)
+	if dbg {
+		return wrapForDebug(expr, closure)
 	}
-	return wrapForDebug(expr, closure, rcd)
+	return closure
 }
 
-func wrapForDebug(expr ast.Expr, cl compiler.Closure, rcd *debug.Record) compiler.Closure {
+func wrapForDebug(expr ast.Expr, cl compiler.Closure) compiler.Closure {
+	// 调试模式编译过程会通过 golang 闭包将 compiler.Closure 与 col 绑定
 	recordVal := func(col loc.DbgCol, cl compiler.Closure) compiler.Closure {
 		return func(env *val.Env) *val.Val {
-			return rcd.Rec(cl(env), int(col)+1)
+			v := cl(env)
+			if rcd, ok := env.Dgb.(*debug.Record); ok {
+				rcd.Rec(v, int(col)+1)
+			}
+			return v
 		}
 	}
 
@@ -76,7 +73,7 @@ func wrapForDebug(expr ast.Expr, cl compiler.Closure, rcd *debug.Record) compile
 // 2. 繁饰 list/map/obj 类型, 简化 Compile 代码
 // 3. call.callee resolve
 // 4. 且, Compile 中不检查错误, 假设 types.Check 已经全部检查
-func compile0(expr ast.Expr, env1 *val.Env, rcd *debug.Record) compiler.Closure {
+func compile0(expr ast.Expr, env1 *val.Env, dbg bool) compiler.Closure {
 	switch e := expr.(type) {
 	case *ast.StrExpr:
 		s := val.Str(e.Val)
@@ -111,7 +108,7 @@ func compile0(expr ast.Expr, env1 *val.Env, rcd *debug.Record) compiler.Closure 
 		ty := e.Type.(*types.Type).List()
 		cs := make([]compiler.Closure, sz)
 		for i, el := range els {
-			cs[i] = compile(el, env1, rcd)
+			cs[i] = compile(el, env1, dbg)
 		}
 
 		return func(env *val.Env) *val.Val {
@@ -136,7 +133,7 @@ func compile0(expr ast.Expr, env1 *val.Env, rcd *debug.Record) compiler.Closure 
 		// 保持字面量声明的执行顺序
 		cs := make([]struct{ k, v compiler.Closure }, sz)
 		for i, pair := range e.Pairs {
-			cs[i] = struct{ k, v compiler.Closure }{compile(pair.Key, env1, rcd), compile(pair.Val, env1, rcd)}
+			cs[i] = struct{ k, v compiler.Closure }{compile(pair.Key, env1, dbg), compile(pair.Val, env1, dbg)}
 		}
 
 		return func(env *val.Env) *val.Val {
@@ -160,7 +157,7 @@ func compile0(expr ast.Expr, env1 *val.Env, rcd *debug.Record) compiler.Closure 
 		// 保持字面量声明的执行顺序
 		cs := make([]compiler.Closure, sz)
 		for i, f := range e.Fields {
-			cs[i] = compile(f.Val, env1, rcd)
+			cs[i] = compile(f.Val, env1, dbg)
 		}
 		ty := e.Type.(*types.Type).Obj()
 
@@ -181,15 +178,15 @@ func compile0(expr ast.Expr, env1 *val.Env, rcd *debug.Record) compiler.Closure 
 
 	case *ast.CallExpr:
 		if e.Resolved == "" {
-			return dynamicDispatch(env1, e, rcd)
+			return dynamicDispatch(env1, e, dbg)
 		} else {
-			return staticDispatch(env1, e, rcd)
+			return staticDispatch(env1, e, dbg)
 		}
 
 	case *ast.SubscriptExpr:
 		// 也可以 desugar 成 build-in-fun
-		vac := compile(e.Var, env1, rcd)
-		idxc := compile(e.Idx, env1, rcd)
+		vac := compile(e.Var, env1, dbg)
+		idxc := compile(e.Idx, env1, dbg)
 
 		return func(env *val.Env) *val.Val {
 			x := vac(env)
@@ -214,7 +211,7 @@ func compile0(expr ast.Expr, env1 *val.Env, rcd *debug.Record) compiler.Closure 
 		}
 	case *ast.MemberExpr:
 		// 也可以 desugar 成 build-in-fun
-		obj := compile(e.Obj, env1, rcd)
+		obj := compile(e.Obj, env1, dbg)
 		idx := e.Index
 		return func(env *val.Env) *val.Val {
 			return obj(env).Obj().V[idx]
@@ -242,32 +239,32 @@ func compile0(expr ast.Expr, env1 *val.Env, rcd *debug.Record) compiler.Closure 
 }
 
 // 函数在编译期 resolve, 通过 golang 闭包的 upval 传递给运行时
-func staticDispatch(env1 *val.Env, call *ast.CallExpr, rcd *debug.Record) compiler.Closure {
+func staticDispatch(env1 *val.Env, call *ast.CallExpr, dbg bool) compiler.Closure {
 	var fun *val.FunVal
 	if call.Index < 0 {
 		fun = env1.MustGetMonoFun(call.Resolved)
 	} else {
 		fun = env1.MustGetPolyFuns(call.Resolved)[call.Index]
 	}
-	argc, cs := compileArgs(env1, call, rcd)
+	argc, cs := compileArgs(env1, call, dbg)
 	return makeCallClosure(fun, argc, cs)
 }
 
-func dynamicDispatch(env1 *val.Env, call *ast.CallExpr, rcd *debug.Record) compiler.Closure {
-	cc := compile(call.Callee, env1, rcd)
+func dynamicDispatch(env1 *val.Env, call *ast.CallExpr, dbg bool) compiler.Closure {
+	cc := compile(call.Callee, env1, dbg)
 
-	argc, cs := compileArgs(env1, call, rcd)
+	argc, cs := compileArgs(env1, call, dbg)
 	return func(env *val.Env) *val.Val {
 		fun := cc(env).Fun()
 		return makeCallClosure(fun, argc, cs)(env)
 	}
 }
 
-func compileArgs(env1 *val.Env, call *ast.CallExpr, rcd *debug.Record) (int, []compiler.Closure) {
+func compileArgs(env1 *val.Env, call *ast.CallExpr, dbg bool) (int, []compiler.Closure) {
 	argc := len(call.Args)
 	cs := make([]compiler.Closure, argc)
 	for i, arg := range call.Args {
-		cs[i] = compile(arg, env1, rcd)
+		cs[i] = compile(arg, env1, dbg)
 	}
 	return argc, cs
 }

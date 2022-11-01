@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/parser/token"
 )
 
 type Operator struct {

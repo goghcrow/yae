@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/parser/token"
 	"github.com/goghcrow/yae/util"
 )
 

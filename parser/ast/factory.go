@@ -3,10 +3,10 @@ package ast
 import (
 	"strconv"
 
-	"github.com/goghcrow/yae/loc"
-	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/parser/loc"
+	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/token"
 	"github.com/goghcrow/yae/timelib"
-	"github.com/goghcrow/yae/token"
 	"github.com/goghcrow/yae/util"
 )
 

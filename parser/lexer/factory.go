@@ -1,8 +1,8 @@
 package lexer
 
 import (
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/token"
 )
 
 var keywords = []token.Type{

@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	"github.com/goghcrow/yae/ast"
+	"github.com/goghcrow/yae/parser/ast"
 	"github.com/goghcrow/yae/val"
 )
 

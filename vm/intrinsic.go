@@ -1,9 +1,9 @@
 package vm
 
 import (
-	"github.com/goghcrow/yae/ast"
 	"github.com/goghcrow/yae/fun"
-	"github.com/goghcrow/yae/loc"
+	"github.com/goghcrow/yae/parser/ast"
+	"github.com/goghcrow/yae/parser/loc"
 	"github.com/goghcrow/yae/val"
 )
 

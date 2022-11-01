@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/token"
 )
 
 func TestParser(t *testing.T) {
@@ -114,9 +114,9 @@ func TestSyntaxError(t *testing.T) {
 		{"a := 1", "syntax error in pos 4-1 line 1 col 4: nothing token matched"},
 		{"[:}", "syntax error in pos 3-4 line 1 col 3: expect `]` actual `}`"},
 		{"[1,2,3}", "syntax error in pos 2-3 line 1 col 2: expect `list or map`"},
-		{`"Hello" + `, "syntax error in pos 0-0 line 0 col 0: 'EOF"},
-		{"a == b == c", "syntax error in pos 3-5 line 1 col 3: == non-infix"},     // non-infix
-		{"a b", "syntax error in pos 3-4 line 1 col 3: expect `'EOF` actual `b`"}, // multi
+		{`"Hello" + `, "syntax error in pos 0-0 line 0 col 0: <END-OF-FILE>"},
+		{"a == b == c", "syntax error in pos 3-5 line 1 col 3: == non-infix"},              // non-infix
+		{"a b", "syntax error in pos 3-4 line 1 col 3: expect `<END-OF-FILE>` actual `b`"}, // multi
 	} {
 		t.Run(tt.s, func(t *testing.T) {
 			_, err := syntaxError(tt.s)

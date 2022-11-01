@@ -2,7 +2,6 @@ package val
 
 import (
 	"fmt"
-
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 )
@@ -12,10 +11,11 @@ type Env struct {
 	parent *Env
 	ctx    map[string]*Val
 	fnTbl  map[string]interface{} // *FunVal | []*FunVal
+	Dgb    interface{}            // e.g. *debug.Record
 }
 
 func NewEnv() *Env {
-	return &Env{nil, map[string]*Val{}, map[string]interface{}{}}
+	return &Env{nil, map[string]*Val{}, map[string]interface{}{}, nil}
 }
 
 func (e *Env) Inherit(parent *Env) *Env {
@@ -25,7 +25,7 @@ func (e *Env) Inherit(parent *Env) *Env {
 }
 
 func (e *Env) Derive() *Env {
-	return &Env{e, map[string]*Val{}, map[string]interface{}{}}
+	return &Env{e, map[string]*Val{}, map[string]interface{}{}, e.Dgb}
 }
 
 func (e *Env) MustGet(name string) *Val {

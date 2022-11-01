@@ -5,9 +5,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/goghcrow/yae/loc"
-	"github.com/goghcrow/yae/oper"
-	"github.com/goghcrow/yae/token"
+	"github.com/goghcrow/yae/parser/loc"
+	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/token"
 )
 
 func NewLexer(ops []oper.Operator) *lexer {
@@ -34,7 +34,7 @@ func (l *lexer) Lex(input string) []*token.Token {
 var EOF = &token.Token{
 	Type:   token.EOF,
 	Loc:    loc.Unknown,
-	Lexeme: "'EOF",
+	Lexeme: "<END-OF-FILE>",
 }
 
 type lexer struct {
@@ -59,7 +59,7 @@ func (l *lexer) next() *token.Token {
 		return EOF
 	}
 
-	loc := l.Loc
+	pos := l.Loc
 	sub := string(l.input[l.Pos:])
 	for _, rl := range l.lexicon.rules {
 		offset := rl.match(sub)
@@ -68,8 +68,8 @@ func (l *lexer) next() *token.Token {
 			for _, r := range matched {
 				l.Move(r)
 			}
-			loc.PosEnd = l.Loc.Pos
-			return &token.Token{Type: rl.Type, Lexeme: string(matched), Loc: loc}
+			pos.PosEnd = l.Loc.Pos
+			return &token.Token{Type: rl.Type, Lexeme: string(matched), Loc: pos}
 		}
 	}
 	panic(fmt.Errorf("syntax error in %s: nothing token matched", l.Loc))

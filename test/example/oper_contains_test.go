@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/goghcrow/yae"
-	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/parser/oper"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 )

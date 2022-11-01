@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/goghcrow/yae/conv"
-	"github.com/goghcrow/yae/lexer"
-	"github.com/goghcrow/yae/oper"
 	"github.com/goghcrow/yae/parser"
+	"github.com/goghcrow/yae/parser/lexer"
+	"github.com/goghcrow/yae/parser/oper"
 	"github.com/goghcrow/yae/trans"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/vm"

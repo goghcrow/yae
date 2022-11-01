@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"unicode/utf8"
 
-	"github.com/goghcrow/yae/oper"
+	"github.com/goghcrow/yae/parser/oper"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/val"
 )
