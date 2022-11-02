@@ -37,8 +37,6 @@ var ops = []Operator{
 	{MUL, BP_FACTOR, INFIX_L},
 	{DIV, BP_FACTOR, INFIX_L},
 	{MOD, BP_FACTOR, INFIX_L},
-	{PLUS, BP_TERM, INFIX_L},
-	{SUB, BP_TERM, INFIX_L},
 	{EXP, BP_EXP, INFIX_R},
 
 	{LE, BP_CMP, INFIX_N},

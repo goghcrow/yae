@@ -41,7 +41,7 @@ func keyword(t token.Type) rule {
 	}}
 }
 
-func reg(t token.Type, pattern string) rule {
+func regex(t token.Type, pattern string) rule {
 	startWith := regexp.MustCompile("^" + pattern)
 	return rule{t, func(s string) int {
 		found := startWith.FindString(s)
