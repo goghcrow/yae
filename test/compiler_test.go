@@ -40,10 +40,10 @@ func TestCompile(t *testing.T) {
 		}))
 
 		// 测试动态分派
-		lookup, _ := fun.Fun().Lookup()
-		monoFunKind, _ := typEnv.GetMonoFun(lookup)
+		monoFunKind := typEnv.MustResolveFun(fun.Fun())[0]
 		typEnv.Put("mono_itoa", monoFunKind.Ty())
 
+		lookup, _ := fun.Fun().OverLoaded()
 		monoFunVal, _ := valEnv.GetMonoFun(lookup)
 		valEnv.Put("mono_itoa", monoFunVal.Vl())
 	}

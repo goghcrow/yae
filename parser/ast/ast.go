@@ -9,7 +9,7 @@ import (
 
 type Expr interface {
 	fmt.Stringer
-	loc.Location
+	loc.Locatable
 }
 
 type (
@@ -68,7 +68,7 @@ type (
 	}
 	CallExpr struct {
 		loc.Loc
-		loc.DbgCol // for desugar and debug
+		loc.DBGCol // for desugar and debug
 		Callee     Expr
 		Args       []Expr
 		// 👇🏻 for typecheck and compile
@@ -78,7 +78,7 @@ type (
 	}
 	SubscriptExpr struct {
 		loc.Loc
-		loc.DbgCol // for desugar and debug
+		loc.DBGCol // for desugar and debug
 		Var        Expr
 		Idx        Expr
 		// 👇🏻 for typecheck and compile
@@ -86,7 +86,7 @@ type (
 	}
 	MemberExpr struct { // FieldSelection
 		loc.Loc
-		loc.DbgCol // for desugar and debug
+		loc.DBGCol // for desugar and debug
 		Obj        Expr
 		Field      *IdentExpr
 		// 👇🏻 for typecheck and compile

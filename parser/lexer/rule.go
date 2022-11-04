@@ -11,13 +11,13 @@ import (
 const NotMatched = -1
 
 type rule struct {
-	token.Type
+	token.Kind
 	match func(string) int // 匹配返回 EndRuneCount , 失败返回 NotMatched
 }
 
-func str(t token.Type) rule {
-	tok := string(t)
-	return rule{t, func(s string) int {
+func str(k token.Kind) rule {
+	tok := string(k)
+	return rule{k, func(s string) int {
 		if strings.HasPrefix(s, tok) {
 			return runeCount(tok)
 		} else {
@@ -28,9 +28,9 @@ func str(t token.Type) rule {
 
 var keywordPostfix = regexp.MustCompile(`^[a-zA-Z\d\p{L}_]+`)
 
-func keyword(t token.Type) rule {
-	kw := string(t)
-	return rule{t, func(s string) int {
+func keyword(k token.Kind) rule {
+	kw := string(k)
+	return rule{k, func(s string) int {
 		completedWord := strings.HasPrefix(s, kw) &&
 			!keywordPostfix.MatchString(s[len(kw):])
 		if completedWord {
@@ -41,7 +41,7 @@ func keyword(t token.Type) rule {
 	}}
 }
 
-func regex(t token.Type, pattern string) rule {
+func regex(t token.Kind, pattern string) rule {
 	startWith := regexp.MustCompile("^" + pattern)
 	return rule{t, func(s string) int {
 		found := startWith.FindString(s)
@@ -55,9 +55,9 @@ func regex(t token.Type, pattern string) rule {
 
 // primOper . ? 内置操作符的优先级高于自定义操作符, 且不是匹配最长, 需要特殊处理
 // e.g 比如自定义操作符 .^. 不能匹配成 [`.`, `^.`]
-func primOper(t token.Type) rule {
-	op := string(t)
-	return rule{t, func(s string) int {
+func primOper(k token.Kind) rule {
+	op := string(k)
+	return rule{k, func(s string) int {
 		if !strings.HasPrefix(s, op) {
 			return NotMatched
 		}

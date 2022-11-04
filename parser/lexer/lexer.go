@@ -12,7 +12,7 @@ import (
 
 func NewLexer(ops []oper.Operator) *lexer {
 	return &lexer{
-		lexicon: newLexicon(oper.Sort(ops)),
+		lexicon: newLexicon(ops),
 	}
 }
 
@@ -23,7 +23,7 @@ func (l *lexer) Lex(input string) []*token.Token {
 	var toks []*token.Token
 	for {
 		t := l.next()
-		if t.Type == token.EOF {
+		if t.Kind == token.EOF {
 			break
 		}
 		toks = append(toks, t)
@@ -32,7 +32,7 @@ func (l *lexer) Lex(input string) []*token.Token {
 }
 
 var EOF = &token.Token{
-	Type:   token.EOF,
+	Kind:   token.EOF,
 	Loc:    loc.Unknown,
 	Lexeme: "<END-OF-FILE>",
 }
@@ -69,7 +69,7 @@ func (l *lexer) next() *token.Token {
 				l.Move(r)
 			}
 			pos.PosEnd = l.Loc.Pos
-			return &token.Token{Type: rl.Type, Lexeme: string(matched), Loc: pos}
+			return &token.Token{Kind: rl.Kind, Lexeme: string(matched), Loc: pos}
 		}
 	}
 	panic(fmt.Errorf("syntax error in %s: nothing token matched", l.Loc))

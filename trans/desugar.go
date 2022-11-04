@@ -42,12 +42,12 @@ func Desugar(expr ast.Expr) ast.Expr {
 	case *ast.UnaryExpr:
 		callee := ast.Var(e.Name, e.IdentExpr.Loc)
 		args := []ast.Expr{Desugar(e.LHS)}
-		dbgCol := loc.DbgCol(e.IdentExpr.Col)
+		dbgCol := loc.DBGCol(e.IdentExpr.Col)
 		return ast.Call(callee, args, dbgCol, e.Loc)
 	case *ast.BinaryExpr:
 		callee := ast.Var(e.Name, e.IdentExpr.Loc)
 		args := []ast.Expr{Desugar(e.LHS), Desugar(e.RHS)}
-		dbgCol := loc.DbgCol(e.IdentExpr.Col)
+		dbgCol := loc.DBGCol(e.IdentExpr.Col)
 		return ast.Call(callee, args, dbgCol, e.Loc)
 	case *ast.TenaryExpr:
 		if e.Name == token.QUESTION {
@@ -59,7 +59,7 @@ func Desugar(expr ast.Expr) ast.Expr {
 			// return ast.If(l, m, r)
 			args := []ast.Expr{l, m, r}
 			callee := ast.Var(fun.IF, e.IdentExpr.Loc)
-			dbgCol := loc.DbgCol(e.IdentExpr.Col)
+			dbgCol := loc.DBGCol(e.IdentExpr.Col)
 			return ast.Call(callee, args, dbgCol, e.Loc)
 		}
 		util.Unreachable()
@@ -73,19 +73,19 @@ func Desugar(expr ast.Expr) ast.Expr {
 				args[i+1] = Desugar(arg)
 			}
 			callee := ast.Var(mem.Field.Name, mem.Field.Loc)
-			return ast.Call(callee, args, e.DbgCol, e.Loc)
+			return ast.Call(callee, args, e.DBGCol, e.Loc)
 		} else {
 			args := make([]ast.Expr, len(e.Args))
 			for i, arg := range e.Args {
 				args[i] = Desugar(arg)
 			}
 			callee := Desugar(e.Callee)
-			return ast.Call(callee, args, e.DbgCol, e.Loc)
+			return ast.Call(callee, args, e.DBGCol, e.Loc)
 		}
 	case *ast.SubscriptExpr:
-		return ast.Subscript(Desugar(e.Var), Desugar(e.Idx), e.DbgCol, e.Loc)
+		return ast.Subscript(Desugar(e.Var), Desugar(e.Idx), e.DBGCol, e.Loc)
 	case *ast.MemberExpr:
-		return ast.Member(Desugar(e.Obj), e.Field, e.DbgCol, e.Loc)
+		return ast.Member(Desugar(e.Obj), e.Field, e.DBGCol, e.Loc)
 	case *ast.GroupExpr:
 		return Desugar(e.SubExpr)
 	//case *ast.IfExpr:

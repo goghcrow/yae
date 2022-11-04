@@ -35,7 +35,7 @@ func compile(expr ast.Expr, env1 *val.Env, dbg bool) compiler.Closure {
 
 func wrapForDebug(expr ast.Expr, cl compiler.Closure) compiler.Closure {
 	// 调试模式编译过程会通过 golang 闭包将 compiler.Closure 与 col 绑定
-	recordVal := func(col loc.DbgCol, cl compiler.Closure) compiler.Closure {
+	recordVal := func(col loc.DBGCol, cl compiler.Closure) compiler.Closure {
 		return func(env *val.Env) *val.Val {
 			v := cl(env)
 			if rcd, ok := env.Dgb.(*debug.Record); ok {
@@ -50,13 +50,13 @@ func wrapForDebug(expr ast.Expr, cl compiler.Closure) compiler.Closure {
 		*ast.ListExpr, *ast.MapExpr, *ast.ObjExpr:
 		return cl
 	case *ast.IdentExpr:
-		return recordVal(loc.DbgCol(e.Col), cl)
+		return recordVal(loc.DBGCol(e.Col), cl)
 	case *ast.CallExpr:
-		return recordVal(e.DbgCol, cl)
+		return recordVal(e.DBGCol, cl)
 	case *ast.SubscriptExpr:
-		return recordVal(e.DbgCol, cl)
+		return recordVal(e.DBGCol, cl)
 	case *ast.MemberExpr:
-		return recordVal(e.DbgCol, cl)
+		return recordVal(e.DBGCol, cl)
 	default:
 		util.Unreachable()
 		return nil

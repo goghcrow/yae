@@ -26,38 +26,38 @@ type infix struct {
 // prefixs & infixs 则可以定义成 tokenType 为下标的数组
 
 type grammar struct {
-	prefixs map[token.Type]prefix
-	infixs  map[token.Type]infix
+	prefixs map[token.Kind]prefix
+	infixs  map[token.Kind]infix
 }
 
 // 前缀操作符
-func (g *grammar) prefix(t token.Type, bp oper.BP, f nud) {
-	g.prefixs[t] = prefix{bp, f}
+func (g *grammar) prefix(k token.Kind, bp oper.BP, f nud) {
+	g.prefixs[k] = prefix{bp, f}
 }
 
 // 不结合中缀操作符
-func (g *grammar) infix(t token.Type, bp oper.BP, f led) {
-	g.infixs[t] = infix{bp, f}
+func (g *grammar) infix(k token.Kind, bp oper.BP, f led) {
+	g.infixs[k] = infix{bp, f}
 }
 
 // 右结合中缀操作符
-func (g *grammar) infixRight(t token.Type, bp oper.BP, f led) {
-	g.infix(t, bp, f)
+func (g *grammar) infixRight(k token.Kind, bp oper.BP, f led) {
+	g.infix(k, bp, f)
 }
 
 // 左结合中缀操作符
-func (g *grammar) infixLeft(t token.Type, bp oper.BP, f led) {
-	g.infix(t, bp, f)
+func (g *grammar) infixLeft(k token.Kind, bp oper.BP, f led) {
+	g.infix(k, bp, f)
 }
 
 // 后缀操作符（可以看成中缀操作符木有右边操作数）
-func (g *grammar) postfix(t token.Type, bp oper.BP, f led) {
-	g.infix(t, bp, f)
+func (g *grammar) postfix(k token.Kind, bp oper.BP, f led) {
+	g.infix(k, bp, f)
 }
 
 // left binding powers
 func (p *grammar) infixLbp(t *token.Token) oper.BP {
-	i, ok := p.infixs[t.Type]
+	i, ok := p.infixs[t.Kind]
 	if ok {
 		return i.BP
 	} else {
@@ -66,13 +66,13 @@ func (p *grammar) infixLbp(t *token.Token) oper.BP {
 }
 
 func (g *grammar) mustPrefix(t *token.Token) prefix {
-	p, ok := g.prefixs[t.Type]
+	p, ok := g.prefixs[t.Kind]
 	util.Assert(ok, "syntax error in %s: %s", t.Loc, t)
 	return p
 }
 
 func (g *grammar) mustInfix(t *token.Token) infix {
-	i, ok := g.infixs[t.Type]
+	i, ok := g.infixs[t.Kind]
 	util.Assert(ok, "syntax error in %s: %s", t.Loc, t)
 	return i
 }

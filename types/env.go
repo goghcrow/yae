@@ -48,8 +48,8 @@ func (e *Env) ForEach(f func(string, *Type)) {
 
 func (e *Env) RegisterFun(f *Type) {
 	util.Assert(f.Kind == KFun, "expect FunTy actual %s", f)
-	lookup, mono := f.Fun().Lookup()
-	if mono {
+	lookup, fk := f.Fun().OverLoaded()
+	if fk == MonoFun {
 		util.Assert(slotFree(f), "expect mono type actual %s", f)
 		e.fnTbl[lookup] = f.Fun()
 	} else {
@@ -82,4 +82,23 @@ func (e *Env) GetPolyFuns(name string) ([]*FunTy, bool) {
 	} else {
 		return nil, false
 	}
+}
+
+func (e *Env) ResolveFun(sig *FunTy) ([]*FunTy, bool) {
+	key, fk := sig.OverLoaded()
+	if fk == MonoFun {
+		f, ok := e.GetMonoFun(key)
+		if ok {
+			return []*FunTy{f}, ok
+		}
+		return nil, false
+	} else {
+		return e.GetPolyFuns(key)
+	}
+}
+
+func (e *Env) MustResolveFun(sig *FunTy) []*FunTy {
+	fs, ok := e.ResolveFun(sig)
+	util.Assert(ok, "func `%s` has no overload func for params`%s`", sig.Name, Tuple(sig.Param))
+	return fs
 }

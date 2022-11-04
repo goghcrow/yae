@@ -11,25 +11,38 @@ import (
 
 // parser 使用了 Top Down Operator Precedence
 // 可以参考道格拉斯的文章 https://www.crockford.com/javascript/tdop/tdop.html
+// 以及论文 https://tdop.github.io/
+// 以及另一个名称 Pratt Parsers,
+// https://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/
+
+type parser struct {
+	grammar
+	toks []*token.Token
+	idx  int
+}
 
 func NewParser(ops []oper.Operator) *parser {
 	return &parser{
-		grammar: newGrammar(oper.Sort(ops)),
+		grammar: newGrammar(ops),
 	}
 }
 
 func (p *parser) Parse(toks []*token.Token) ast.Expr {
 	p.idx = 0
 	p.toks = toks
+
 	expr := p.expr(0)
-	p.mustEat(token.EOF)
+	p.expectEOF()
 	return expr
 }
 
-type parser struct {
-	grammar
-	toks []*token.Token
-	idx  int
+func (p *parser) expectEOF() {
+	p.mustEat(token.EOF)
+}
+
+func (p *parser) expectSingleExpr() {
+	// 可以支持用 ;; 分隔 topLevel 表达式
+	// 如果用 \n 分隔, 需要在 parser 各处 tryEatLines
 }
 
 func (p *parser) peek() *token.Token {
@@ -48,14 +61,14 @@ func (p *parser) eat() *token.Token {
 	return t
 }
 
-func (p *parser) mustEat(typ token.Type) *token.Token {
+func (p *parser) mustEat(k token.Kind) *token.Token {
 	t := p.eat()
-	p.syntaxAssert(t.Loc, t.Type == typ, "expect `%s` actual `%s`", typ, t)
+	p.syntaxAssert(t.Loc, t.Kind == k, "expect `%s` actual `%s`", k, t)
 	return t
 }
 
-func (p *parser) tryEat(typ token.Type) *token.Token {
-	if p.peek().Type == typ {
+func (p *parser) tryEat(k token.Kind) *token.Token {
+	if p.peek().Kind == k {
 		return p.eat()
 	} else {
 		return nil

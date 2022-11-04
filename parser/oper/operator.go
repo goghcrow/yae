@@ -8,7 +8,7 @@ import (
 )
 
 type Operator struct {
-	token.Type
+	token.Kind
 	BP
 	Fixity
 }

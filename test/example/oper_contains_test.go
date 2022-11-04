@@ -17,7 +17,7 @@ func TestRegisterContains(t *testing.T) {
 	// contains :: forall a.(list[a] -> a -> bool)
 
 	expr.RegisterOperator(oper.Operator{
-		Type:   "contains",
+		Kind:   "contains",
 		BP:     oper.BP_TERM,
 		Fixity: oper.INFIX_N,
 	})

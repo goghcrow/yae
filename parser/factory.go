@@ -9,13 +9,13 @@ import (
 
 func newGrammar(ops []oper.Operator) grammar {
 	g := grammar{
-		prefixs: map[token.Type]prefix{},
-		infixs:  map[token.Type]infix{},
+		prefixs: map[token.Kind]prefix{},
+		infixs:  map[token.Kind]infix{},
 	}
 
-	// 这里如果 token.Type 不重复, 顺序无所谓, 重复默认覆盖
+	// 这里如果 token.Kind 不重复, 顺序无所谓, 重复默认覆盖
 
-	g.prefix(token.NAME, oper.BP_NONE, ident)
+	g.prefix(token.SYM, oper.BP_NONE, ident)
 
 	g.prefix(token.TRUE, oper.BP_NONE, parseTrue)
 	g.prefix(token.FALSE, oper.BP_NONE, parseFalse)
@@ -30,18 +30,18 @@ func newGrammar(ops []oper.Operator) grammar {
 	// if 是普通函数
 	// g.prefix(token.IF, oper.BP_NONE, parseIf)
 
-	for _, op := range ops {
+	for _, op := range oper.Sort(ops) {
 		switch op.Fixity {
 		case oper.PREFIX:
-			g.prefix(op.Type, op.BP, unaryPrefix)
+			g.prefix(op.Kind, op.BP, unaryPrefix)
 		case oper.INFIX_N:
-			g.infix(op.Type, op.BP, binaryN)
+			g.infix(op.Kind, op.BP, binaryN)
 		case oper.INFIX_L:
-			g.infix(op.Type, op.BP, binaryL)
+			g.infix(op.Kind, op.BP, binaryL)
 		case oper.INFIX_R:
-			g.infix(op.Type, op.BP, binaryR)
+			g.infix(op.Kind, op.BP, binaryR)
 		case oper.POSTFIX:
-			g.postfix(op.Type, op.BP, unaryPostfix)
+			g.postfix(op.Kind, op.BP, unaryPostfix)
 		}
 	}
 
@@ -65,39 +65,44 @@ func ident(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 }
 
 func binaryL(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
+	name := ast.Var(t.Lexeme, t.Loc)
 	rhs := p.expr(bp)
-	loc := lhs.GetLoc().Merge(rhs.GetLoc())
-	return ast.Binary(ast.Var(t.Lexeme, t.Loc), oper.INFIX_L, lhs, rhs, loc)
+	pos := loc.Range(lhs, rhs)
+	return ast.Binary(name, oper.INFIX_L, lhs, rhs, pos)
 }
 
 func binaryR(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
+	name := ast.Var(t.Lexeme, t.Loc)
 	rhs := p.expr(bp - 1)
-	loc := lhs.GetLoc().Merge(rhs.GetLoc())
-	return ast.Binary(ast.Var(t.Lexeme, t.Loc), oper.INFIX_R, lhs, rhs, loc)
+	pos := loc.Range(lhs, rhs)
+	return ast.Binary(name, oper.INFIX_R, lhs, rhs, pos)
 }
 
 func binaryN(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
+	name := ast.Var(t.Lexeme, t.Loc)
 	rhs := p.expr(bp) // 这里是否-1无所谓, 之后会检查
-	loc := lhs.GetLoc().Merge(rhs.GetLoc())
-	return ast.Binary(ast.Var(t.Lexeme, t.Loc), oper.INFIX_N, lhs, rhs, loc)
+	pos := loc.Range(lhs, rhs)
+	return ast.Binary(name, oper.INFIX_N, lhs, rhs, pos)
 }
 
 func unaryPrefix(p *parser, bp oper.BP, t *token.Token) ast.Expr {
+	name := ast.Var(t.Lexeme, t.Loc)
 	expr := p.expr(bp)
-	loc := t.GetLoc().Merge(expr.GetLoc())
-	return ast.Unary(ast.Var(t.Lexeme, t.Loc), expr, true, loc)
+	pos := loc.Range(t, expr)
+	return ast.Unary(name, expr, true, pos)
 }
 
 func unaryPostfix(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
-	loc := lhs.GetLoc().Merge(t.GetLoc())
-	return ast.Unary(ast.Var(t.Lexeme, t.Loc), lhs, false, loc)
+	name := ast.Var(t.Lexeme, t.Loc)
+	pos := loc.Range(lhs, t)
+	return ast.Unary(name, lhs, false, pos)
 }
 
 func parseListMap(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	if p.tryEat(token.COLON) != nil {
 		rb := p.mustEat(token.RIGHT_BRACKET)
-		loc := t.GetLoc().Merge(rb.GetLoc())
-		return ast.Map([]ast.Pair{}, loc)
+		pos := loc.Range(t, rb)
+		return ast.Map([]ast.Pair{}, pos)
 	}
 	return p.any("list or map", parseList(t), parseMap(t))
 }
@@ -106,7 +111,7 @@ func parseList(t *token.Token) func(p *parser) ast.Expr {
 	return func(p *parser) ast.Expr {
 		elems := make([]ast.Expr, 0)
 		for {
-			if p.peek().Type == token.RIGHT_BRACKET {
+			if p.peek().Kind == token.RIGHT_BRACKET {
 				break
 			}
 			el := p.expr(0)
@@ -116,8 +121,8 @@ func parseList(t *token.Token) func(p *parser) ast.Expr {
 			}
 		}
 		rb := p.mustEat(token.RIGHT_BRACKET)
-		loc := t.GetLoc().Merge(rb.GetLoc())
-		return ast.List(elems, loc)
+		pos := loc.Range(t, rb)
+		return ast.List(elems, pos)
 	}
 }
 
@@ -125,7 +130,7 @@ func parseMap(t *token.Token) func(p *parser) ast.Expr {
 	return func(p *parser) ast.Expr {
 		pairs := make([]ast.Pair, 0)
 		for {
-			if p.peek().Type == token.RIGHT_BRACKET {
+			if p.peek().Kind == token.RIGHT_BRACKET {
 				break
 			}
 			k := p.expr(0)
@@ -137,18 +142,18 @@ func parseMap(t *token.Token) func(p *parser) ast.Expr {
 			}
 		}
 		rb := p.mustEat(token.RIGHT_BRACKET)
-		loc := t.GetLoc().Merge(rb.GetLoc())
-		return ast.Map(pairs, loc)
+		pos := loc.Range(t, rb)
+		return ast.Map(pairs, pos)
 	}
 }
 
 func parseObj(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	fs := make([]ast.Field, 0)
 	for {
-		if p.peek().Type == token.RIGHT_BRACE {
+		if p.peek().Kind == token.RIGHT_BRACE {
 			break
 		}
-		n := p.mustEat(token.NAME)
+		n := p.mustEat(token.SYM)
 		p.mustEat(token.COLON)
 		v := p.expr(0)
 		fs = append(fs, ast.Field{Name: n.Lexeme, Val: v})
@@ -157,23 +162,24 @@ func parseObj(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 		}
 	}
 	rb := p.mustEat(token.RIGHT_BRACE)
-	loc := t.GetLoc().Merge(rb.GetLoc())
-	return ast.Obj(fs, loc)
+	pos := loc.Range(t, rb)
+	return ast.Obj(fs, pos)
 }
 
 func parseGroup(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	expr := p.expr(0)
 	rp := p.mustEat(token.RIGHT_PAREN)
-	loc := t.GetLoc().Merge(rp.GetLoc())
-	return ast.Group(expr, loc)
+	pos := loc.Range(t, rp)
+	return ast.Group(expr, pos)
 }
 
 func parseQuestion(p *parser, bp oper.BP, l ast.Expr, t *token.Token) ast.Expr {
+	name := ast.Var(t.Lexeme, t.Loc)
 	m := p.expr(0)
 	p.mustEat(token.COLON)
 	r := p.expr(bp - 1)
-	loc := l.GetLoc().Merge(r.GetLoc())
-	return ast.Tenary(ast.Var(t.Lexeme, t.Loc), l, m, r, loc)
+	pos := loc.Range(l, r)
+	return ast.Tenary(name, l, m, r, pos)
 }
 
 func parseCall(p *parser, bp oper.BP, callee ast.Expr, t *token.Token) ast.Expr {
@@ -189,17 +195,18 @@ func parseCall(p *parser, bp oper.BP, callee ast.Expr, t *token.Token) ast.Expr 
 		}
 		rp = p.mustEat(token.RIGHT_PAREN)
 	}
-	callLoc := callee.GetLoc().Merge(rp.GetLoc())
-	return ast.Call(callee, args, loc.DbgCol(t.Col), callLoc)
+	callLoc := loc.Range(callee, rp)
+	return ast.Call(callee, args, loc.DBGCol(t.Col), callLoc)
 }
 
 func parseDot(p *parser, bp oper.BP, obj ast.Expr, t *token.Token) ast.Expr {
 	name := p.eat()
 	// 放开限制则可以写 1. +(1), 1可以看成对象, .和+必须有空格是因为否则会匹配自定义操作符
-	//util.Assert(name.Type == token.NAME || name.Type == token.TRUE || name.Type == token.FALSE,
+	//util.Assert(name.Kind == token.SYM || name.Kind == token.TRUE || name.Kind == token.FALSE,
 	//	"syntax error: %s", name.Lexeme)
-	selLoc := obj.GetLoc().Merge(name.GetLoc())
-	expr := ast.Member(obj, ast.Var(name.Lexeme, name.Loc), loc.DbgCol(t.Col), selLoc)
+	field := ast.Var(name.Lexeme, name.Loc)
+	pos := loc.Range(obj, name)
+	expr := ast.Member(obj, field, loc.DBGCol(t.Col), pos)
 	lp := p.tryEat(token.LEFT_PAREN)
 	if lp == nil {
 		return expr
@@ -211,8 +218,8 @@ func parseDot(p *parser, bp oper.BP, obj ast.Expr, t *token.Token) ast.Expr {
 func parseSubscript(p *parser, bp oper.BP, list ast.Expr, t *token.Token) ast.Expr {
 	expr := p.expr(0)
 	rb := p.mustEat(token.RIGHT_BRACKET)
-	subsLoc := list.GetLoc().Merge(rb.GetLoc())
-	return ast.Subscript(list, expr, loc.DbgCol(t.Col), subsLoc)
+	pos := loc.Range(list, rb)
+	return ast.Subscript(list, expr, loc.DBGCol(t.Col), pos)
 }
 
 // if expr then expr else xxx [end]
@@ -223,11 +230,11 @@ func parseSubscript(p *parser, bp oper.BP, list ast.Expr, t *token.Token) ast.Ex
 //	p.mustEat(token.ELSE)
 //	els := p.expr(0)
 //	end := p.tryEat(token.END)
-//	var loc loc.Loc
+//	var pos loc.Loc
 //	if end == nil {
-//		loc = iff.GetLoc().Merge(els.GetLoc())
+//		pos = loc.Range(iff,els)
 //	} else {
-//		loc = iff.GetLoc().Merge(end.GetLoc())
+//		pos = loc.Range(iff,end)
 //	}
-//	return ast.If(cond, then, els, loc)
+//	return ast.If(cond, then, els, pos)
 //}

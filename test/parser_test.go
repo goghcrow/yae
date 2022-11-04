@@ -26,16 +26,16 @@ func TestParser(t *testing.T) {
 		{"-1", "-(1)", nil},
 		{"+1", "+(1)", nil},
 		{"~!-+a", "~(!(-(+(a))))", []oper.Operator{{
-			Type:   token.Type("~"),
+			Kind:   token.Kind("~"),
 			BP:     oper.BP_PREFIX,
 			Fixity: oper.PREFIX,
 		}}},
 		{"a!~!", "!(~(!(a)))", []oper.Operator{{
-			Type:   token.Type("!"),
+			Kind:   token.Kind("!"),
 			BP:     oper.BP_POSTFIX,
 			Fixity: oper.POSTFIX,
 		}, {
-			Type:   token.Type("~"),
+			Kind:   token.Kind("~"),
 			BP:     oper.BP_POSTFIX,
 			Fixity: oper.POSTFIX,
 		}}},
@@ -47,27 +47,27 @@ func TestParser(t *testing.T) {
 		{"-a * b", "*(-(a), b)", nil},
 		{"!a + b", "+(!(a), b)", nil},
 		{"~a ^ b", "^(~(a), b)", []oper.Operator{{
-			Type:   token.Type("~"),
+			Kind:   token.Kind("~"),
 			BP:     oper.BP_PREFIX,
 			Fixity: oper.PREFIX,
 		}}},
 		{"-a!", "-(!(a))", []oper.Operator{{
-			Type:   token.Type("!"),
+			Kind:   token.Kind("!"),
 			BP:     oper.BP_POSTFIX,
 			Fixity: oper.POSTFIX,
 		}}},
 		{"!a#", "!(#(a))", []oper.Operator{{
-			Type:   token.Type("#"),
+			Kind:   token.Kind("#"),
 			BP:     oper.BP_POSTFIX,
 			Fixity: oper.POSTFIX,
 		}}},
 		{"-1 # 2", "#(-(1), 2)", []oper.Operator{{
-			Type:   token.Type("#"),
+			Kind:   token.Kind("#"),
 			BP:     oper.BP_PREFIX,
 			Fixity: oper.INFIX_L,
 		}}},
 		{"-1 # 2", "-(#(1, 2))", []oper.Operator{{
-			Type:   token.Type("#"),
+			Kind:   token.Kind("#"),
 			BP:     oper.BP_PREFIX + 1,
 			Fixity: oper.INFIX_L,
 		}}},
@@ -90,7 +90,7 @@ func TestParser(t *testing.T) {
 		{"a + (b + c) + d", "+(+(a, +(b, c)), d)", nil},
 		{"a ^ (b + c)", "^(a, +(b, c))", nil},
 		{"(!a)@", "@(!(a))", []oper.Operator{{
-			Type:   token.Type("@"),
+			Kind:   token.Kind("@"),
 			BP:     oper.BP_POSTFIX,
 			Fixity: oper.POSTFIX,
 		}}},

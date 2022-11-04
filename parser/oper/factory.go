@@ -65,8 +65,8 @@ func BuiltIn() []Operator {
 // 使用 ops 之前, 需要先排下序
 func Sort(ops []Operator) []Operator {
 	sort.SliceStable(ops, func(i, j int) bool {
-		x := ops[i].Type
-		y := ops[j].Type
+		x := ops[i].Kind
+		y := ops[j].Kind
 		if x == y || len(x) == len(y) {
 			return false
 		}

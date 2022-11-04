@@ -32,14 +32,14 @@ func List(elems []Expr, loc loc.Loc) *ListExpr { return &ListExpr{loc, elems, ni
 func Map(pairs []Pair, loc loc.Loc) *MapExpr   { return &MapExpr{loc, pairs, nil} }
 func Obj(fields []Field, loc loc.Loc) *ObjExpr { return &ObjExpr{loc, fields, nil} }
 func Group(sub Expr, loc loc.Loc) *GroupExpr   { return &GroupExpr{loc, sub} }
-func Call(callee Expr, args []Expr, col loc.DbgCol, loc loc.Loc) *CallExpr {
-	return &CallExpr{Loc: loc, DbgCol: col, Callee: callee, Args: args, Index: -1}
+func Call(callee Expr, args []Expr, col loc.DBGCol, loc loc.Loc) *CallExpr {
+	return &CallExpr{Loc: loc, DBGCol: col, Callee: callee, Args: args, Index: -1}
 }
-func Subscript(varExpr Expr, expr Expr, col loc.DbgCol, loc loc.Loc) *SubscriptExpr {
-	return &SubscriptExpr{Loc: loc, DbgCol: col, Var: varExpr, Idx: expr}
+func Subscript(varExpr Expr, expr Expr, col loc.DBGCol, loc loc.Loc) *SubscriptExpr {
+	return &SubscriptExpr{Loc: loc, DBGCol: col, Var: varExpr, Idx: expr}
 }
-func Member(obj Expr, field *IdentExpr, col loc.DbgCol, loc loc.Loc) *MemberExpr {
-	return &MemberExpr{Loc: loc, DbgCol: col, Obj: obj, Field: field, Index: -1}
+func Member(obj Expr, field *IdentExpr, col loc.DBGCol, loc loc.Loc) *MemberExpr {
+	return &MemberExpr{Loc: loc, DBGCol: col, Obj: obj, Field: field, Index: -1}
 }
 func Unary(name *IdentExpr, expr Expr, prefix bool, loc loc.Loc) *UnaryExpr {
 	return &UnaryExpr{Loc: loc, IdentExpr: name, LHS: expr, Prefix: prefix}

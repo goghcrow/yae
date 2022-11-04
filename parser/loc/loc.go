@@ -6,11 +6,9 @@ import (
 	"github.com/goghcrow/yae/util"
 )
 
-type Location interface {
-	GetLoc() Loc
+type Locatable interface {
+	Location() Loc
 }
-
-func (l Loc) GetLoc() Loc { return l }
 
 type Loc struct {
 	Pos    int // include
@@ -19,10 +17,13 @@ type Loc struct {
 	Line   int
 }
 
-type DbgCol int // for debug render
+// Location 自己实现 Locatable 方便内嵌继承
+func (l Loc) Location() Loc { return l }
 
-var UnknownCol DbgCol = -1
 var Unknown = Loc{-1, -1, -1, -1}
+
+type DBGCol int // for debug render
+var UnknownCol DBGCol = -1
 
 // Move Cursor
 func (l *Loc) Move(r rune) {
@@ -35,14 +36,16 @@ func (l *Loc) Move(r rune) {
 	}
 }
 
-func (l Loc) Merge(other Loc) Loc {
-	util.Assert(other.Pos > l.Pos, "expect right loc")
-	l.PosEnd = other.PosEnd
-	return l
-}
-
 func (l Loc) String() string {
 	return fmt.Sprintf("pos %d-%d line %d col %d", l.Pos+1, l.PosEnd+1, l.Line+1, l.Col+1)
 }
 
 func (l Loc) Span(runes []rune) string { return string(runes[l.Pos:l.PosEnd]) }
+
+func Range(from, to Locatable) Loc {
+	l1 := from.Location()
+	l2 := to.Location()
+	util.Assert(l2.Pos >= l1.Pos, "expect right loc")
+	l1.PosEnd = l2.PosEnd
+	return l2
+}

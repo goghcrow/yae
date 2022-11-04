@@ -5,7 +5,7 @@ import (
 	"github.com/goghcrow/yae/parser/token"
 )
 
-var keywords = []token.Type{
+var keywords = []token.Kind{
 	// if 是普通函数不是 keyword
 	//token.IF,
 	//token.THEN,
@@ -13,9 +13,9 @@ var keywords = []token.Type{
 	//token.END,
 }
 
-var builtInOpers = []token.Type{
-	token.DOT,      //.
-	token.QUESTION, //?:
+var builtInOpers = []oper.Operator{
+	{token.DOT, oper.BP_MEMBER, oper.INFIX_L},
+	{token.QUESTION, oper.BP_COND, oper.INFIX_R},
 }
 
 func newLexicon(ops []oper.Operator) lexicon {
@@ -36,13 +36,13 @@ func newLexicon(ops []oper.Operator) lexicon {
 	}
 
 	// 内置的操作符优先级高于自定义操作符
-	for _, op := range builtInOpers {
-		l.addRule(primOper(op))
+	for _, op := range oper.Sort(builtInOpers) {
+		l.addRule(primOper(op.Kind))
 	}
 
 	// 自定义操作符
-	for _, op := range ops {
-		l.addOper(op.Type)
+	for _, op := range oper.Sort(ops) {
+		l.addOper(op.Kind)
 	}
 
 	l.addRule(str(token.TRUE))  // true
@@ -61,7 +61,7 @@ func newLexicon(ops []oper.Operator) lexicon {
 
 	l.addRule(regex(token.TIME, "'[^`\"']*'"))
 
-	l.addRule(regex(token.NAME, "[a-zA-Z\\p{L}_][a-zA-Z0-9\\p{L}_]*")) // 支持 unicode, 不能以数字开头
+	l.addRule(regex(token.SYM, "[a-zA-Z\\p{L}_][a-zA-Z0-9\\p{L}_]*")) // 支持 unicode, 不能以数字开头
 
 	return l
 }

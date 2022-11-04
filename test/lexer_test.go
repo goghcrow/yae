@@ -62,7 +62,7 @@ func TestLexer(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		toks := lexer.NewLexer([]oper.Operator{
 			{
-				Type:   "as",
+				Kind:   "as",
 				BP:     oper.BP_TERM,
 				Fixity: oper.INFIX_N,
 			},
@@ -74,7 +74,7 @@ func TestLexer(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		s := ".^."
 		toks := lexer.NewLexer(append(oper.BuiltIn(), oper.Operator{
-			Type:   token.Type(s),
+			Kind:   token.Kind(s),
 			BP:     oper.BP_TERM,
 			Fixity: oper.INFIX_N,
 		})).Lex(s)

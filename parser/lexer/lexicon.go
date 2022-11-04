@@ -14,10 +14,10 @@ func (l *lexicon) addRule(r ...rule) {
 	l.rules = append(l.rules, r...)
 }
 
-func (l *lexicon) addOper(t token.Type) {
-	if oper.IsIdentOp(string(t)) {
-		l.addRule(keyword(t))
+func (l *lexicon) addOper(k token.Kind) {
+	if oper.IsIdentOp(string(k)) {
+		l.addRule(keyword(k))
 	} else {
-		l.addRule(str(t))
+		l.addRule(str(k))
 	}
 }

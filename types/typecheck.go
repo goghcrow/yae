@@ -94,7 +94,7 @@ func Check(expr ast.Expr, env *Env) *Type {
 		// util.Assert(callee.Type == ast.IDENT, "invalid callable %s in %s", callee, expr)
 		if ident, ok := callee.(*ast.IdentExpr); ok {
 			fn := ident.Name
-			fun = resolveFun(env, e, fn, args)
+			fun = resolveOverloadedFun(env, e, fn, args)
 		} else {
 			f := Check(callee, env)
 			util.Assert(f.Kind == KFun, "non callable of `%s` in `%s`", callee, e)
@@ -161,38 +161,37 @@ func Check(expr ast.Expr, env *Env) *Type {
 }
 
 // desugar 会把所有操作符都转换成函数调用, 这里会统一处理操作符和函数
-//
-//goland:noinspection SpellCheckingInspection
-func resolveFun(env *Env, call *ast.CallExpr, fnName string, args []*Type) *FunTy {
+func resolveOverloadedFun(env *Env, call *ast.CallExpr, fnName string, args []*Type) *FunTy {
 	// 1. 首先尝试 resolve mono fn
-	monofnTy, mono := Fun(fnName, args, Bottom /*返回类型无所谓*/).Fun().Lookup()
-	util.Assert(mono, "unexpected")
-	f, ok := env.GetMonoFun(monofnTy)
+	monoFnKey, fk := Fun(fnName, args, Bottom /*返回类型无所谓*/).Fun().OverLoaded()
+	util.Assert(fk == MonoFun, "expect mono fun")
+	f, ok := env.GetMonoFun(monoFnKey)
 	if ok {
-		util.Assert(f.Kind == KFun, "non callable of %s in %s", monofnTy, call)
-		call.Resolved = monofnTy // attach ast, 标记 callee 在环境中的 key
-		monofun := f.Fun()
-		return monofun
+		util.Assert(f.Kind == KFun, "non callable of %s in %s", monoFnKey, call)
+		call.Resolved = monoFnKey // attach ast, 标记 callee 在环境中的 key
+		return f.Fun()
 	}
 
 	// 2. 然后依次尝试 poly fn
 	// 先按 `函数名+参数个数` 查找重载的函数列表(包括泛型函数)
-	polyfnTy, _ := Fun(fnName, args, TyVar("α")).Fun().Lookup()
-	fks, ok := env.GetPolyFuns(polyfnTy)
+	polyFnKey, fk := Fun(fnName, args, TyVar("α")).Fun().OverLoaded()
+	util.Assert(fk == PolyFun, "expect poly fun")
+	fnTys, ok := env.GetPolyFuns(polyFnKey)
 	util.Assert(ok, "func `%s` has no overload func for params`%s`", fnName, Tuple(args))
 
 	// 然后在重载函数列表中依次查找
 	// 因为不支持子类型, 所以也没有最适合的规则, 找到匹配为止
+	// (如果需要支持 top 类型, 则需要排个序)
 	// 并实例化函数 poly ~~> mono
-	for i, f := range fks {
-		util.Assert(f.Kind == KFun, "non callable of %s in %s", fnName, call)
-		monof := inferFun(f, args)
-		if monof == nil {
+	for i, fnTy := range fnTys {
+		util.Assert(fnTy.Kind == KFun, "non callable of %s in %s", fnName, call)
+		monoFnTy := inferFun(fnTy, args)
+		if monoFnTy == nil {
 			continue
 		}
-		call.Resolved = polyfnTy // attach ast, 标记 callee 在环境中的 key
-		call.Index = i           // attach ast, 以及在泛型函数表的中的位置
-		return monof
+		call.Resolved = polyFnKey // attach ast, 标记 callee 在环境中的 key
+		call.Index = i            // attach ast, 以及在泛型函数表的中的位置
+		return monoFnTy
 	}
 	util.Assert(false, "func `%s` has no overload func for params`%s`", fnName, Tuple(args))
 	return nil

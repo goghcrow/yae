@@ -56,8 +56,8 @@ func (e *Env) ForEach(f func(string, *Val)) {
 
 func (e *Env) RegisterFun(f *Val) {
 	util.Assert(f.Type.Kind == types.KFun, "expect FunVal actual %s", f)
-	lookup, mono := f.Type.Fun().Lookup()
-	if mono {
+	lookup, fk := f.Type.Fun().OverLoaded()
+	if fk == types.MonoFun {
 		e.fnTbl[lookup] = f.Fun()
 	} else {
 		tbl, ok := e.fnTbl[lookup].([]*FunVal)
