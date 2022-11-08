@@ -8,8 +8,9 @@ import (
 )
 
 type Expr interface {
-	fmt.Stringer
+	isExpr() // guard method
 	loc.Locatable
+	fmt.Stringer
 }
 
 type (
@@ -124,3 +125,19 @@ type (
 )
 
 //type IfExpr struct { loc.Loc; Cond Expr;Then Expr;Else Expr }
+
+func (_ *StrExpr) isExpr()       {}
+func (_ *NumExpr) isExpr()       {}
+func (_ *TimeExpr) isExpr()      {}
+func (_ *BoolExpr) isExpr()      {}
+func (_ *ListExpr) isExpr()      {}
+func (_ *MapExpr) isExpr()       {}
+func (_ *ObjExpr) isExpr()       {}
+func (_ *IdentExpr) isExpr()     {}
+func (_ *CallExpr) isExpr()      {}
+func (_ *SubscriptExpr) isExpr() {}
+func (_ *MemberExpr) isExpr()    {}
+func (_ *UnaryExpr) isExpr()     {}
+func (_ *BinaryExpr) isExpr()    {}
+func (_ *TenaryExpr) isExpr()    {}
+func (_ *GroupExpr) isExpr()     {}
