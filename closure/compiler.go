@@ -6,7 +6,7 @@ import (
 
 	"github.com/goghcrow/yae/compiler"
 	"github.com/goghcrow/yae/parser/ast"
-	"github.com/goghcrow/yae/parser/loc"
+	"github.com/goghcrow/yae/parser/pos"
 	"github.com/goghcrow/yae/types"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
@@ -35,7 +35,7 @@ func compile(expr ast.Expr, env1 *val.Env, dbg bool) compiler.Closure {
 
 func wrapForDebug(expr ast.Expr, cl compiler.Closure) compiler.Closure {
 	// 调试模式编译过程会通过 golang 闭包将 compiler.Closure 与 col 绑定
-	recordVal := func(col loc.DBGCol, cl compiler.Closure) compiler.Closure {
+	recordVal := func(col pos.DBGCol, cl compiler.Closure) compiler.Closure {
 		return func(env *val.Env) *val.Val {
 			v := cl(env)
 			if rcd, ok := env.Dgb.(*debug.Record); ok {
@@ -50,7 +50,7 @@ func wrapForDebug(expr ast.Expr, cl compiler.Closure) compiler.Closure {
 		*ast.ListExpr, *ast.MapExpr, *ast.ObjExpr:
 		return cl
 	case *ast.IdentExpr:
-		return recordVal(loc.DBGCol(e.Col), cl)
+		return recordVal(pos.DBGCol(e.Col), cl)
 	case *ast.CallExpr:
 		return recordVal(e.DBGCol, cl)
 	case *ast.SubscriptExpr:
@@ -129,11 +129,16 @@ func compile0(expr ast.Expr, env1 *val.Env, dbg bool) compiler.Closure {
 			}
 		}
 
+		type pair struct{ k, v compiler.Closure }
+
 		ty := e.Type.(*types.Type).Map()
 		// 保持字面量声明的执行顺序
-		cs := make([]struct{ k, v compiler.Closure }, sz)
-		for i, pair := range e.Pairs {
-			cs[i] = struct{ k, v compiler.Closure }{compile(pair.Key, env1, dbg), compile(pair.Val, env1, dbg)}
+		cs := make([]pair, sz)
+		for i, it := range e.Pairs {
+			cs[i] = pair{
+				compile(it.Key, env1, dbg),
+				compile(it.Val, env1, dbg),
+			}
 		}
 
 		return func(env *val.Env) *val.Val {

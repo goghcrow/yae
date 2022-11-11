@@ -2,7 +2,7 @@ package ext
 
 import (
 	"github.com/goghcrow/yae/parser/ast"
-	"github.com/goghcrow/yae/parser/loc"
+	"github.com/goghcrow/yae/parser/pos"
 )
 
 type LogicalOper int
@@ -32,10 +32,10 @@ type CondGroup struct {
 
 func (e Cond) expr() ast.Expr {
 	args := make([]ast.Expr, len(e.Operands)+1)
-	args[0] = ast.Var(e.Field, loc.Unknown)
+	args[0] = ast.Var(e.Field, pos.Unknown)
 	copy(args[1:], e.Operands)
-	callee := ast.Var(e.Operator, loc.Unknown)
-	return ast.Call(callee, args, loc.UnknownCol, loc.Unknown)
+	callee := ast.Var(e.Operator, pos.Unknown)
+	return ast.Call(callee, args, pos.UnknownCol, pos.Unknown)
 }
 
 func (e CondGroup) expr() ast.Expr {
@@ -43,6 +43,6 @@ func (e CondGroup) expr() ast.Expr {
 	for i, c := range e.Conds {
 		args[i] = c.expr()
 	}
-	callee := ast.Var(e.LogicalOper.String(), loc.Unknown)
-	return ast.Call(callee, args, loc.UnknownCol, loc.Unknown)
+	callee := ast.Var(e.LogicalOper.String(), pos.Unknown)
+	return ast.Call(callee, args, pos.UnknownCol, pos.Unknown)
 }

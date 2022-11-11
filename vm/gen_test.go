@@ -38,11 +38,11 @@ func %s_Handler(v *VM) {
 `, s[1], strings.Replace(s[2], "\t\t\t", "\t", -1))
 		}
 
-		loc := pattern.FindStringIndex(str)
-		if loc == nil {
+		l := pattern.FindStringIndex(str)
+		if l == nil {
 			break
 		}
-		str = str[loc[1]-len("case OP_"):]
+		str = str[l[1]-len("case OP_"):]
 	}
 
 	buf += `//goland:noinspection GoSnakeCaseUsage

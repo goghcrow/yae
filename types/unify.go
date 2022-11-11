@@ -18,7 +18,8 @@ func Unify(s, t *Type, m map[string]*Type) *Type {
 
 func unify(x, y *Type, m map[string]*Type, inProcess util.PtrPtrSet) *Type {
 	if x.IsComposite() && y.IsComposite() && inProcess.Contains(x, y) {
-		return nil
+		panic("not support recursive type")
+		// return nil
 	} else {
 		inProcess.Add(x, y)
 	}

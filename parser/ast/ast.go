@@ -3,43 +3,42 @@ package ast
 import (
 	"fmt"
 
-	"github.com/goghcrow/yae/parser/loc"
-	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/pos"
 )
 
 type Expr interface {
 	isExpr() // guard method
-	loc.Locatable
+	pos.Positionable
 	fmt.Stringer
 }
 
 type (
 	StrExpr struct {
-		loc.Loc
+		pos.Pos
 		Text string
 		// 👇🏻 for typecheck and compile
 		Val string
 	}
 	NumExpr struct {
-		loc.Loc
+		pos.Pos
 		Text string
 		// 👇🏻 for typecheck and compile
 		Val float64
 	}
 	TimeExpr struct {
-		loc.Loc
+		pos.Pos
 		Text string
 		// 👇🏻 for typecheck and compile
 		Val int64
 	}
 	BoolExpr struct {
-		loc.Loc
+		pos.Pos
 		Text string
 		// 👇🏻 for typecheck and compile
 		Val bool
 	}
 	ListExpr struct { // lit
-		loc.Loc
+		pos.Pos
 		Elems []Expr
 		// 👇🏻 for typecheck and compile
 		Type interface{} // *types.Type
@@ -48,7 +47,7 @@ type (
 		Key, Val Expr
 	}
 	MapExpr struct { // lit
-		loc.Loc
+		pos.Pos
 		Pairs []Pair
 		// 👇🏻 for typecheck and compile
 		Type interface{} // *types.Type
@@ -58,18 +57,18 @@ type (
 		Val  Expr
 	}
 	ObjExpr struct { // lit
-		loc.Loc
+		pos.Pos
 		Fields []Field // 不用 map 是因为要保持声明顺序
 		// 👇🏻 for typecheck and compile
 		Type interface{} // *types.Type
 	}
 	IdentExpr struct {
-		loc.Loc
+		pos.Pos
 		Name string
 	}
 	CallExpr struct {
-		loc.Loc
-		loc.DBGCol // for desugar and debug
+		pos.Pos
+		pos.DBGCol // for desugar and debug
 		Callee     Expr
 		Args       []Expr
 		// 👇🏻 for typecheck and compile
@@ -78,16 +77,16 @@ type (
 		Index      int
 	}
 	SubscriptExpr struct {
-		loc.Loc
-		loc.DBGCol // for desugar and debug
+		pos.Pos
+		pos.DBGCol // for desugar and debug
 		Var        Expr
 		Idx        Expr
 		// 👇🏻 for typecheck and compile
 		VarType interface{} // *types.Type
 	}
 	MemberExpr struct { // FieldSelection
-		loc.Loc
-		loc.DBGCol // for desugar and debug
+		pos.Pos
+		pos.DBGCol // for desugar and debug
 		Obj        Expr
 		Field      *IdentExpr
 		// 👇🏻 for typecheck and compile
@@ -96,35 +95,7 @@ type (
 	}
 )
 
-// 👇🏻 会被 desugar 处理
-type (
-	UnaryExpr struct {
-		loc.Loc
-		*IdentExpr // loc for desugar and debug
-		LHS        Expr
-		Prefix     bool
-	}
-	BinaryExpr struct {
-		loc.Loc
-		*IdentExpr // loc for desugar and debug
-		oper.Fixity
-		LHS Expr
-		RHS Expr
-	}
-	TenaryExpr struct {
-		loc.Loc
-		*IdentExpr // loc for desugar and debug
-		Left       Expr
-		Mid        Expr
-		Right      Expr
-	}
-	GroupExpr struct { // 仅用于 String(), 会被 Desugar 会去掉
-		loc.Loc
-		SubExpr Expr
-	}
-)
-
-//type IfExpr struct { loc.Loc; Cond Expr;Then Expr;Else Expr }
+//type IfExpr struct { pos.Pos; Cond Expr;Then Expr;Else Expr }
 
 func (_ *StrExpr) isExpr()       {}
 func (_ *NumExpr) isExpr()       {}
@@ -137,7 +108,3 @@ func (_ *IdentExpr) isExpr()     {}
 func (_ *CallExpr) isExpr()      {}
 func (_ *SubscriptExpr) isExpr() {}
 func (_ *MemberExpr) isExpr()    {}
-func (_ *UnaryExpr) isExpr()     {}
-func (_ *BinaryExpr) isExpr()    {}
-func (_ *TenaryExpr) isExpr()    {}
-func (_ *GroupExpr) isExpr()     {}

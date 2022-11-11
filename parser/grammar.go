@@ -56,8 +56,8 @@ func (g *grammar) postfix(k token.Kind, bp oper.BP, f led) {
 }
 
 // left binding powers
-func (p *grammar) infixLbp(t *token.Token) oper.BP {
-	i, ok := p.infixs[t.Kind]
+func (g *grammar) infixLbp(t *token.Token) oper.BP {
+	i, ok := g.infixs[t.Kind]
 	if ok {
 		return i.BP
 	} else {
@@ -67,12 +67,12 @@ func (p *grammar) infixLbp(t *token.Token) oper.BP {
 
 func (g *grammar) mustPrefix(t *token.Token) prefix {
 	p, ok := g.prefixs[t.Kind]
-	util.Assert(ok, "syntax error in %s: %s", t.Loc, t)
+	util.Assert(ok, "syntax error in %s: %s", t.Pos, t)
 	return p
 }
 
 func (g *grammar) mustInfix(t *token.Token) infix {
 	i, ok := g.infixs[t.Kind]
-	util.Assert(ok, "syntax error in %s: %s", t.Loc, t)
+	util.Assert(ok, "syntax error in %s: %s", t.Pos, t)
 	return i
 }

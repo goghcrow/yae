@@ -1,10 +1,10 @@
 package token
 
-import "github.com/goghcrow/yae/parser/loc"
+import "github.com/goghcrow/yae/parser/pos"
 
 type Token struct {
 	Kind
-	loc.Loc
+	pos.Pos
 	Lexeme string
 }
 

@@ -160,7 +160,14 @@ func TestRecursive(t *testing.T) {
 	lt.List().El = lt
 	t.Log(lt)
 
-	Unify(lt, lt, map[string]*Type{})
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+			}
+		}()
+		Unify(lt, lt, map[string]*Type{})
+		t.Fail()
+	}()
 }
 
 func assert(cond bool) {

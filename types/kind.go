@@ -7,13 +7,14 @@ const (
 	KBot
 	KTyVar
 
+	kPrimitiveBegin
 	KNum
 	KStr
 	KBool
 	KTime
 
-	// kTuple 类型推导函数参数使用
-	kTuple
+	kCompositeBegin
+	kTuple // 类型推导函数参数使用
 	KList
 	KMap
 	KObj
@@ -21,13 +22,24 @@ const (
 	KMaybe
 )
 
-func (k Kind) IsPrimitive() bool { return k >= KNum && k <= KTime }
-func (k Kind) IsComposite() bool { return k >= kTuple }
+var kinds = [...]string{
+	KTop:   "⊤",
+	KBot:   "⊥",
+	KTyVar: "typevar",
 
-func (k Kind) String() string {
-	return [...]string{
-		"⊤", "⊥", "typevar ",
-		"num", "str", "bool", "time", // primitive
-		"Tuple", "list", "map", "obj", "fun", "maybe", // composite
-	}[k]
+	KNum:  "num",
+	KStr:  "str",
+	KBool: "bool",
+	KTime: "time",
+
+	kTuple: "Tuple",
+	KList:  "list",
+	KMap:   "map",
+	KObj:   "obj",
+	KFun:   "fun",
+	KMaybe: "maybe",
 }
+
+func (k Kind) IsPrimitive() bool { return k > kPrimitiveBegin && k < kCompositeBegin }
+func (k Kind) IsComposite() bool { return k > kCompositeBegin }
+func (k Kind) String() string    { return kinds[k] }

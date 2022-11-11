@@ -5,8 +5,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/goghcrow/yae/parser/loc"
 	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/pos"
 	"github.com/goghcrow/yae/parser/token"
 )
 
@@ -19,7 +19,7 @@ func NewLexer(ops []oper.Operator) *lexer {
 // Lex 表达式通常都很短, 这里没有要做成语法制导按需lex, e.g. chan *token.Token
 func (l *lexer) Lex(input string) []*token.Token {
 	l.input = []rune(input)
-	l.Loc = loc.Loc{}
+	l.Pos = pos.Pos{}
 	var toks []*token.Token
 	for {
 		t := l.next()
@@ -33,19 +33,19 @@ func (l *lexer) Lex(input string) []*token.Token {
 
 var EOF = &token.Token{
 	Kind:   token.EOF,
-	Loc:    loc.Unknown,
+	Pos:    pos.Unknown,
 	Lexeme: "<END-OF-FILE>",
 }
 
 type lexer struct {
 	lexicon
-	loc.Loc
+	pos.Pos
 	input []rune
 }
 
 func (l *lexer) skipSpace() {
-	for l.Pos < len(l.input) {
-		r := l.input[l.Pos]
+	for l.Idx < len(l.input) {
+		r := l.input[l.Idx]
 		if !isSpace(r) {
 			break
 		}
@@ -55,24 +55,24 @@ func (l *lexer) skipSpace() {
 
 func (l *lexer) next() *token.Token {
 	l.skipSpace()
-	if l.Pos >= len(l.input) {
+	if l.Idx >= len(l.input) {
 		return EOF
 	}
 
-	pos := l.Loc
-	sub := string(l.input[l.Pos:])
+	p := l.Pos
+	sub := string(l.input[l.Idx:])
 	for _, rl := range l.lexicon.rules {
 		offset := rl.match(sub)
 		if offset >= 0 {
-			matched := l.input[l.Pos : l.Pos+offset]
+			matched := l.input[l.Idx : l.Idx+offset]
 			for _, r := range matched {
 				l.Move(r)
 			}
-			pos.PosEnd = l.Loc.Pos
-			return &token.Token{Kind: rl.Kind, Lexeme: string(matched), Loc: pos}
+			p.IdxEnd = l.Pos.Idx
+			return &token.Token{Kind: rl.Kind, Lexeme: string(matched), Pos: p}
 		}
 	}
-	panic(fmt.Errorf("syntax error in %s: nothing token matched", l.Loc))
+	panic(fmt.Errorf("syntax error in %s: nothing token matched", l.Pos))
 }
 
 func isSpace(r rune) bool { return unicode.IsSpace(r) }

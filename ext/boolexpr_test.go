@@ -9,8 +9,8 @@ import (
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/parser/ast"
 	"github.com/goghcrow/yae/parser/lexer"
-	"github.com/goghcrow/yae/parser/loc"
 	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/pos"
 	"github.com/goghcrow/yae/trans"
 	"github.com/goghcrow/yae/util"
 	"github.com/goghcrow/yae/val"
@@ -57,7 +57,7 @@ func TestSimple(t *testing.T) {
 				Field:    "biz_type",
 				Operator: sql.EQ,
 				Operands: []ast.Expr{
-					ast.Str(`"'xxx"`, loc.Unknown),
+					ast.Str(`"'xxx"`, pos.Unknown),
 				},
 			},
 			Cond{
@@ -65,10 +65,10 @@ func TestSimple(t *testing.T) {
 				Operator: sql.IN,
 				Operands: []ast.Expr{
 					ast.List([]ast.Expr{
-						ast.Num("1", loc.Unknown),
-						ast.Num("2", loc.Unknown),
-						ast.Num("3", loc.Unknown),
-					}, loc.Unknown),
+						ast.Num("1", pos.Unknown),
+						ast.Num("2", pos.Unknown),
+						ast.Num("3", pos.Unknown),
+					}, pos.Unknown),
 				},
 			},
 		},

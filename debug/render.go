@@ -64,7 +64,7 @@ nextValue:
 		val := vals[i]
 		startCol := val.col
 
-		// 跳过 token.UnknownLoc
+		// 跳过 Unknown
 		if startCol < 1 {
 			continue
 		}

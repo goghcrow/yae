@@ -2,8 +2,8 @@ package parser
 
 import (
 	"github.com/goghcrow/yae/parser/ast"
-	"github.com/goghcrow/yae/parser/loc"
 	"github.com/goghcrow/yae/parser/oper"
+	"github.com/goghcrow/yae/parser/pos"
 	"github.com/goghcrow/yae/parser/token"
 )
 
@@ -54,55 +54,55 @@ func newGrammar(ops []oper.Operator) grammar {
 	return g
 }
 
-func parseTrue(p *parser, bp oper.BP, t *token.Token) ast.Expr  { return ast.True(t.Loc) }
-func parseFalse(p *parser, bp oper.BP, t *token.Token) ast.Expr { return ast.False(t.Loc) }
-func parseNum(p *parser, bp oper.BP, t *token.Token) ast.Expr   { return ast.Num(t.Lexeme, t.Loc) }
-func parseStr(p *parser, bp oper.BP, t *token.Token) ast.Expr   { return ast.Str(t.Lexeme, t.Loc) }
-func parseTime(p *parser, bp oper.BP, t *token.Token) ast.Expr  { return ast.Time(t.Lexeme, t.Loc) }
+func parseTrue(p *parser, bp oper.BP, t *token.Token) ast.Expr  { return ast.True(t.Pos) }
+func parseFalse(p *parser, bp oper.BP, t *token.Token) ast.Expr { return ast.False(t.Pos) }
+func parseNum(p *parser, bp oper.BP, t *token.Token) ast.Expr   { return ast.Num(t.Lexeme, t.Pos) }
+func parseStr(p *parser, bp oper.BP, t *token.Token) ast.Expr   { return ast.Str(t.Lexeme, t.Pos) }
+func parseTime(p *parser, bp oper.BP, t *token.Token) ast.Expr  { return ast.Time(t.Lexeme, t.Pos) }
 
 func ident(p *parser, bp oper.BP, t *token.Token) ast.Expr {
-	return ast.Var(t.Lexeme, t.Loc)
+	return ast.Var(t.Lexeme, t.Pos)
 }
 
 func binaryL(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
-	name := ast.Var(t.Lexeme, t.Loc)
+	name := ast.Var(t.Lexeme, t.Pos)
 	rhs := p.expr(bp)
-	pos := loc.Range(lhs, rhs)
-	return ast.Binary(name, oper.INFIX_L, lhs, rhs, pos)
+	rg := pos.Range(lhs, rhs)
+	return ast.Binary(name, oper.INFIX_L, lhs, rhs, rg)
 }
 
 func binaryR(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
-	name := ast.Var(t.Lexeme, t.Loc)
+	name := ast.Var(t.Lexeme, t.Pos)
 	rhs := p.expr(bp - 1)
-	pos := loc.Range(lhs, rhs)
-	return ast.Binary(name, oper.INFIX_R, lhs, rhs, pos)
+	rg := pos.Range(lhs, rhs)
+	return ast.Binary(name, oper.INFIX_R, lhs, rhs, rg)
 }
 
 func binaryN(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
-	name := ast.Var(t.Lexeme, t.Loc)
+	name := ast.Var(t.Lexeme, t.Pos)
 	rhs := p.expr(bp) // 这里是否-1无所谓, 之后会检查
-	pos := loc.Range(lhs, rhs)
-	return ast.Binary(name, oper.INFIX_N, lhs, rhs, pos)
+	rg := pos.Range(lhs, rhs)
+	return ast.Binary(name, oper.INFIX_N, lhs, rhs, rg)
 }
 
 func unaryPrefix(p *parser, bp oper.BP, t *token.Token) ast.Expr {
-	name := ast.Var(t.Lexeme, t.Loc)
+	name := ast.Var(t.Lexeme, t.Pos)
 	expr := p.expr(bp)
-	pos := loc.Range(t, expr)
-	return ast.Unary(name, expr, true, pos)
+	rg := pos.Range(t, expr)
+	return ast.Unary(name, expr, true, rg)
 }
 
 func unaryPostfix(p *parser, bp oper.BP, lhs ast.Expr, t *token.Token) ast.Expr {
-	name := ast.Var(t.Lexeme, t.Loc)
-	pos := loc.Range(lhs, t)
-	return ast.Unary(name, lhs, false, pos)
+	name := ast.Var(t.Lexeme, t.Pos)
+	rg := pos.Range(lhs, t)
+	return ast.Unary(name, lhs, false, rg)
 }
 
 func parseListMap(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	if p.tryEat(token.COLON) != nil {
 		rb := p.mustEat(token.RIGHT_BRACKET)
-		pos := loc.Range(t, rb)
-		return ast.Map([]ast.Pair{}, pos)
+		rg := pos.Range(t, rb)
+		return ast.Map([]ast.Pair{}, rg)
 	}
 	return p.any("list or map", parseList(t), parseMap(t))
 }
@@ -121,8 +121,8 @@ func parseList(t *token.Token) func(p *parser) ast.Expr {
 			}
 		}
 		rb := p.mustEat(token.RIGHT_BRACKET)
-		pos := loc.Range(t, rb)
-		return ast.List(elems, pos)
+		rg := pos.Range(t, rb)
+		return ast.List(elems, rg)
 	}
 }
 
@@ -142,8 +142,8 @@ func parseMap(t *token.Token) func(p *parser) ast.Expr {
 			}
 		}
 		rb := p.mustEat(token.RIGHT_BRACKET)
-		pos := loc.Range(t, rb)
-		return ast.Map(pairs, pos)
+		rg := pos.Range(t, rb)
+		return ast.Map(pairs, rg)
 	}
 }
 
@@ -162,24 +162,24 @@ func parseObj(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 		}
 	}
 	rb := p.mustEat(token.RIGHT_BRACE)
-	pos := loc.Range(t, rb)
-	return ast.Obj(fs, pos)
+	rg := pos.Range(t, rb)
+	return ast.Obj(fs, rg)
 }
 
 func parseGroup(p *parser, bp oper.BP, t *token.Token) ast.Expr {
 	expr := p.expr(0)
 	rp := p.mustEat(token.RIGHT_PAREN)
-	pos := loc.Range(t, rp)
-	return ast.Group(expr, pos)
+	rg := pos.Range(t, rp)
+	return ast.Group(expr, rg)
 }
 
 func parseQuestion(p *parser, bp oper.BP, l ast.Expr, t *token.Token) ast.Expr {
-	name := ast.Var(t.Lexeme, t.Loc)
+	name := ast.Var(t.Lexeme, t.Pos)
 	m := p.expr(0)
 	p.mustEat(token.COLON)
 	r := p.expr(bp - 1)
-	pos := loc.Range(l, r)
-	return ast.Tenary(name, l, m, r, pos)
+	rg := pos.Range(l, r)
+	return ast.Tenary(name, l, m, r, rg)
 }
 
 func parseCall(p *parser, bp oper.BP, callee ast.Expr, t *token.Token) ast.Expr {
@@ -195,8 +195,8 @@ func parseCall(p *parser, bp oper.BP, callee ast.Expr, t *token.Token) ast.Expr 
 		}
 		rp = p.mustEat(token.RIGHT_PAREN)
 	}
-	callLoc := loc.Range(callee, rp)
-	return ast.Call(callee, args, loc.DBGCol(t.Col), callLoc)
+	callLoc := pos.Range(callee, rp)
+	return ast.Call(callee, args, pos.DBGCol(t.Col), callLoc)
 }
 
 func parseDot(p *parser, bp oper.BP, obj ast.Expr, t *token.Token) ast.Expr {
@@ -204,9 +204,9 @@ func parseDot(p *parser, bp oper.BP, obj ast.Expr, t *token.Token) ast.Expr {
 	// 放开限制则可以写 1. +(1), 1可以看成对象, .和+必须有空格是因为否则会匹配自定义操作符
 	//util.Assert(name.Kind == token.SYM || name.Kind == token.TRUE || name.Kind == token.FALSE,
 	//	"syntax error: %s", name.Lexeme)
-	field := ast.Var(name.Lexeme, name.Loc)
-	pos := loc.Range(obj, name)
-	expr := ast.Member(obj, field, loc.DBGCol(t.Col), pos)
+	field := ast.Var(name.Lexeme, name.Pos)
+	rg := pos.Range(obj, name)
+	expr := ast.Member(obj, field, pos.DBGCol(t.Col), rg)
 	lp := p.tryEat(token.LEFT_PAREN)
 	if lp == nil {
 		return expr
@@ -218,11 +218,11 @@ func parseDot(p *parser, bp oper.BP, obj ast.Expr, t *token.Token) ast.Expr {
 func parseSubscript(p *parser, bp oper.BP, list ast.Expr, t *token.Token) ast.Expr {
 	expr := p.expr(0)
 	rb := p.mustEat(token.RIGHT_BRACKET)
-	pos := loc.Range(list, rb)
-	return ast.Subscript(list, expr, loc.DBGCol(t.Col), pos)
+	rg := pos.Range(list, rb)
+	return ast.Subscript(list, expr, pos.DBGCol(t.Col), rg)
 }
 
-// if expr then expr else xxx [end]
+//// if expr then expr else xxx [end]
 //func parseIf(p *parser, bp oper.BP, iff *token.Token) ast.Expr {
 //	cond := p.expr(0)
 //	p.mustEat(token.THEN)
@@ -230,11 +230,11 @@ func parseSubscript(p *parser, bp oper.BP, list ast.Expr, t *token.Token) ast.Ex
 //	p.mustEat(token.ELSE)
 //	els := p.expr(0)
 //	end := p.tryEat(token.END)
-//	var pos loc.Loc
+//	var pos_ pos.Pos
 //	if end == nil {
-//		pos = loc.Range(iff,els)
+//		pos_ = pos.Range(iff,els)
 //	} else {
-//		pos = loc.Range(iff,end)
+//		pos_ = pos.Range(iff,end)
 //	}
-//	return ast.If(cond, then, els, pos)
+//	return ast.If(cond, then, els, pos_)
 //}

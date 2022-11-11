@@ -1,20 +1,29 @@
 package vm
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 )
 
+//goland:noinspection GoUnhandledErrorResult
 func (b *bytecode) String() string {
-	buf := "{\n"
-	buf += fmt.Sprintf("\tdata: %v\n", b.data)
-	buf += fmt.Sprintf("\tcode:\n%s", Disassemble(b))
-	buf += "}"
-	return buf
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "{\n")
+	fmt.Fprintf(&buf, "\tdata: %v\n", b.data)
+	fmt.Fprintf(&buf, "\tcode:\n")
+	disassemble(b, &buf)
+	fmt.Fprintf(&buf, "}")
+	return buf.String()
 }
 
 func Disassemble(b *bytecode) string {
-	var buf strings.Builder
+	var buf bytes.Buffer
+	disassemble(b, &buf)
+	return buf.String()
+}
+
+//goland:noinspection GoUnhandledErrorResult
+func disassemble(b *bytecode, buf *bytes.Buffer) {
 	i := 0
 	for {
 		if i >= len(b.code) {
@@ -31,15 +40,14 @@ func Disassemble(b *bytecode) string {
 			off := i - 1
 			c, w := b.readConst(i)
 			i += w
-			buf.WriteString(fmt.Sprintf("[%d] %s %v\n", off, op, c))
-
+			fmt.Fprintf(buf, "[%d] %s %v\n", off, op, c)
 		case OP_IF_TRUE:
 			fallthrough
 		case OP_JUMP:
 			off := i - 1
 			target, sz := b.readMediumInt(i)
 			i += sz
-			buf.WriteString(fmt.Sprintf("[%d] %s %d\n", off, op, target))
+			fmt.Fprintf(buf, "[%d] %s %d\n", off, op, target)
 
 		case OP_NEW_LIST:
 			fallthrough
@@ -49,19 +57,19 @@ func Disassemble(b *bytecode) string {
 			i += w
 			sz, w := b.readMediumInt(i)
 			i += w
-			buf.WriteString(fmt.Sprintf("[%d] %s %s, %d\n", off, op, ty, sz))
+			fmt.Fprintf(buf, "[%d] %s %s, %d\n", off, op, ty, sz)
 
 		case OP_NEW_OBJ:
 			off := i - 1
 			ty, w := b.readConst(i)
 			i += w
-			buf.WriteString(fmt.Sprintf("[%d] %s %s\n", off, op, ty))
+			fmt.Fprintf(buf, "[%d] %s %s\n", off, op, ty)
 
 		case OP_OBJ_LOAD:
 			off := i - 1
 			sz, w := b.readMediumInt(i)
 			i += w
-			buf.WriteString(fmt.Sprintf("[%d] %s %d\n", off, op, sz))
+			fmt.Fprintf(buf, "[%d] %s %d\n", off, op, sz)
 
 		case OP_CALL_BY_VALUE:
 			fallthrough
@@ -71,22 +79,20 @@ func Disassemble(b *bytecode) string {
 			i += w
 			argc := b.readUint8(i)
 			i += 1
-			buf.WriteString(fmt.Sprintf("[%d] %s %s, %d\n", off, op, f, argc))
+			fmt.Fprintf(buf, "[%d] %s %s, %d\n", off, op, f, argc)
 
 		case OP_DYNAMIC_CALL:
 			off := i - 1
 			argc := b.readUint8(i)
 			i += 1
-			buf.WriteString(fmt.Sprintf("[%d] %s %d\n", off, op, argc))
+			fmt.Fprintf(buf, "[%d] %s %d\n", off, op, argc)
 
 		default:
 			if op < _END_ {
-				buf.WriteString(fmt.Sprintf("[%d] %s\n", i-1, op))
+				fmt.Fprintf(buf, "[%d] %s\n", i-1, op)
 			} else {
 				panic(fmt.Errorf("[%d] unsupported opcode %d", i-1, op))
 			}
 		}
-
 	}
-	return buf.String()
 }

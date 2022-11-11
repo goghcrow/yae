@@ -45,6 +45,7 @@ func Debug(input string, v interface{}) (*val.Val, string, error) {
 	if strings.Contains(input, "\n") {
 		return nil, "", fmt.Errorf("debug mode can not contains line-break")
 	}
+
 	expr := NewExpr()
 	expr.UseCompiler(closure.DebugCompile)
 	compileTimeEnv, err := conv.TypeEnvOf(v)
@@ -59,6 +60,12 @@ func Debug(input string, v interface{}) (*val.Val, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+
+	err = expr.envCheck(compileTimeEnv, runtimeEnv)
+	if err != nil {
+		return nil, "", err
+	}
+
 	rcd := debug.NewRecord()
 	runtimeEnv.Dgb = rcd
 	res, err := compiled(runtimeEnv)
@@ -221,8 +228,12 @@ func (e *Expr) makeCallable(closure compiler.Closure, env0 *types.Env) Callable 
 				return nil, err
 			}
 		}
-		defer e.backStrace("eval", &err)
-		envCheck(env0, env1)
+
+		err = e.envCheck(env0, env1)
+		if err != nil {
+			return nil, err
+		}
+
 		rt := env1.Inherit(e.runtime)
 		vl = closure(rt)
 		return
@@ -230,13 +241,15 @@ func (e *Expr) makeCallable(closure compiler.Closure, env0 *types.Env) Callable 
 }
 
 // envCheck env0 compile-env, env runtime-env
-func envCheck(env0 *types.Env, env *val.Env) {
+func (e *Expr) envCheck(env0 *types.Env, env *val.Env) (err error) {
+	defer e.backStrace("debug", &err)
 	env0.ForEach(func(name string, ty *types.Type) {
 		v, ok := env.Get(name)
 		util.Assert(ok, "undefined %s", name)
 		util.Assert(types.Equals(ty, v.Type),
 			"type mismatched, expect `%s` actual `%s` %s", ty, v.Type, v)
 	})
+	return nil
 }
 
 func (e *Expr) backStrace(scene string, err *error) {

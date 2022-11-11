@@ -38,7 +38,7 @@ func TestLoc(t *testing.T) {
 		`) pos 39-40 line 5 col 2`,
 	}
 	for i, tok := range toks {
-		actual := tok.String() + " " + tok.Loc.String()
+		actual := tok.String() + " " + tok.Pos.String()
 		if expect[i] != actual {
 			t.Errorf("expect %s actual %s", expect[i], actual)
 		}

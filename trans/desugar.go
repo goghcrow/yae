@@ -3,7 +3,7 @@ package trans
 import (
 	"github.com/goghcrow/yae/fun"
 	"github.com/goghcrow/yae/parser/ast"
-	"github.com/goghcrow/yae/parser/loc"
+	"github.com/goghcrow/yae/parser/pos"
 	"github.com/goghcrow/yae/parser/token"
 	"github.com/goghcrow/yae/util"
 )
@@ -24,31 +24,31 @@ func Desugar(expr ast.Expr) ast.Expr {
 		for i, el := range e.Elems {
 			l[i] = Desugar(el)
 		}
-		return ast.List(l, e.Loc)
+		return ast.List(l, e.Pos)
 	case *ast.MapExpr:
 		m := make([]ast.Pair, len(e.Pairs))
 		for i, p := range e.Pairs {
 			m[i] = ast.Pair{Key: Desugar(p.Key), Val: Desugar(p.Val)}
 		}
-		return ast.Map(m, e.Loc)
+		return ast.Map(m, e.Pos)
 	case *ast.ObjExpr:
 		o := make([]ast.Field, len(e.Fields))
 		for i, f := range e.Fields {
 			o[i] = ast.Field{Name: f.Name, Val: Desugar(f.Val)}
 		}
-		return ast.Obj(o, e.Loc)
+		return ast.Obj(o, e.Pos)
 	case *ast.IdentExpr:
 		return expr
 	case *ast.UnaryExpr:
-		callee := ast.Var(e.Name, e.IdentExpr.Loc)
+		callee := ast.Var(e.Name, e.IdentExpr.Pos)
 		args := []ast.Expr{Desugar(e.LHS)}
-		dbgCol := loc.DBGCol(e.IdentExpr.Col)
-		return ast.Call(callee, args, dbgCol, e.Loc)
+		dbgCol := pos.DBGCol(e.IdentExpr.Col)
+		return ast.Call(callee, args, dbgCol, e.Pos)
 	case *ast.BinaryExpr:
-		callee := ast.Var(e.Name, e.IdentExpr.Loc)
+		callee := ast.Var(e.Name, e.IdentExpr.Pos)
 		args := []ast.Expr{Desugar(e.LHS), Desugar(e.RHS)}
-		dbgCol := loc.DBGCol(e.IdentExpr.Col)
-		return ast.Call(callee, args, dbgCol, e.Loc)
+		dbgCol := pos.DBGCol(e.IdentExpr.Col)
+		return ast.Call(callee, args, dbgCol, e.Pos)
 	case *ast.TenaryExpr:
 		if e.Name == token.QUESTION {
 			// cond ? then : else ~~> if(cond, then, else)
@@ -58,9 +58,9 @@ func Desugar(expr ast.Expr) ast.Expr {
 			// 如果 if 需要处理成特殊语法, 则需要 desugar 成 if-node
 			// return ast.If(l, m, r)
 			args := []ast.Expr{l, m, r}
-			callee := ast.Var(fun.IF, e.IdentExpr.Loc)
-			dbgCol := loc.DBGCol(e.IdentExpr.Col)
-			return ast.Call(callee, args, dbgCol, e.Loc)
+			callee := ast.Var(fun.IF, e.IdentExpr.Pos)
+			dbgCol := pos.DBGCol(e.IdentExpr.Col)
+			return ast.Call(callee, args, dbgCol, e.Pos)
 		}
 		util.Unreachable()
 		return nil
@@ -72,20 +72,20 @@ func Desugar(expr ast.Expr) ast.Expr {
 			for i, arg := range e.Args {
 				args[i+1] = Desugar(arg)
 			}
-			callee := ast.Var(mem.Field.Name, mem.Field.Loc)
-			return ast.Call(callee, args, e.DBGCol, e.Loc)
+			callee := ast.Var(mem.Field.Name, mem.Field.Pos)
+			return ast.Call(callee, args, e.DBGCol, e.Pos)
 		} else {
 			args := make([]ast.Expr, len(e.Args))
 			for i, arg := range e.Args {
 				args[i] = Desugar(arg)
 			}
 			callee := Desugar(e.Callee)
-			return ast.Call(callee, args, e.DBGCol, e.Loc)
+			return ast.Call(callee, args, e.DBGCol, e.Pos)
 		}
 	case *ast.SubscriptExpr:
-		return ast.Subscript(Desugar(e.Var), Desugar(e.Idx), e.DBGCol, e.Loc)
+		return ast.Subscript(Desugar(e.Var), Desugar(e.Idx), e.DBGCol, e.Pos)
 	case *ast.MemberExpr:
-		return ast.Member(Desugar(e.Obj), e.Field, e.DBGCol, e.Loc)
+		return ast.Member(Desugar(e.Obj), e.Field, e.DBGCol, e.Pos)
 	case *ast.GroupExpr:
 		return Desugar(e.SubExpr)
 	//case *ast.IfExpr:
