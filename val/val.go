@@ -8,6 +8,20 @@ import (
 	"github.com/goghcrow/yae/types"
 )
 
+// Value Representation
+// 1. 使用 type Val interface { isVal() } 配合 switch v:=val.(type) { }
+// 2. discriminated Unions/tagged union/variant/sum type
+// 3. tagged value / tagged pointer
+//
+// golang style 正经的方式是 1, case 写起来特别麻烦
+// 目前采用了 方法 2
+// 	 Type&Val Representation 都采用了手工模拟的 variant
+//	 	(固定内存 layout, unsafe.Point coercion 加一些 helper func)
+//	 	type Type struct { Kind/*tag*/, ...other }
+//	 	type Val struct { *Type/*tag*/, ...other }
+//	 牺牲了安全性, 写起来更方便(手动狗头)
+// 方法 3 主要用于性能优化场景, 这里不需要
+
 var (
 	True  = &(&BoolVal{Val{types.Bool}, true}).Val
 	False = &(&BoolVal{Val{types.Bool}, false}).Val

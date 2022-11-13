@@ -1,10 +1,10 @@
 package closure
 
 import (
-	"github.com/goghcrow/yae/debug"
 	"time"
 
 	"github.com/goghcrow/yae/compiler"
+	"github.com/goghcrow/yae/debug"
 	"github.com/goghcrow/yae/parser/ast"
 	"github.com/goghcrow/yae/parser/pos"
 	"github.com/goghcrow/yae/types"
@@ -251,42 +251,37 @@ func staticDispatch(env1 *val.Env, call *ast.CallExpr, dbg bool) compiler.Closur
 	} else {
 		fun = env1.MustGetPolyFuns(call.Resolved)[call.Index]
 	}
-	argc, cs := compileArgs(env1, call, dbg)
-	return makeCallClosure(fun, argc, cs)
+	cs := compileArgs(env1, call, dbg)
+	return makeCallClosure(fun, cs)
 }
 
 func dynamicDispatch(env1 *val.Env, call *ast.CallExpr, dbg bool) compiler.Closure {
 	cc := compile(call.Callee, env1, dbg)
-
-	argc, cs := compileArgs(env1, call, dbg)
+	cs := compileArgs(env1, call, dbg)
 	return func(env *val.Env) *val.Val {
 		fun := cc(env).Fun()
-		return makeCallClosure(fun, argc, cs)(env)
+		return makeCallClosure(fun, cs)(env)
 	}
 }
 
-func compileArgs(env1 *val.Env, call *ast.CallExpr, dbg bool) (int, []compiler.Closure) {
-	argc := len(call.Args)
-	cs := make([]compiler.Closure, argc)
+func compileArgs(env1 *val.Env, call *ast.CallExpr, dbg bool) []compiler.Closure {
+	cs := make([]compiler.Closure, len(call.Args))
 	for i, arg := range call.Args {
 		cs[i] = compile(arg, env1, dbg)
 	}
-	return argc, cs
+	return cs
 }
 
-func makeCallClosure(fun *val.FunVal, argc int, cs []compiler.Closure) func(env *val.Env) *val.Val {
+func makeCallClosure(fun *val.FunVal, argCs []compiler.Closure) func(env *val.Env) *val.Val {
 	return func(env *val.Env) *val.Val {
-		lazy := fun.Lazy
 		params := fun.Type.Fun().Param
-		args := make([]*val.Val, argc)
-		if lazy {
-			// 惰性求值函数参数会被包装成 thunk, 注意没有缓存
-			for i := 0; i < argc; i++ {
-				args[i] = thunkify(cs[i], env, params[i])
-			}
-		} else {
-			for i := 0; i < argc; i++ {
-				args[i] = cs[i](env)
+		args := make([]*val.Val, len(argCs))
+		for i, c := range argCs {
+			if fun.Lazy {
+				// 惰性求值函数参数会被包装成 thunk, 注意没有缓存
+				args[i] = thunkify(c, env, params[i])
+			} else {
+				args[i] = c(env)
 			}
 		}
 		return fun.Call(args...)

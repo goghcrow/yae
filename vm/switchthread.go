@@ -13,6 +13,8 @@ import (
 	"github.com/goghcrow/yae/val"
 )
 
+// Stack-based Bytecode Interpreter
+// FDX: fetch-(decode/dispatch)-execute loop
 func switchThreading(v *VM) *val.Val {
 	b := v.bytecode
 	for {

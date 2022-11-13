@@ -91,7 +91,8 @@ func NewExpr() *Expr {
 		typeCheck: types.NewEnv(),
 		runtime:   val.NewEnv(),
 		trans:     []trans.Translate{},
-		//compiler:  closure.compile,
+		//compiler:  interp.Interp,
+		//compiler: closure.Compile,
 		compiler:   vm.Compile,
 		useBuiltIn: true,
 	}
