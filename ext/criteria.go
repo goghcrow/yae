@@ -15,7 +15,7 @@ const (
 
 func (l LogicalOper) String() string { return [...]string{"AND", "OR", "NOT"}[l] }
 
-type BoolExpr interface {
+type Criteria interface {
 	expr() ast.Expr
 }
 
@@ -27,7 +27,7 @@ type Cond struct {
 
 type CondGroup struct {
 	LogicalOper
-	Conds []BoolExpr
+	Conds []Criteria
 }
 
 func (e Cond) expr() ast.Expr {

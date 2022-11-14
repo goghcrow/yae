@@ -12,14 +12,14 @@ import (
 	"github.com/goghcrow/yae/val"
 )
 
-func CompileToSql(be BoolExpr, env1 *types.Env) func(v interface{}) (string, error) {
+func CompileToSql(c Criteria, env1 *types.Env) func(v interface{}) (string, error) {
 	expr := yae.NewExpr().
 		UseBuiltIn(false).
 		RegisterOperator(oper.BuiltIn()...).
 		UseCompiler(sql.Compile).
 		RegisterFun(sql.BuiltIn()...)
 
-	closure := expr.CompileExpr(be.expr(), env1)
+	closure := expr.CompileExpr(c.expr(), env1)
 
 	return func(v interface{}) (s string, err error) {
 		env, ok := v.(*val.Env)
