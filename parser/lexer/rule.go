@@ -42,7 +42,7 @@ func keyword(k token.Kind) rule {
 }
 
 func regex(t token.Kind, pattern string) rule {
-	startWith := regexp.MustCompile("^" + pattern)
+	startWith := regexp.MustCompile("^(?:" + pattern + ")")
 	return rule{t, func(s string) int {
 		found := startWith.FindString(s)
 		if found == "" {

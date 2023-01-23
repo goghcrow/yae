@@ -2,7 +2,6 @@ package yae
 
 import (
 	"fmt"
-	"github.com/goghcrow/yae/debug"
 	"io"
 	rtdbg "runtime/debug"
 	"strings"
@@ -10,6 +9,7 @@ import (
 	"github.com/goghcrow/yae/closure"
 	"github.com/goghcrow/yae/compiler"
 	"github.com/goghcrow/yae/conv"
+	"github.com/goghcrow/yae/debug"
 	"github.com/goghcrow/yae/fun"
 	"github.com/goghcrow/yae/parser"
 	"github.com/goghcrow/yae/parser/ast"

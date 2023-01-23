@@ -15,13 +15,17 @@ func Check(expr ast.Expr, env *Env) *Type {
 	switch e := expr.(type) {
 	case *ast.StrExpr:
 		return Str
+
 	case *ast.NumExpr:
 		return Num
+
 	case *ast.TimeExpr:
 		// time 字面量会被 desugar 成 strtotime, 这里留着测试场景
 		return Time
+
 	case *ast.BoolExpr:
 		return Bool
+
 	case *ast.ListExpr:
 		sz := len(e.Elems)
 		if sz == 0 {
@@ -38,6 +42,7 @@ func Check(expr ast.Expr, env *Env) *Type {
 		ty := List(elTy)
 		e.Type = ty // attach ast
 		return ty
+
 	case *ast.MapExpr:
 		sz := len(e.Pairs)
 		if sz == 0 {
@@ -58,6 +63,7 @@ func Check(expr ast.Expr, env *Env) *Type {
 		ty := Map(kTy, vTy)
 		e.Type = ty // attach ast
 		return ty
+
 	case *ast.ObjExpr:
 		sz := len(e.Fields)
 		if sz == 0 {
@@ -74,12 +80,14 @@ func Check(expr ast.Expr, env *Env) *Type {
 		ty := Obj(fs)
 		e.Type = ty // attach ast
 		return ty
+
 	case *ast.IdentExpr:
 		id := e.Name
 		util.Assert(!lexer.Reserved(id), "%s reserved", id)
 		ty, ok := env.Get(id)
 		util.Assert(ok, "undefined %s", id)
 		return ty
+
 	case *ast.CallExpr:
 		callee := e.Callee
 
@@ -90,7 +98,6 @@ func Check(expr ast.Expr, env *Env) *Type {
 		}
 
 		var fun *FunTy
-
 		// util.Assert(callee.Type == ast.IDENT, "invalid callable %s in %s", callee, expr)
 		if ident, ok := callee.(*ast.IdentExpr); ok {
 			fn := ident.Name
@@ -113,6 +120,7 @@ func Check(expr ast.Expr, env *Env) *Type {
 
 		e.CalleeType = fun.Ty() // attach ast
 		return fun.Return
+
 	case *ast.SubscriptExpr:
 		varTy := Check(e.Var, env)
 
@@ -135,6 +143,7 @@ func Check(expr ast.Expr, env *Env) *Type {
 				"type mismatched, expect `list | map` actual `%s` in `%s`", varTy, e.Var)
 			return nil
 		}
+
 	case *ast.MemberExpr:
 		objTy := Check(e.Obj, env)
 		util.Assert(objTy.Kind == KObj,
@@ -146,6 +155,7 @@ func Check(expr ast.Expr, env *Env) *Type {
 		e.ObjType = objTy          // attach ast
 		e.Index = obj.Index[fName] // attach ast, obj index
 		return f.Val
+
 	//case *ast.IfExpr:
 	//	// IF 已经 desugar 成 lazyFun 了, 这里已经没用了
 	//	condKind := Check(e.Cond, env)
@@ -154,6 +164,7 @@ func Check(expr ast.Expr, env *Env) *Type {
 	//	elseKind := Check(e.Else, env)
 	//	typeAssert(thenKind, elseKind, expr)
 	//	return thenKind
+
 	default:
 		util.Unreachable()
 		return nil
